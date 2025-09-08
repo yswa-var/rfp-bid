@@ -9,7 +9,7 @@ cd main
 pip install -r requirements.txt
 pip install -e .
 ```
-set .env keys and path as .env.example
+set .env keys and path as main/.env.template
 
 run the project 
 ```
@@ -24,7 +24,7 @@ pip install langchain-text-splitters
 pip install --upgrade --quiet langchain-community langchain langchain-openai
 ```
 
-## How to setup milvus?
+**How to setup milvus?**
 check out rfp-rag/main/milvus_creator.py
 
-### demo RFP docs are in example-PDF.# rfp-bid
+**demo RFP docs are in example-PDF**
