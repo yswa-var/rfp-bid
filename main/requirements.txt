@@ -1,0 +1,25 @@
+# Core LangGraph and LangChain dependencies
+langgraph>=0.2.6
+langchain-core>=0.1.0
+langchain-openai>=0.1.0
+langchain-milvus>=0.1.0
+
+# Vector database
+pymilvus>=2.3.0
+
+# Environment management
+python-dotenv>=1.0.1
+
+# Type hints
+typing-extensions>=4.7.0
+
+# Development dependencies
+mypy>=1.11.1
+ruff>=0.6.1
+pytest>=8.3.5
+anyio>=4.7.0
+langgraph-cli[inmem]>=0.2.8
+
+# Additional dependencies that might be needed
+pydantic>=2.0.0
+httpx>=0.25.0
