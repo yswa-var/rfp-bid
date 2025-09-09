@@ -60,6 +60,9 @@ class RAGAgent:
             )
         
         if self.vector_store is None:
+            if not self.milvus_uri:
+                raise ValueError("MILVUS_DB_PATH environment variable is required.")
+            
             self.vector_store = Milvus(
                 embedding_function=self.embeddings,
                 connection_args={"uri": self.milvus_uri},
@@ -73,6 +76,21 @@ class RAGAgent:
                 temperature=0,
                 api_key=api_key
             )
+
+    # To handle errors correctly on retrieve state
+    def should_continue(self, state: State) -> str:
+        """
+        Determine whether to continue processing or end.
+        
+        Args:
+            state: Current state
+            
+        Returns:
+            Next node to execute or END
+        """
+        if state.get("error") or not state.get("context"):
+            return END
+        return "generate"
     
     def retrieve(self, state: State) -> Dict[str, Any]:
         """
@@ -195,3 +213,4 @@ class RAGAgent:
 
 rag_agent = RAGAgent()
 graph = rag_agent.create_graph()
+
