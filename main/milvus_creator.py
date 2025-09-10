@@ -1,11 +1,15 @@
 import getpass
 import os
+from dotenv import load_dotenv
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain import hub
 from langchain_community.document_loaders import PyPDFLoader
 from langchain.chat_models import init_chat_model
 from langchain_openai import OpenAIEmbeddings
 from langchain_milvus import Milvus
+
+# Load environment variables
+load_dotenv()
 
 
 llm = init_chat_model("gpt-4o-mini", model_provider="openai")
