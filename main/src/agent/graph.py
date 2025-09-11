@@ -25,15 +25,8 @@ from agent.tools import create_handoff_tool
 
 
 def supervisor_router(state: MessagesState) -> str:
-    """Route to appropriate agent based on supervisor agent decision and confidence score."""
+    """Route to appropriate agent based on supervisor agent decision."""
     messages = state.get("messages", [])
-    confidence_score = state.get("confidence_score")
-    follow_up_questions = state.get("follow_up_questions", [])
-    uploaded_files = state.get("uploaded_files", [])
-    
-    # Check if files were uploaded through LangGraph Studio UI
-    if uploaded_files:
-        return "pdf_parser"
     
     if not messages:
         return "general_assistant"
@@ -51,19 +44,6 @@ def supervisor_router(state: MessagesState) -> str:
         "I couldn't find any relevant information"
     ]):
         return "__end__"
-    
-    # Confidence-based routing logic
-    if confidence_score is not None:
-        if confidence_score > 5:
-            # High confidence - end the conversation with clear response
-            return "__end__"
-        elif confidence_score <= 5 and follow_up_questions:
-            # Low confidence with follow-up questions - ask user for clarification
-            follow_up_message = f"I need more information to provide a better answer. Here are some follow-up questions:\n\n" + "\n".join([f"• {q}" for q in follow_up_questions])
-            return "__end__"  # End to ask follow-up questions
-        else:
-            # Low confidence without follow-up questions - end anyway
-            return "__end__"
     
     # Get the last AI message from supervisor
     supervisor_messages = [msg for msg in messages if hasattr(msg, 'name') and msg.name == 'supervisor']
@@ -94,15 +74,14 @@ def create_supervisor_system():
 
     supervisor_prompt = (
         "You are a supervisor managing two agents:\n"
-        "- pdf_parser: Parses PDF files (either uploaded through UI or provided as file paths) and creates text chunks, then automatically creates the RAG database. Once the milvus session is created, end the session.\n"
+        "- pdf_parser: Parses user-provided PDF paths and creates text chunks, then automatically creates the RAG database. Once the milvus session is created, end the session.\n"
         "- general_assistant: Answers questions using session.db and cites sources. The system will automatically end the conversation based on confidence scores.\n\n"
         "ROUTING INSTRUCTIONS:\n"
-        "- If user provides PDF files (via upload or file paths), asks to 'index PDFs', 'process documents', 'upload files', or mentions PDF paths, respond with 'I will route this to pdf_parser'.\n"
+        "- If user provides PDF files, asks to 'index PDFs', 'process documents', 'upload files', or mentions PDF paths, respond with 'I will route this to pdf_parser'.\n"
         "- If user asks general questions about documents, queries, or needs help, respond with 'I will route this to general_assistant'.\n"
         "- Always respond with exactly one of these two routing decisions.\n"
         "- Do not do any work yourself, only route to the appropriate agent.\n"
-        "- The general_assistant will automatically handle confidence-based conversation ending.\n"
-        "- Files uploaded through LangGraph Studio UI will automatically route to pdf_parser."
+        "- The general_assistant will automatically handle confidence-based conversation ending."
     )
 
     supervisor_agent = create_react_agent(
@@ -138,7 +117,7 @@ def create_supervisor_system():
     workflow.add_edge("pdf_parser", "create_rag")
     workflow.add_edge("create_rag", END)
     
-    # General assistant goes directly to END (confidence-based routing handled in supervisor_router)
+    # General assistant goes directly to END after providing response
     workflow.add_edge("general_assistant", END)
 
     return workflow.compile()

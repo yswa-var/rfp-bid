@@ -29,30 +29,13 @@ class PDFParserAgent:
         self.milvus_ops: MilvusOps | None = None
 
     def parse_pdfs(self, state: MessagesState) -> Dict[str, Any]:
-        """Parse PDFs from either uploaded files or file paths."""
-        uploaded_files = state.get("uploaded_files", [])
         user_messages = [m for m in state["messages"] if isinstance(m, HumanMessage)]
-        
-        # Check if we have uploaded files (from LangGraph Studio UI)
-        if uploaded_files:
-            return self._process_uploaded_files(uploaded_files)
-        
-        # Check for file uploads in the message content
-        if user_messages:
-            last_message = user_messages[-1]
-            if isinstance(last_message.content, list):
-                # Handle LangGraph Studio file upload format
-                return self._process_langgraph_file_upload(last_message.content)
-            elif isinstance(last_message.content, str):
-                # Handle text-based file paths
-                pdf_paths = self._extract_pdf_paths(last_message.content)
-                if pdf_paths:
-                    return self._process_file_paths(pdf_paths)
-        
-        return {"messages": [AIMessage(content="Please provide PDF file path(s) or upload files through the UI.")]}
+        if not user_messages:
+            return {"messages": [AIMessage(content="Please provide PDF file path(s).")]}
 
-    def _extract_pdf_paths(self, query: str) -> List[str]:
-        """Extract PDF file paths from user query."""
+        query = user_messages[-1].content
+
+        # Extract potential PDF paths
         candidates: List[str] = []
         for token in query.replace("\n", " ").split():
             token = token.strip().strip('"\'')
@@ -71,106 +54,19 @@ class PDFParserAgent:
             seen.add(path)
             if os.path.exists(path):
                 pdf_paths.append(path)
-        
-        return pdf_paths
 
-    def _process_langgraph_file_upload(self, content_list: List[Any]) -> Dict[str, Any]:
-        """Process files uploaded through LangGraph Studio UI."""
-        self.milvus_ops = MilvusOps("temp_chunks.db")
-        all_chunks = []
-        parsed_files = []
+        if not pdf_paths:
+            return {
+                "messages": [
+                    AIMessage(
+                        content=(
+                            "I couldn't find valid PDF paths. Please paste absolute path(s), "
+                            "separated by commas if multiple."
+                        )
+                    )
+                ]
+            }
 
-        for content_item in content_list:
-            if isinstance(content_item, dict) and content_item.get("type") == "file":
-                try:
-                    # Handle LangGraph Studio file upload format
-                    file_data = content_item.get("data", "")
-                    filename = content_item.get("metadata", {}).get("filename", "uploaded_file.pdf")
-                    mime_type = content_item.get("mime_type", "application/pdf")
-                    
-                    if mime_type != "application/pdf":
-                        continue  # Skip non-PDF files
-                    
-                    # Create temporary file from base64 data
-                    import base64
-                    import tempfile
-                    
-                    # Decode base64 data
-                    file_bytes = base64.b64decode(file_data)
-                    
-                    # Create temporary file
-                    with tempfile.NamedTemporaryFile(suffix=".pdf", delete=False) as temp_file:
-                        temp_file.write(file_bytes)
-                        temp_file_path = temp_file.name
-                    
-                    # Parse the temporary file
-                    documents = self.milvus_ops.parse_pdf(temp_file_path)
-                    chunks = self.milvus_ops.create_chunks(documents)
-                    all_chunks.extend(chunks)
-                    parsed_files.append(filename)
-                    
-                    # Clean up temporary file
-                    os.unlink(temp_file_path)
-                    
-                except Exception as e:
-                    return {"messages": [AIMessage(content=f"Error parsing uploaded file {filename}: {e}")]}
-
-        if not parsed_files:
-            return {"messages": [AIMessage(content="No valid PDF files found in the upload.")]}
-
-        # Get chunk quality statistics
-        quality_stats = self.milvus_ops.get_chunk_quality_stats(all_chunks)
-        
-        summary = (
-            f"✅ Parsed {len(parsed_files)} uploaded PDF(s) and created {len(all_chunks)} high-quality chunks.\n"
-            f"📊 Quality Stats: {quality_stats['cleaned_chunks']} cleaned, "
-            f"{quality_stats['quality_improved_chunks']} improved, "
-            f"avg {quality_stats['average_word_count']:.0f} words/chunk\n"
-            f"📄 Document Types: {', '.join(quality_stats['document_types'].keys())}\n\n"
-            "Say 'create rag' to build a session database (session.db), or upload more PDFs."
-        )
-        return {"messages": [AIMessage(content=summary)], "chunks": all_chunks, "pdf_paths": parsed_files}
-
-    def _process_uploaded_files(self, uploaded_files: List[Any]) -> Dict[str, Any]:
-        """Process files uploaded through LangGraph Studio UI."""
-        self.milvus_ops = MilvusOps("temp_chunks.db")
-        all_chunks = []
-        parsed_files = []
-
-        for file_obj in uploaded_files:
-            try:
-                # Handle uploaded file object
-                # The file object should have a path or content attribute
-                if hasattr(file_obj, 'path'):
-                    file_path = file_obj.path
-                elif hasattr(file_obj, 'name'):
-                    file_path = file_obj.name
-                else:
-                    # If it's a string path
-                    file_path = str(file_obj)
-                
-                documents = self.milvus_ops.parse_pdf(file_path)
-                chunks = self.milvus_ops.create_chunks(documents)
-                all_chunks.extend(chunks)
-                parsed_files.append(file_path)
-            except Exception as e:
-                return {"messages": [AIMessage(content=f"Error parsing uploaded file {file_obj}: {e}")]}
-
-        # Get chunk quality statistics
-        quality_stats = self.milvus_ops.get_chunk_quality_stats(all_chunks)
-        
-        summary = (
-            f"✅ Parsed {len(parsed_files)} uploaded PDF(s) and created {len(all_chunks)} high-quality chunks.\n"
-            f"📊 Quality Stats: {quality_stats['cleaned_chunks']} cleaned, "
-            f"{quality_stats['quality_improved_chunks']} improved, "
-            f"avg {quality_stats['average_word_count']:.0f} words/chunk\n"
-            f"📄 Document Types: {', '.join(quality_stats['document_types'].keys())}\n\n"
-            "Say 'create rag' to build a session database (session.db), or upload more PDFs."
-        )
-        return {"messages": [AIMessage(content=summary)], "chunks": all_chunks, "pdf_paths": parsed_files}
-
-    def _process_file_paths(self, pdf_paths: List[str]) -> Dict[str, Any]:
-        """Process PDF files from file paths."""
         self.milvus_ops = MilvusOps("temp_chunks.db")
         all_chunks = []
         parsed_files = []

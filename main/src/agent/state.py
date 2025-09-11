@@ -1,6 +1,6 @@
 """Shared state types for the multi-agent system."""
 
-from typing import List, Optional, Any, Union
+from typing import List, Optional, Any
 from typing_extensions import TypedDict
 
 from langchain_core.messages import BaseMessage
@@ -12,7 +12,6 @@ class MessagesState(TypedDict):
     messages: List[BaseMessage]
     chunks: List[Document]
     pdf_paths: List[str]
-    uploaded_files: List[Any]  # Files uploaded through LangGraph Studio UI
     task_completed: bool  # Track if current task is completed
     iteration_count: int  # Track iterations to prevent infinite loops
     confidence_score: Optional[int]  # Confidence score from document analysis
