@@ -1,0 +1,45 @@
+SERVICE AGREEMENT TEMPLATE
+
+This Service Agreement ("Agreement") is entered into on [DATE] between [CLIENT NAME] ("Client") and [SERVICE PROVIDER] ("Provider").
+
+1. SCOPE OF SERVICES
+The Provider shall deliver the following services:
+- Managed security services including 24/7 monitoring
+- Incident response and threat detection
+- Security assessment and compliance reporting
+- Regular security updates and patches
+- Staff training and awareness programs
+
+2. TERM AND DURATION
+This Agreement shall commence on [START DATE] and continue for a period of [DURATION] years, unless terminated earlier in accordance with the terms herein.
+
+3. PAYMENT TERMS
+- Monthly fee: $[AMOUNT] per month
+- Payment due within 30 days of invoice date
+- Late payment fee: 1.5% per month
+- Additional services billed separately
+
+4. SERVICE LEVEL AGREEMENTS
+- 99.9% uptime guarantee
+- Response time: 15 minutes for critical issues
+- Resolution time: 4 hours for critical issues
+- Monthly reporting on service metrics
+
+5. CONFIDENTIALITY
+Both parties agree to maintain strict confidentiality of all proprietary information and data shared during the course of this Agreement.
+
+6. TERMINATION
+Either party may terminate this Agreement with 90 days written notice. Immediate termination allowed for material breach.
+
+7. LIABILITY
+Provider's liability shall not exceed the total amount paid by Client in the 12 months preceding the claim.
+
+8. GOVERNING LAW
+This Agreement shall be governed by the laws of [JURISDICTION].
+
+IN WITNESS WHEREOF, the parties have executed this Agreement as of the date first written above.
+
+[CLIENT SIGNATURE]                    [PROVIDER SIGNATURE]
+[CLIENT NAME]                         [PROVIDER NAME]
+[CLIENT TITLE]                        [PROVIDER TITLE]
+[DATE]                                [DATE]

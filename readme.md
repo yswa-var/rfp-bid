@@ -37,4 +37,18 @@ index this document /Users/yash/Documents/rfp/rfp-rag/example-PDF/Contracts/Requ
 or
 
 ```
-check this doument 
+# Template RAG
+python3 template_rag.py add_data --template_dir /path/to/templates
+python3 template_rag.py query_data --query "What are the payment terms?" --k 3
+
+# RFP RAG  
+python3 rfp_rag.py add_data --rfp_dir /path/to/rfp
+python3 rfp_rag.py query_data --query "What are the technical requirements?" --k 3
+
+# Interactive modes
+python3 template_rag.py interactive
+python3 rfp_rag.py interactive
+
+# Run demo
+python3 demo_rag_systems.py
+```
