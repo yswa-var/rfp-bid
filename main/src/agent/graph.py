@@ -1,216 +1,148 @@
 """
-LangGraph RAG Agent
+Multi-Agent Supervisor System (modular)
 
-A retrieval-augmented generation (RAG) agent built with LangGraph that combines
-document retrieval with language model generation to answer questions.
+Supervisor agent routes queries to worker agents and handles iterative
+clarifications as needed.
 """
 
 import os
-from typing import Dict, List, Optional, Any
-from typing_extensions import TypedDict
-
-from langchain_core.documents import Document
-from langchain_core.prompts import ChatPromptTemplate
-from langchain_openai import OpenAIEmbeddings, ChatOpenAI
-from langchain_milvus import Milvus
-
+import sys
+from pathlib import Path
+from typing import Dict, Any
+from langchain_openai import ChatOpenAI
 from langgraph.graph import StateGraph, START, END
+from langgraph.prebuilt import create_react_agent
+
+# Ensure 'src' is on sys.path so absolute imports work when loaded by path
+_CURRENT_DIR = Path(__file__).resolve().parent
+_SRC_DIR = _CURRENT_DIR.parent
+if str(_SRC_DIR) not in sys.path:
+    sys.path.insert(0, str(_SRC_DIR))
+
+from agent.state import MessagesState
+from agent.agents import PDFParserAgent, CreateRAGAgent, GeneralAssistantAgent
+from agent.tools import create_handoff_tool
 
 
-class State(TypedDict):
-    """State schema for the RAG agent."""
-    question: str
-    context: List[Document]
-    answer: str
-    sources: List[Dict[str, Any]]
-    error: Optional[str]
-
-
-class RAGAgent:
-    """RAG Agent implementation using LangGraph."""
+def supervisor_router(state: MessagesState) -> str:
+    """Route to appropriate agent based on supervisor agent decision and confidence score."""
+    messages = state.get("messages", [])
+    confidence_score = state.get("confidence_score")
+    follow_up_questions = state.get("follow_up_questions", [])
+    uploaded_files = state.get("uploaded_files", [])
     
-    def __init__(self):
-        """Initialize the RAG agent with necessary components."""
-        self.embedding_model = os.getenv("EMBEDDING_MODEL", "text-embedding-3-large")
-        self.llm_model = os.getenv("LLM_MODEL", "gpt-4o-mini")
-        self.max_docs = int(os.getenv("MAX_DOCS_RETRIEVE", "4"))
-        self.vector_store = None
-        self.embeddings = None
-        self.llm = None
-        self.milvus_uri = os.getenv("MILVUS_DB_PATH")
-        self.prompt = ChatPromptTemplate.from_messages([
-            ("system", "You are a helpful assistant that answers questions based on the provided context. "
-                      "If the context doesn't contain relevant information, say so clearly."),
-            ("human", "Context:\n{context}\n\nQuestion: {question}")
-        ])
+    # Check if files were uploaded through LangGraph Studio UI
+    if uploaded_files:
+        return "pdf_parser"
     
-    def _initialize_components(self):
-        """Lazy initialization of components that require API keys."""
-        if self.embeddings is None:
-            api_key = os.getenv("OPENAI_API_KEY")
-            if not api_key:
-                raise ValueError(
-                    "OPENAI_API_KEY environment variable is required. "
-                    "Please set it in your .env file or environment."
-                )
-            
-            self.embeddings = OpenAIEmbeddings(
-                model=self.embedding_model,
-                api_key=api_key
-            )
-        
-        if self.vector_store is None:
-            if not self.milvus_uri:
-                raise ValueError("MILVUS_DB_PATH environment variable is required.")
-            
-            self.vector_store = Milvus(
-                embedding_function=self.embeddings,
-                connection_args={"uri": self.milvus_uri},
-                index_params={"index_type": "FLAT", "metric_type": "L2"},
-            )
-        
-        if self.llm is None:
-            api_key = os.getenv("OPENAI_API_KEY")
-            self.llm = ChatOpenAI(
-                model=self.llm_model,
-                temperature=0,
-                api_key=api_key
-            )
-
-    # To handle errors correctly on retrieve state
-    def should_continue(self, state: State) -> str:
-        """
-        Determine whether to continue processing or end.
-        
-        Args:
-            state: Current state
-            
-        Returns:
-            Next node to execute or END
-        """
-        if state.get("error") or not state.get("context"):
-            return END
-        return "generate"
+    if not messages:
+        return "general_assistant"
     
-    def retrieve(self, state: State) -> Dict[str, Any]:
-        """
-        Retrieve relevant documents based on the question.
-        
-        Args:
-            state: Current state containing the question
-            
-        Returns:
-            Updated state with retrieved context documents
-        """
-        try:
-            self._initialize_components()
-            
-            question = state.get("question", "")
-            if not question.strip():
-                return {"error": "Question cannot be empty"}
-            
-            retrieved_docs = self.vector_store.similarity_search(
-                question, 
-                k=self.max_docs
-            )
-            sources = []
-            for doc in retrieved_docs:
-                source_info = {
-                    "file": doc.metadata.get('source', 'Unknown').split('/')[-1],
-                    "page": doc.metadata.get('page_label', doc.metadata.get('page', 'Unknown')),
-                    "author": doc.metadata.get('author', 'Unknown'),
-                    "content_preview": doc.page_content[:100] + "..." if len(doc.page_content) > 100 else doc.page_content
-                }
-                sources.append(source_info)
-            return {"context": retrieved_docs, "sources": sources, "error": None}
-        except Exception as e:
-            return {"error": f"Error during retrieval: {str(e)}"}
+    # Check if session database was created - end the session
+    last_message = messages[-1].content if hasattr(messages[-1], 'content') else ""
+    if "Created Milvus session database 'session.db'" in last_message:
+        return "__end__"
     
-    def generate(self, state: State) -> Dict[str, Any]:
-        """
-        Generate an answer based on the retrieved context and question.
-        
-        Args:
-            state: Current state containing question and context
-        Returns:
-            Updated state with generated answer
-        """
-        try:
-            self._initialize_components()
-            
-            if state.get("error"):
-                return {"answer": f"Cannot generate answer due to error: {state['error']}"}
-            
-            question = state.get("question", "")
-            context_docs = state.get("context", [])
-            
-            if not context_docs:
-                return {"answer": "No relevant context found to answer the question."}
-            
-            context_with_sources = []
-            for i, doc in enumerate(context_docs):
-                source_file = doc.metadata.get('source', 'Unknown').split('/')[-1]
-                page_num = doc.metadata.get('page_label', doc.metadata.get('page', 'Unknown'))
-                content_with_source = f"[Source: {source_file}, Page {page_num}]\nDocument {i+1}: {doc.page_content}"
-                context_with_sources.append(content_with_source)
-            context_text = "\n\n".join(context_with_sources)
-            messages = self.prompt.invoke({
-                "question": question,
-                "context": context_text
-            })
-            
-            response = self.llm.invoke(messages)
-            sources_info = state.get("sources", [])
-            sources_text = "\n\n--- Sources ---\n"
-            for i, source in enumerate(sources_info):
-                sources_text += f"Source {i+1}: {source['file']}, Page {source['page']}\n"
-            
-            final_answer = response.content + sources_text
-            return {"answer": final_answer, "error": None}
-            
-        except Exception as e:
-            return {"answer": f"Error generating response: {str(e)}", "error": str(e)}
+    # Check for error messages that should end the conversation
+    if any(phrase in last_message for phrase in [
+        "Session DB not found.",
+        "Error connecting to session DB:",
+        "Error processing your question:",
+        "I couldn't find any relevant information"
+    ]):
+        return "__end__"
     
-    def should_continue(self, state: State) -> str:
-        """
-        Determine whether to continue processing or end.
-        
-        Args:
-            state: Current state
-            
-        Returns:
-            Next node to execute or END
-        """
-        if state.get("error"):
-            return END
-        return "generate"
+    # Confidence-based routing logic
+    if confidence_score is not None:
+        if confidence_score > 5:
+            # High confidence - end the conversation with clear response
+            return "__end__"
+        elif confidence_score <= 5 and follow_up_questions:
+            # Low confidence with follow-up questions - ask user for clarification
+            follow_up_message = f"I need more information to provide a better answer. Here are some follow-up questions:\n\n" + "\n".join([f"• {q}" for q in follow_up_questions])
+            return "__end__"  # End to ask follow-up questions
+        else:
+            # Low confidence without follow-up questions - end anyway
+            return "__end__"
     
-    def create_graph(self) -> StateGraph:
-        """
-        Create and compile the LangGraph workflow.
-        
-        Returns:
-            Compiled StateGraph
-        """
-        workflow = StateGraph(State)
-        
-        workflow.add_node("retrieve", self.retrieve)
-        workflow.add_node("generate", self.generate)
-        
-        workflow.add_edge(START, "retrieve")
-        workflow.add_conditional_edges(
-            "retrieve",
-            self.should_continue,
-            {
-                "generate": "generate",
-                END: END
-            }
-        )
-        workflow.add_edge("generate", END)
-        
-        return workflow.compile()
+    # Get the last AI message from supervisor
+    supervisor_messages = [msg for msg in messages if hasattr(msg, 'name') and msg.name == 'supervisor']
+    if not supervisor_messages:
+        return "general_assistant"
+    
+    last_supervisor_message = supervisor_messages[-1].content.lower()
+    
+    # Check supervisor's decision
+    if "pdf_parser" in last_supervisor_message or "parse" in last_supervisor_message:
+        return "pdf_parser"
+    else:
+        return "general_assistant"
 
 
-rag_agent = RAGAgent()
-graph = rag_agent.create_graph()
+def create_supervisor_system():
+    """Create the complete supervisor system with worker agents."""
 
+    supervisor_llm = ChatOpenAI(
+        model=os.getenv("LLM_MODEL", "gpt-4o-mini"),
+        temperature=0,
+        api_key=os.getenv("OPENAI_API_KEY"),
+    )
+
+    pdf_parser_agent = PDFParserAgent()
+    create_rag_agent = CreateRAGAgent()
+    general_assistant = GeneralAssistantAgent()
+
+    supervisor_prompt = (
+        "You are a supervisor managing two agents:\n"
+        "- pdf_parser: Parses PDF files (either uploaded through UI or provided as file paths) and creates text chunks, then automatically creates the RAG database. Once the milvus session is created, end the session.\n"
+        "- general_assistant: Answers questions using session.db and cites sources. The system will automatically end the conversation based on confidence scores.\n\n"
+        "ROUTING INSTRUCTIONS:\n"
+        "- If user provides PDF files (via upload or file paths), asks to 'index PDFs', 'process documents', 'upload files', or mentions PDF paths, respond with 'I will route this to pdf_parser'.\n"
+        "- If user asks general questions about documents, queries, or needs help, respond with 'I will route this to general_assistant'.\n"
+        "- Always respond with exactly one of these two routing decisions.\n"
+        "- Do not do any work yourself, only route to the appropriate agent.\n"
+        "- The general_assistant will automatically handle confidence-based conversation ending.\n"
+        "- Files uploaded through LangGraph Studio UI will automatically route to pdf_parser."
+    )
+
+    supervisor_agent = create_react_agent(
+        supervisor_llm,
+        tools=[],  # No tools needed for simple routing
+        prompt=supervisor_prompt,
+        name="supervisor",
+    )
+
+    workflow = StateGraph(MessagesState)
+    
+    # Add nodes
+    workflow.add_node("supervisor", supervisor_agent)
+    workflow.add_node("pdf_parser", pdf_parser_agent.parse_pdfs)
+    workflow.add_node("create_rag", create_rag_agent.create_rag_database)
+    workflow.add_node("general_assistant", general_assistant.query_documents)
+
+    # Add edges with conditional routing
+    workflow.add_edge(START, "supervisor")
+    
+    # Conditional edges from supervisor to worker agents or END
+    workflow.add_conditional_edges(
+        "supervisor",
+        supervisor_router,
+        {
+            "pdf_parser": "pdf_parser",
+            "general_assistant": "general_assistant",
+            "__end__": END
+        }
+    )
+    
+    # PDF parser flows to create_rag, then to END
+    workflow.add_edge("pdf_parser", "create_rag")
+    workflow.add_edge("create_rag", END)
+    
+    # General assistant goes directly to END (confidence-based routing handled in supervisor_router)
+    workflow.add_edge("general_assistant", END)
+
+    return workflow.compile()
+
+
+# Create and export graph
+graph = create_supervisor_system()
