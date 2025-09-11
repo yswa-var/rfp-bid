@@ -73,16 +73,6 @@ def process_documents_robust():
     embeddings = OpenAIEmbeddings(model="text-embedding-3-large")
     URI = "./milvus_example.db"
 
-# Load environment variables
-load_dotenv()
-
-
-llm = init_chat_model("gpt-4o-mini", model_provider="openai")
-
-embeddings = OpenAIEmbeddings(model="text-embedding-3-large")
-
-URI = "./milvus_example.db"
-
     # Process multiple PDFs
     pdf_directory = "../example-PDF/"
     pdf_files = glob.glob(os.path.join(pdf_directory, "*.pdf"))
