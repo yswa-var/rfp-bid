@@ -27,4 +27,14 @@ pip install --upgrade --quiet langchain-community langchain langchain-openai
 **How to setup milvus?**
 check out rfp-rag/main/milvus_creator.py
 
-**demo RFP docs are in example-PDF**
+demo prompts
+
+- index this document or documents `document path` (not relative path)
+example:
+```
+index this document /Users/yash/Documents/rfp/rfp-rag/example-PDF/Contracts/Request-for-Proposal-RFP-for-Cybersecurity-Monitoring-P25-038.pdf
+```
+or
+
+```
+check this doument 

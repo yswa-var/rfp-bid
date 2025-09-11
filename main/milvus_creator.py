@@ -3,6 +3,7 @@ import os
 import glob
 from pathlib import Path
 from typing import Dict, Any, List
+from dotenv import load_dotenv
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain import hub
 from langchain_community.document_loaders import PyPDFLoader
@@ -71,6 +72,16 @@ def process_documents_robust():
     llm = init_chat_model("gpt-4o-mini", model_provider="openai")
     embeddings = OpenAIEmbeddings(model="text-embedding-3-large")
     URI = "./milvus_example.db"
+
+# Load environment variables
+load_dotenv()
+
+
+llm = init_chat_model("gpt-4o-mini", model_provider="openai")
+
+embeddings = OpenAIEmbeddings(model="text-embedding-3-large")
+
+URI = "./milvus_example.db"
 
     # Process multiple PDFs
     pdf_directory = "../example-PDF/"

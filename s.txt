@@ -1,0 +1,68 @@
+{
+  "values": {
+    "messages": [
+      {
+        "content": [
+          {
+            "type": "text",
+            "text": "index thsi document"
+          },
+          {
+            "type": "file",
+            "data": "asdfsadfgsadg..."
+            "metadata": {
+              "filename": "Request-for-proposal-for-engaging-a-Managed-Security-Services-provider-for-SOC-for-the-period-of-3-years.pdf"
+            },
+            "source_type": "base64",
+            "mime_type": "application/pdf"
+"metadata": {
+              "filename": "Request-for-proposal-for-engaging-a-Managed-Security-Services-provider-for-SOC-for-the-period-of-3-years.pdf"
+            },
+            "source_type": "base64",
+            "mime_type": "application/pdf"
+          }
+        ],
+        "additional_kwargs": {},
+        "response_metadata": {},
+        "type": "human",
+        "name": null,
+        "id": "a54d509f-ad2a-49c0-bb14-79cace04f7fe",
+        "example": false
+      },
+      {
+        "content": "I will route this to pdf_parser.",
+        "additional_kwargs": {},
+        "response_metadata": {
+          "finish_reason": "stop",
+          "model_name": "gpt-4o-mini-2024-07-18",
+          "system_fingerprint": "fp_e665f7564b",
+          "service_tier": "default"
+        },
+        "type": "ai",
+        "name": "supervisor",
+        "id": "run--189c4123-0e2b-4405-8a7f-2ae74ee93169",
+        "example": false,
+        "tool_calls": [],
+        "invalid_tool_calls": [],
+        "usage_metadata": null
+      }
+    ]
+  },
+  "next": [
+    "pdf_parser"
+  ],
+  "tasks": [
+    {
+      "id": "12002b9e-f5cf-27a6-5278-6c94988eb4bb",
+      "name": "pdf_parser",
+      "path": [
+        "__pregel_pull",
+        "pdf_parser"
+      ],
+      "error": "AttributeError(\"'list' object has no attribute 'replace'\")",
+      "interrupts": [],
+      "checkpoint": null,
+      "state": null,
+      "result": null
+    }
+  ],

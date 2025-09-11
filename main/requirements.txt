@@ -23,3 +23,9 @@ langgraph-cli[inmem]>=0.2.8
 # Additional dependencies that might be needed
 pydantic>=2.0.0
 httpx>=0.25.0
+
+# PDF processing
+PyMuPDF>=1.23.0
+
+# Text processing
+langchain-text-splitters>=0.1.0
