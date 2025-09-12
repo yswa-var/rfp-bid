@@ -23,7 +23,7 @@ from datetime import datetime
 # Add the parent directory to the path to import milvus_ops
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from milvus_ops import MilvusOps
+from .milvus_ops import MilvusOps
 
 
 class TemplateRAG:

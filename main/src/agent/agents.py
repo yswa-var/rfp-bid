@@ -12,6 +12,9 @@ from langchain_openai import ChatOpenAI
 from .state import MessagesState
 from .milvus_ops import MilvusOps
 
+from .template_rag import TemplateRAG
+from .rfp_rag import RFPRAG
+
 
 class DocumentResponse(BaseModel):
     """Pydantic model for structured document analysis response."""
@@ -263,5 +266,3 @@ Provide a comprehensive answer based on the document content.
             
         except Exception as e:
             return {"messages": [AIMessage(content=f"Error processing your question: {e}")]}
-
-

@@ -23,7 +23,10 @@ from datetime import datetime
 # Add the parent directory to the path to import milvus_ops
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from milvus_ops import MilvusOps
+try:
+    from .milvus_ops import MilvusOps
+except ImportError:
+    from milvus_ops import MilvusOps
 
 
 class RFPRAG:
@@ -236,6 +239,80 @@ class RFPRAG:
     def get_database_info(self) -> Dict[str, Any]:
         """Get information about the RFP database."""
         return self.milvus_ops.get_database_info()
+    
+    def query_data_enhanced(self, query: str, k: int = 5) -> List[Dict[str, Any]]:
+        """
+        Enhanced query with better context formatting and ranking.
+        
+        Args:
+            query: Search query string
+            k: Number of top results to return
+            
+        Returns:
+            List of enhanced search results with better context structure
+        """
+        try:
+            if not self.vector_store:
+                print("❌ No RFP database loaded. Please add data first.")
+                return []
+            
+            print(f"🔍 Enhanced search in RFP database for: '{query}'")
+            results = self.milvus_ops.query_database(query, k)
+            
+            if not results:
+                print("❌ No results found")
+                return []
+            
+            # Enhanced results with better ranking and context
+            enhanced_results = []
+            for i, result in enumerate(results):
+                enhanced_result = {
+                    'rank': i + 1,
+                    'content': result.get('content', ''),
+                    'preview': result.get('preview', result.get('content', ''))[:200],
+                    'source_file': result.get('source_file', 'Unknown'),
+                    'page': result.get('page', 'Unknown'),
+                    'accuracy': result.get('accuracy', 0.0),
+                    'distance': result.get('distance', float('inf')),
+                    'relevance_score': 1.0 - (result.get('distance', 1.0) / 2.0),
+                    'context_type': self._determine_context_type(result.get('content', '')),
+                    'word_count': len(result.get('content', '').split())
+                }
+                enhanced_results.append(enhanced_result)
+            
+            print(f"✅ Found {len(enhanced_results)} enhanced RFP results:")
+            for result in enhanced_results:
+                print(f"\n📋 Result {result['rank']}:")
+                print(f"   📄 Source: {result['source_file']}")
+                print(f"   📖 Page: {result['page']}")
+                print(f"   🎯 Relevance: {result['relevance_score']:.3f}")
+                print(f"   📊 Type: {result['context_type']}")
+                print(f"   📝 Preview: {result['preview']}")
+            
+            return enhanced_results
+            
+        except Exception as e:
+            print(f"❌ Error in enhanced query: {str(e)}")
+            return []
+    
+    def _determine_context_type(self, content: str) -> str:
+        """Determine the type of context from content analysis."""
+        content_lower = content.lower()
+        
+        if any(word in content_lower for word in ['requirement', 'scope', 'specification']):
+            return 'Requirements'
+        elif any(word in content_lower for word in ['technical', 'solution', 'approach', 'methodology']):
+            return 'Technical'
+        elif any(word in content_lower for word in ['price', 'cost', 'budget', 'payment']):
+            return 'Financial'
+        elif any(word in content_lower for word in ['timeline', 'schedule', 'deadline', 'milestone']):
+            return 'Timeline'
+        elif any(word in content_lower for word in ['legal', 'contract', 'terms', 'condition']):
+            return 'Legal'
+        elif any(word in content_lower for word in ['experience', 'reference', 'portfolio', 'case study']):
+            return 'Experience'
+        else:
+            return 'General'
     
     def interactive_mode(self):
         """Run interactive query mode."""
