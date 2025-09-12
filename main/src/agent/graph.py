@@ -21,7 +21,8 @@ if str(_SRC_DIR) not in sys.path:
 from agent.state import MessagesState
 from agent.agents import PDFParserAgent, CreateRAGAgent, GeneralAssistantAgent 
 from agent.tools import create_handoff_tool
-from agent.proposal_generator import ProposalGeneratorAgent
+# from agent.proposal_generator import ProposalGeneratorAgent  # Replaced by proposal_supervisor
+from agent.proposal_supervisor import build_parent_proposal_graph
 from agent.multi_rag_setup import MultiRAGSetupAgent
 from agent.router import supervisor_router
 
@@ -41,19 +42,21 @@ def create_supervisor_system():
     create_rag_agent = CreateRAGAgent()
     general_assistant = GeneralAssistantAgent()
     
-    # New Multi-RAG agents
+    # Multi-RAG setup agent
     multi_rag_setup_agent = MultiRAGSetupAgent()
-    proposal_generator_agent = ProposalGeneratorAgent()
+    
+    # Hierarchical Proposal Supervisor System (replaces proposal_generator)
+    proposal_supervisor_graph = build_parent_proposal_graph()
 
     supervisor_prompt = (
         "You are a supervisor managing multiple agents:\n"
         "- pdf_parser: Parses user-provided PDF paths and creates text chunks, then automatically creates the RAG database.\n"
         "- general_assistant: Answers questions using session.db and cites sources.\n"
         "- multi_rag_setup: Sets up the Multi-RAG system with templates, examples, and session databases.\n"
-        "- proposal_generator: Generates proposals using 3-level context (template_rag.db + rfp_rag.db + session.db).\n\n"
+        "- proposal_supervisor: Hierarchical proposal generation with specialized teams (technical, finance, legal, qa).\n\n"
         "ROUTING INSTRUCTIONS:\n"
         "- If user mentions 'setup multi-rag', 'setup databases', 'multi rag', or 'template rag', respond EXACTLY with: 'I will route this to multi_rag_setup'.\n"
-        "- If user asks 'generate proposal', 'create proposal', or 'rfp response', respond EXACTLY with: 'I will route this to proposal_generator'.\n"
+        "- If user asks 'generate proposal', 'create proposal', 'rfp response', or 'hierarchical proposal', respond EXACTLY with: 'I will route this to proposal_supervisor'.\n"
         "- If user provides PDF files or asks to 'index PDFs', respond EXACTLY with: 'I will route this to pdf_parser'.\n"
         "- For other questions, respond EXACTLY with: 'I will route this to general_assistant'.\n"
         "- IMPORTANT: Always respond with exactly one routing decision using the exact phrases above.\n"
@@ -76,7 +79,7 @@ def create_supervisor_system():
     workflow.add_node("general_assistant", general_assistant.query_documents)
 
     workflow.add_node("multi_rag_setup", multi_rag_setup_agent.setup_multi_rag)
-    workflow.add_node("proposal_generator", proposal_generator_agent.generate_proposal)
+    workflow.add_node("proposal_supervisor", proposal_supervisor_graph)
 
     workflow.add_edge(START, "supervisor")
 
@@ -87,7 +90,7 @@ def create_supervisor_system():
             "pdf_parser": "pdf_parser",
             "general_assistant": "general_assistant",
             "multi_rag_setup": "multi_rag_setup",      
-            "proposal_generator": "proposal_generator",  
+            "proposal_supervisor": "proposal_supervisor",
             "__end__": END
         }
     )
@@ -97,9 +100,9 @@ def create_supervisor_system():
     workflow.add_edge("create_rag", END)
     workflow.add_edge("general_assistant", END)
     
-    # New Multi-RAG flows
+    # Multi-RAG flows
     workflow.add_edge("multi_rag_setup", END)
-    workflow.add_edge("proposal_generator", END)
+    workflow.add_edge("proposal_supervisor", END)
 
     return workflow.compile()
 

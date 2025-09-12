@@ -27,9 +27,9 @@ def supervisor_router(state: MessagesState) -> str:
             return "multi_rag_setup"
         
         if any(phrase in last_user_content for phrase in [
-            "generate proposal", "create proposal", "proposal generation", "rfp response"
+            "generate proposal", "create proposal", "proposal generation", "rfp response", "hierarchical proposal"
         ]):
-            return "proposal_generator"
+            return "proposal_supervisor"
     
     # Check if session database was created - end the session
     last_message = messages[-1].content if hasattr(messages[-1], 'content') else ""
