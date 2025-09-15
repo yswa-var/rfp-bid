@@ -215,11 +215,21 @@ class ProposalSupervisorAgent:
             
             final_proposal = "\n".join(proposal_parts)
             
+            # Save final response to markdown file
+            responses_dir = Path("responses")
+            responses_dir.mkdir(exist_ok=True)
+            
+            markdown_file = responses_dir / "last_response.md"
+            with open(markdown_file, 'w', encoding='utf-8') as f:
+                f.write(final_proposal)
+            print(f"📄 Final response saved to {markdown_file}")
+            
             return {
                 "messages": [AIMessage(content=final_proposal, name="proposal_supervisor")],
                 "proposal_generated": True,
                 "teams_completed": set(team_responses.keys()),
-                "responses_file": str(responses_file)
+                "responses_file": str(responses_file),
+                "markdown_file": str(markdown_file)
             }
             
         except Exception as e:
