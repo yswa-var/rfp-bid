@@ -12,7 +12,6 @@ from langchain_openai import ChatOpenAI
 from langgraph.graph import StateGraph, START, END
 from langgraph.prebuilt import create_react_agent
 
-# Ensure 'src' is on sys.path so absolute imports work when loaded by path
 _CURRENT_DIR = Path(__file__).resolve().parent
 _SRC_DIR = _CURRENT_DIR.parent
 if str(_SRC_DIR) not in sys.path:
@@ -20,8 +19,6 @@ if str(_SRC_DIR) not in sys.path:
 
 from agent.state import MessagesState
 from agent.agents import PDFParserAgent, CreateRAGAgent, GeneralAssistantAgent 
-from agent.tools import create_handoff_tool
-# from agent.proposal_generator import ProposalGeneratorAgent  # Replaced by proposal_supervisor
 from agent.proposal_supervisor import build_parent_proposal_graph
 from agent.multi_rag_setup import MultiRAGSetupAgent
 from agent.router import supervisor_router
