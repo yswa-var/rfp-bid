@@ -71,3 +71,5 @@ curl --location 'http://localhost:2024/runs/stream' \
     "stream_mode": "messages-tuple"
   }'
 ```
+
+rfp/rfp-bid/example-PDF/Contracts/Request-for-proposal-for-engaging-a-Managed-Security-Services-provider-for-SOC-for-the-period-of-3-years.pdf
