@@ -53,3 +53,21 @@ python3 rfp_rag.py interactive
 # Run demo
 python3 demo_rag_systems.py
 ```
+
+demo curls
+```
+curl --location 'http://localhost:2024/runs/stream' \
+--header 'Content-Type: application/json' \
+--data '{
+    "assistant_id": "agent",
+    "input": {
+      "messages": [
+        {
+          "role": "human",
+          "content": "Index /Users/yash/Documents/rfp/rfp-bid/example-PDF/Contracts/Request-for-proposal-for-engaging-a-Managed-Security-Services-provider-for-SOC-for-the-period-of-3-years.pdf"
+        }
+      ]
+    },
+    "stream_mode": "messages-tuple"
+  }'
+```
