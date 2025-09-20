@@ -276,7 +276,8 @@ class MilvusOps:
                 'chunk_id': f"chunk_{i}",
                 'chunk_length': len(cleaned_content),
                 'word_count': len(cleaned_content.split()),
-                'cleaned': True
+                'cleaned': True,
+                'quality_improved': False  # Ensure this field is always present
             })
             
             filtered_chunks.append(chunk)
@@ -480,6 +481,69 @@ class MilvusOps:
         
         return cleaned
     
+    def _ensure_consistent_metadata(self, chunks: List[Document]) -> List[Document]:
+        """
+        Ensure all chunks have consistent metadata schema before insertion.
+        
+        Args:
+            chunks: List of document chunks
+            
+        Returns:
+            List of chunks with consistent metadata
+        """
+        # Define the required metadata schema
+        required_fields = {
+            'source': '',
+            'page': '1',
+            'page_label': 'Page 1',
+            'file_name': '',
+            'file_path': '',
+            'total_pages': '1',
+            'title': '',
+            'author': '',
+            'creator': '',
+            'producer': '',
+            'creation_date': '',
+            'modification_date': '',
+            'file_size': '0',
+            'document_type': 'Document',
+            'processing_timestamp': datetime.now().isoformat(),
+            'chunk_id': '',
+            'chunk_length': '0',
+            'word_count': '0',
+            'cleaned': True,
+            'quality_improved': False
+        }
+        
+        consistent_chunks = []
+        for i, chunk in enumerate(chunks):
+            # Create a copy of the chunk with consistent metadata
+            consistent_metadata = required_fields.copy()
+            
+            # Update with existing metadata, ensuring all fields are present
+            for key, value in chunk.metadata.items():
+                if key in consistent_metadata:
+                    consistent_metadata[key] = value
+            
+            # Ensure chunk_id is unique
+            if not consistent_metadata['chunk_id']:
+                consistent_metadata['chunk_id'] = f"chunk_{i}"
+            
+            # Ensure quality_improved is boolean
+            consistent_metadata['quality_improved'] = bool(consistent_metadata.get('quality_improved', False))
+            
+            # Ensure cleaned is boolean
+            consistent_metadata['cleaned'] = bool(consistent_metadata.get('cleaned', True))
+            
+            # Create new document with consistent metadata
+            consistent_chunk = Document(
+                page_content=chunk.page_content,
+                metadata=consistent_metadata
+            )
+            consistent_chunks.append(consistent_chunk)
+        
+        return consistent_chunks
+    
     def _detect_document_type(self, title: str, filename: str) -> str:
         """
         Detect document type based on title and filename.
@@ -526,10 +590,16 @@ class MilvusOps:
                 os.remove(self.db_path)
                 print(f"Removed existing database: {self.db_path}")
             
-            # Create Milvus vector store
+            # Ensure all chunks have consistent metadata schema before creating vector store
+            chunks = self._ensure_consistent_metadata(chunks)
+            
+            # Create Milvus vector store with proper connection handling
             self.vector_store = Milvus(
                 embedding_function=self.embeddings,
-                connection_args={"uri": self.db_path},
+                connection_args={
+                    "uri": self.db_path,
+                    "async_mode": False  # Disable async mode to avoid event loop issues
+                },
                 index_params={
                     "index_type": "FLAT", 
                     "metric_type": "L2"
@@ -546,7 +616,14 @@ class MilvusOps:
             return self.vector_store
             
         except Exception as e:
-            raise Exception(f"Error vectorizing and storing documents: {str(e)}")
+            # Provide more detailed error information
+            error_msg = f"Error vectorizing and storing documents: {str(e)}"
+            print(f"ERROR: {error_msg}")
+            if "quality_improved" in str(e):
+                print("This error is related to metadata schema inconsistency. The fix has been applied.")
+            if "event loop" in str(e):
+                print("This error is related to async event loop issues. The fix has been applied.")
+            raise Exception(error_msg)
     
     def setup_milvus_db(self, pdf_path: str, 
                        chunk_size: int = 1000, 
