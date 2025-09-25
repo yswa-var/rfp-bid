@@ -29,3 +29,11 @@ PyMuPDF>=1.23.0
 
 # Text processing
 langchain-text-splitters>=0.1.0
+
+# WhatsApp Integration
+flask>=2.3.0
+twilio>=8.2.0
+google-generativeai>=0.3.0
+
+# MCP Integration
+mcp>=1.0.0
