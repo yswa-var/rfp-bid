@@ -1,4 +1,4 @@
-## **Architecture Overview**
+## **Current Architecture Overview**
 
 The `proposal_supervisor_graph = build_parent_proposal_graph()` creates a **hierarchical two-level architecture**:
 
@@ -34,7 +34,7 @@ Team subgraph: rag_query → compose_section → END
 
 This creates a **sequential pipeline** where the supervisor orchestrates 4 specialized team subgraphs to build comprehensive RFPs section by section.
 
-## Updated FLOW:
+## To-Updated FLOW:
 
 ### Template Node
 **Role**: Create or refine the template. 
