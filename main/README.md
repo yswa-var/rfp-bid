@@ -1,93 +1,220 @@
-# RFP RAG Agent
+## **Architecture Overview**
 
-A Retrieval-Augmented Generation (RAG) agent built with [LangGraph](https://github.com/langchain-ai/langgraph) that combines document retrieval with language model generation to answer questions based on contextual information.
+The `proposal_supervisor_graph = build_parent_proposal_graph()` creates a **hierarchical two-level architecture**:
 
-<div align="center">
-  <img src="./static/studio_ui.png" alt="Graph view in LangGraph studio UI" width="75%" />
-</div>
+### **Level 1: Parent Supervisor** 
+- **Single orchestrator node**: `proposal_supervisor` (ProposalSupervisorAgent)
+- **Decision maker**: Routes work sequentially to specialized teams  
+- **State management**: Tracks team completion, collects all responses
+- **Flow control**: Determines when to end (all teams completed)
 
-The core logic defined in `src/agent/graph.py` showcases a two-step RAG workflow:
-1. **Retrieve**: Search for relevant documents based on the user's question
-2. **Generate**: Use the retrieved context to generate an informed answer
+### **Level 2: Team Subgraphs (4 teams)**
+Each team is a **compiled StateGraph as a node**:
+- **`technical_team`**: Technical solutions & architecture  
+- **`finance_team`**: Pricing & financial analysis
+- **`legal_team`**: Terms, compliance & contracts
+- **`qa_team`**: Quality assurance & risk management  
 
-This implementation follows LangGraph best practices with proper error handling, lazy initialization, and configurable components.
-
-## Getting Started
-
-### Prerequisites
-
-- Python 3.9 or higher
-- OpenAI API key
-
-### Installation
-
-1. **Clone and navigate to the project directory**:
-```bash
-cd path/to/rfp-rag
+### **Flow Pattern: Sequential Execution**
+```
+START → proposal_supervisor → [team_X] → proposal_supervisor → [team_Y] → ... → proposal_supervisor → final_compose → END
 ```
 
-2. **Create and activate a virtual environment**:
-```bash
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
+**Each subgraph has 2-step flow:**
+```
+Team subgraph: rag_query → compose_section → END
 ```
 
-3. **Install dependencies**:
-```bash
-pip install -r requirements.txt
-pip install -e .
+### **Key Architecture Features**
+- **Sequential processing**: One team at a time (not parallel)
+- **State propagation**: Teams → supervisor → next team  
+- **Conditional routing**: Supervisor decides which team next via `proposal_team_router`
+- **Bi-directional**: All teams return control to supervisor
+- **Specialized agents**: Each team uses team-specific RAG queries and LLM prompts
+
+This creates a **sequential pipeline** where the supervisor orchestrates 4 specialized team subgraphs to build comprehensive RFPs section by section.
+
+## Updated FLOW:
+
+### Template Node
+**Role**: Create or refine the template. 
+**Input**: 
+  - Already present template.json if created for the current section (optional)
+  - RFP document application summary and notes as RFP contains ("application should include...")
+**Output**: 
+  - Template JSON
+
+```json
+  {
+  "template_metadata": {
+    "section_name": "Technical Solution Architecture",
+    "rfp_id": "RFP-2024-CYBERSEC-001",
+    "created_date": "2024-01-15",
+    "version": "1.0",
+    "team_assigned": "technical_team"
+  },
+  "rfp_requirements": {
+    "application_should_include": [
+      "Detailed technical architecture diagram",
+      "Security controls and compliance measures",
+      "Scalability and performance specifications",
+      "Integration capabilities with existing systems",
+      "Disaster recovery and business continuity plans"
+    ],
+    "mandatory_components": [
+      "Network architecture overview",
+      "Data protection mechanisms",
+      "Monitoring and logging systems",
+      "Incident response procedures"
+    ],
+    "evaluation_criteria": [
+      "Technical feasibility (40%)",
+      "Security implementation (30%)",
+      "Cost-effectiveness (20%)",
+      "Innovation and best practices (10%)"
+    ]
+  },
+  "template_structure": {
+    "section_title": "Technical Solution Architecture",
+    "subsections": [
+      {
+        "title": "System Architecture Overview",
+        "prompts": [
+          "Provide a comprehensive overview of the proposed system architecture",
+          "Include network diagrams showing component relationships",
+          "Explain how the architecture meets scalability requirements",
+          "Detail the technology stack and infrastructure components"
+        ],
+        "required_elements": [
+          "Architecture diagrams",
+          "Component descriptions",
+          "Data flow documentation",
+          "Technology specifications"
+        ],
+        "max_length": 2000
+      },
+      {
+        "title": "Security Implementation",
+        "prompts": [
+          "Describe security controls and compliance measures",
+          "Explain data protection and encryption mechanisms",
+          "Detail access control and authentication systems",
+          "Address vulnerability management and patching procedures"
+        ],
+        "required_elements": [
+          "Security controls matrix",
+          "Compliance certifications",
+          "Risk assessment",
+          "Security monitoring tools"
+        ],
+        "max_length": 1500
+      },
+      {
+        "title": "Integration and Compatibility",
+        "prompts": [
+          "Explain integration capabilities with existing systems",
+          "Detail API specifications and protocols",
+          "Address data migration and transition planning",
+          "Describe third-party service integrations"
+        ],
+        "required_elements": [
+          "Integration architecture",
+          "API documentation",
+          "Migration timeline",
+          "Compatibility matrix"
+        ],
+        "max_length": 1200
+      },
+      {
+        "title": "Disaster Recovery and Business Continuity",
+        "prompts": [
+          "Detail disaster recovery procedures and RTO/RPO targets",
+          "Explain backup and recovery mechanisms",
+          "Describe business continuity planning",
+          "Address high availability and redundancy measures"
+        ],
+        "required_elements": [
+          "DR procedures",
+          "Backup strategies",
+          "BCP documentation",
+          "HA implementation"
+        ],
+        "max_length": 1000
+      }
+    ]
+  },
+  "team_guidelines": {
+    "technical_team": {
+      "focus_areas": [
+        "System architecture and design",
+        "Technology selection and justification",
+        "Performance and scalability",
+        "Security implementation"
+      ],
+      "deliverables": [
+        "Technical architecture diagrams",
+        "Technology specifications",
+        "Performance metrics",
+        "Security controls documentation"
+      ],
+      "rag_queries": [
+        "Find similar cybersecurity architecture implementations",
+        "Research best practices for SOC operations",
+        "Look up compliance requirements for the industry",
+        "Find performance benchmarks for security tools"
+      ]
+    }
+  },
+  "quality_checklist": [
+    "All mandatory components are addressed",
+    "Technical feasibility is demonstrated",
+    "Security measures are comprehensive",
+    "Integration capabilities are clearly explained",
+    "Compliance requirements are met",
+    "Performance targets are realistic"
+  ],
+  "output_format": {
+    "structure": "markdown",
+    "include_diagrams": true,
+    "citation_style": "APA",
+    "tone": "professional",
+    "target_audience": "technical evaluators and procurement team"
+  }
+}
 ```
 
-### Configuration
+### Section-Specific Content Node
 
-1. **Set up environment variables**:
-```bash
-cp env.template .env
+**Goal**: Parse through the template JSON and generate content for each section
+**Input**: 
+  - Template.json 
+  - RFP RAG database
+**Output**: Each section is generated (await for approval) and stored in template.json only 
+
+**Human-in-the-loop checks**:
+- **Intent**: Handle refinement in particular sections
+- **Process**: Get human approval on all sections before finalizing 
+
+**Loop Logic**:
+```
+if (approval == no): 
+    reconstruct the section based on human feedback
+if (approval == yes): 
+    save the section
 ```
 
-2. **Edit the `.env` file and add your API keys**:
-```text
-# Required
-OPENAI_API_KEY=your_openai_api_key_here
+## Refinement-Request Subgraph
+**Goal**: Handle change requests after all sections are approved and PDF is created. First identify the section/possible related sections to change, then make the changes.
 
-# Optional configurations
-EMBEDDING_MODEL=text-embedding-3-large
-LLM_MODEL=gpt-4o-mini
-MAX_DOCS_RETRIEVE=4
+#### Build-Context Node
+**Goal**: Find path to section/possible related sections to change and prompt for refinement.
+**Input**: Template.json cleaned (without prompts and required elements) - only sections
+**Output**: Concerned JSON paths to fix and user request.
 
-# Optional: Enable LangSmith tracing
-LANGCHAIN_TRACING_V2=true
-LANGCHAIN_API_KEY=your_langsmith_api_key_here
-LANGCHAIN_PROJECT=rfp-rag-agent
-```
+#### Generate-content
+input: context from rag, context from Build-Context Node 
+output: Each section is generated (await for approval) and updated in template.json
 
-### Running the Application
-
-**Start the LangGraph Server**:
-```shell
-langgraph dev
-```
-
-The server will start on `http://127.0.0.1:2024` with:
-- 🚀 API: http://127.0.0.1:2024
-- 🎨 Studio UI: https://smith.langchain.com/studio/?baseUrl=http://127.0.0.1:2024
-- 📚 API Docs: http://127.0.0.1:2024/docs
-
-For more information on LangGraph Server, [see the documentation](https://langchain-ai.github.io/langgraph/tutorials/langgraph-platform/local-server/).
-
-## How to customize
-
-1. **Define runtime context**: Modify the `Context` class in the `graph.py` file to expose the arguments you want to configure per assistant. For example, in a chatbot application you may want to define a dynamic system prompt or LLM to use. For more information on runtime context in LangGraph, [see here](https://langchain-ai.github.io/langgraph/agents/context/?h=context#static-runtime-context).
-
-2. **Extend the graph**: The core logic of the application is defined in [graph.py](./src/agent/graph.py). You can modify this file to add new nodes, edges, or change the flow of information.
-
-## Development
-
-While iterating on your graph in LangGraph Studio, you can edit past state and rerun your app from previous states to debug specific nodes. Local changes will be automatically applied via hot reload.
-
-Follow-up requests extend the same thread. You can create an entirely new thread, clearing previous history, using the `+` button in the top right.
-
-For more advanced features and examples, refer to the [LangGraph documentation](https://langchain-ai.github.io/langgraph/). These resources can help you adapt this template for your specific use case and build more sophisticated conversational agents.
-
-LangGraph Studio also integrates with [LangSmith](https://smith.langchain.com/) for more in-depth tracing and collaboration with teammates, allowing you to analyze and optimize your chatbot's performance.
-
+## Notes:
+- We'll keep the sources searched in data file (JSON) for bibliography and easy manual reads
+- On each document section content creation/updates, human approval is required (team cards) like Cursor IDE
