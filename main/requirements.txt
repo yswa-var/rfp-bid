@@ -40,3 +40,9 @@ google-generativeai>=0.3.0
 
 # MCP Integration
 mcp>=1.0.0
+
+# Office Word MCP Server for document editing
+office-word-mcp-server>=1.1.10
+
+# Async event loop handling
+nest-asyncio>=1.5.6

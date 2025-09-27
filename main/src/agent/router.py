@@ -20,6 +20,13 @@ def supervisor_router(state: MessagesState) -> str:
     if user_messages:
         last_user_content = user_messages[-1].content.lower()
         
+        # Word editing gets highest priority - check first
+        if any(phrase in last_user_content for phrase in [
+            "edit document", "modify document", "update document", "change document",
+            ".docx", ".doc", "word document", "edit word", "modify word", "edit file"
+        ]):
+            return "word_editor"
+        
         if any(phrase in last_user_content for phrase in [
             "setup multi-rag", "setup rag", "multi rag", "template rag", 
             "setup databases", "multi-rag", "setup multi"
@@ -54,5 +61,11 @@ def supervisor_router(state: MessagesState) -> str:
     # Check supervisor's decision
     if "pdf_parser" in last_supervisor_message or "parse" in last_supervisor_message:
         return "pdf_parser"
+    elif "multi_rag_setup" in last_supervisor_message:
+        return "multi_rag_setup"
+    elif "proposal_supervisor" in last_supervisor_message:
+        return "proposal_supervisor"
+    elif "word_editor" in last_supervisor_message:
+        return "word_editor"
     else:
         return "general_assistant"

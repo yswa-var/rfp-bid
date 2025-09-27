@@ -21,6 +21,7 @@ from agent.state import MessagesState
 from agent.agents import PDFParserAgent, CreateRAGAgent, GeneralAssistantAgent 
 from agent.proposal_supervisor import build_parent_proposal_graph
 from agent.multi_rag_setup import MultiRAGSetupAgent
+from agent.word_editor_agent import WordEditorAgent
 from agent.router import supervisor_router
 
 __all__ = ["graph"]
@@ -42,6 +43,9 @@ def create_supervisor_system():
     # Multi-RAG setup agent
     multi_rag_setup_agent = MultiRAGSetupAgent()
     
+    # Word Document Editor Agent
+    word_editor_agent = WordEditorAgent()
+    
     # Hierarchical Proposal Supervisor System (replaces proposal_generator)
     proposal_supervisor_graph = build_parent_proposal_graph()
 
@@ -49,11 +53,13 @@ def create_supervisor_system():
         "You are a supervisor managing multiple agents:\n"
         "- pdf_parser: Parses user-provided PDF paths and creates text chunks, then automatically creates the RAG database.\n"
         "- multi_rag_setup: Sets up the Multi-RAG system with templates, examples, and session databases.\n"
+        "- word_editor: Edits Word documents based on specific questions and instructions.\n"
         "- proposal_supervisor: Hierarchical proposal generation with specialized teams (technical, finance, legal, qa).\n\n"
         "ROUTING INSTRUCTIONS:\n"
         "- If user mentions 'setup multi-rag', 'setup databases', 'multi rag', or 'template rag', respond EXACTLY with: 'I will route this to multi_rag_setup'.\n"
         "- If user asks 'generate proposal', 'create proposal', 'rfp response', 'hierarchical proposal', or mentions 'proposal', respond EXACTLY with: 'I will route this to proposal_supervisor'.\n"
         "- If user provides PDF files or asks to 'index PDFs', respond EXACTLY with: 'I will route this to pdf_parser'.\n"
+        "- If user mentions 'edit document', 'modify document', 'update document', '.docx', or wants to edit Word documents, respond EXACTLY with: 'I will route this to word_editor'.\n"
         "- For other questions, respond EXACTLY with: 'I will route this to general_assistant'.\n"
         "- IMPORTANT: Always respond with exactly one routing decision using the exact phrases above.\n"
         "- Do not do any work yourself, only route to the appropriate agent."
@@ -75,6 +81,7 @@ def create_supervisor_system():
     workflow.add_node("general_assistant", general_assistant.query_documents)
 
     workflow.add_node("multi_rag_setup", multi_rag_setup_agent.setup_multi_rag)
+    workflow.add_node("word_editor", word_editor_agent.edit_document_section)
     workflow.add_node("proposal_supervisor", proposal_supervisor_graph)
 
     workflow.add_edge(START, "supervisor")
@@ -85,7 +92,8 @@ def create_supervisor_system():
         {
             "pdf_parser": "pdf_parser",
             "general_assistant": "general_assistant",
-            "multi_rag_setup": "multi_rag_setup",      
+            "multi_rag_setup": "multi_rag_setup",
+            "word_editor": "word_editor",      
             "proposal_supervisor": "proposal_supervisor",
             "__end__": END
         }
@@ -98,6 +106,9 @@ def create_supervisor_system():
     
     # Multi-RAG flows
     workflow.add_edge("multi_rag_setup", END)
+    
+    # Word Editor flows
+    workflow.add_edge("word_editor", END)
     workflow.add_edge("proposal_supervisor", END)
 
     return workflow.compile()
