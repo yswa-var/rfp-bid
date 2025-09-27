@@ -111,7 +111,7 @@ class CreateRAGAgent:
             }
 
         try:
-            self.milvus_ops = MilvusOps("session.db")
+            self.milvus_ops = MilvusOps("src/agent/session.db")
             self.milvus_ops.vectorize_and_store(chunks)
             return {"messages": [AIMessage(content="✅ Created Milvus session database 'session.db'. End the session.")]}
         except Exception as e:
@@ -133,7 +133,7 @@ class GeneralAssistantAgent:
 
     def query_documents(self, state: MessagesState) -> Dict[str, Any]:
         # Create MilvusOps instance and check if session.db exists
-        self.milvus_ops = MilvusOps("session.db")
+        self.milvus_ops = MilvusOps("/Users/yash/Documents/rfp/rfp-bid/main/session.db")
         
         if not os.path.exists(self.milvus_ops.db_path):
             return {"messages": [AIMessage(content="Session DB not found. Please run create_rag after parsing PDFs.")]}
