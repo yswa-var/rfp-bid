@@ -1,0 +1,1706 @@
+[
+  {
+    "name": "create_document",
+    "description": "Create a new Word document with optional metadata.",
+    "inputSchema": {
+      "properties": {
+        "filename": {
+          "type": "string"
+        },
+        "title": {
+          "default": null,
+          "type": "string"
+        },
+        "author": {
+          "default": null,
+          "type": "string"
+        }
+      },
+      "required": [
+        "filename"
+      ],
+      "type": "object"
+    },
+    "_meta": {
+      "_fastmcp": {
+        "tags": []
+      }
+    }
+  },
+  {
+    "name": "copy_document",
+    "description": "Create a copy of a Word document.",
+    "inputSchema": {
+      "properties": {
+        "source_filename": {
+          "type": "string"
+        },
+        "destination_filename": {
+          "default": null,
+          "type": "string"
+        }
+      },
+      "required": [
+        "source_filename"
+      ],
+      "type": "object"
+    },
+    "_meta": {
+      "_fastmcp": {
+        "tags": []
+      }
+    }
+  },
+  {
+    "name": "get_document_info",
+    "description": "Get information about a Word document.",
+    "inputSchema": {
+      "properties": {
+        "filename": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "filename"
+      ],
+      "type": "object"
+    },
+    "_meta": {
+      "_fastmcp": {
+        "tags": []
+      }
+    }
+  },
+  {
+    "name": "get_document_text",
+    "description": "Extract all text from a Word document.",
+    "inputSchema": {
+      "properties": {
+        "filename": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "filename"
+      ],
+      "type": "object"
+    },
+    "_meta": {
+      "_fastmcp": {
+        "tags": []
+      }
+    }
+  },
+  {
+    "name": "get_document_outline",
+    "description": "Get the structure of a Word document.",
+    "inputSchema": {
+      "properties": {
+        "filename": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "filename"
+      ],
+      "type": "object"
+    },
+    "_meta": {
+      "_fastmcp": {
+        "tags": []
+      }
+    }
+  },
+  {
+    "name": "list_available_documents",
+    "description": "List all .docx files in the specified directory.",
+    "inputSchema": {
+      "properties": {
+        "directory": {
+          "default": ".",
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "_meta": {
+      "_fastmcp": {
+        "tags": []
+      }
+    }
+  },
+  {
+    "name": "get_document_xml",
+    "description": "Get the raw XML structure of a Word document.",
+    "inputSchema": {
+      "properties": {
+        "filename": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "filename"
+      ],
+      "type": "object"
+    },
+    "_meta": {
+      "_fastmcp": {
+        "tags": []
+      }
+    }
+  },
+  {
+    "name": "insert_header_near_text",
+    "description": "Insert a header (with specified style) before or after the target paragraph. Specify by text or paragraph index. Args: filename (str), target_text (str, optional), header_title (str), position ('before' or 'after'), header_style (str, default 'Heading 1'), target_paragraph_index (int, optional).",
+    "inputSchema": {
+      "properties": {
+        "filename": {
+          "type": "string"
+        },
+        "target_text": {
+          "default": null,
+          "type": "string"
+        },
+        "header_title": {
+          "default": null,
+          "type": "string"
+        },
+        "position": {
+          "default": "after",
+          "type": "string"
+        },
+        "header_style": {
+          "default": "Heading 1",
+          "type": "string"
+        },
+        "target_paragraph_index": {
+          "default": null,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "filename"
+      ],
+      "type": "object"
+    },
+    "_meta": {
+      "_fastmcp": {
+        "tags": []
+      }
+    }
+  },
+  {
+    "name": "insert_line_or_paragraph_near_text",
+    "description": "Insert a new line or paragraph (with specified or matched style) before or after the target paragraph. Specify by text or paragraph index. Args: filename (str), target_text (str, optional), line_text (str), position ('before' or 'after'), line_style (str, optional), target_paragraph_index (int, optional).",
+    "inputSchema": {
+      "properties": {
+        "filename": {
+          "type": "string"
+        },
+        "target_text": {
+          "default": null,
+          "type": "string"
+        },
+        "line_text": {
+          "default": null,
+          "type": "string"
+        },
+        "position": {
+          "default": "after",
+          "type": "string"
+        },
+        "line_style": {
+          "default": null,
+          "type": "string"
+        },
+        "target_paragraph_index": {
+          "default": null,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "filename"
+      ],
+      "type": "object"
+    },
+    "_meta": {
+      "_fastmcp": {
+        "tags": []
+      }
+    }
+  },
+  {
+    "name": "insert_numbered_list_near_text",
+    "description": "Insert a numbered list before or after the target paragraph. Specify by text or paragraph index. Args: filename (str), target_text (str, optional), list_items (list of str), position ('before' or 'after'), target_paragraph_index (int, optional).",
+    "inputSchema": {
+      "properties": {
+        "filename": {
+          "type": "string"
+        },
+        "target_text": {
+          "default": null,
+          "type": "string"
+        },
+        "list_items": {
+          "default": null,
+          "items": {},
+          "type": "array"
+        },
+        "position": {
+          "default": "after",
+          "type": "string"
+        },
+        "target_paragraph_index": {
+          "default": null,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "filename"
+      ],
+      "type": "object"
+    },
+    "_meta": {
+      "_fastmcp": {
+        "tags": []
+      }
+    }
+  },
+  {
+    "name": "add_paragraph",
+    "description": "Add a paragraph to a Word document.",
+    "inputSchema": {
+      "properties": {
+        "filename": {
+          "type": "string"
+        },
+        "text": {
+          "type": "string"
+        },
+        "style": {
+          "default": null,
+          "type": "string"
+        }
+      },
+      "required": [
+        "filename",
+        "text"
+      ],
+      "type": "object"
+    },
+    "_meta": {
+      "_fastmcp": {
+        "tags": []
+      }
+    }
+  },
+  {
+    "name": "add_heading",
+    "description": "Add a heading to a Word document.",
+    "inputSchema": {
+      "properties": {
+        "filename": {
+          "type": "string"
+        },
+        "text": {
+          "type": "string"
+        },
+        "level": {
+          "default": 1,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "filename",
+        "text"
+      ],
+      "type": "object"
+    },
+    "_meta": {
+      "_fastmcp": {
+        "tags": []
+      }
+    }
+  },
+  {
+    "name": "add_picture",
+    "description": "Add an image to a Word document.",
+    "inputSchema": {
+      "properties": {
+        "filename": {
+          "type": "string"
+        },
+        "image_path": {
+          "type": "string"
+        },
+        "width": {
+          "default": null,
+          "type": "number"
+        }
+      },
+      "required": [
+        "filename",
+        "image_path"
+      ],
+      "type": "object"
+    },
+    "_meta": {
+      "_fastmcp": {
+        "tags": []
+      }
+    }
+  },
+  {
+    "name": "add_table",
+    "description": "Add a table to a Word document.",
+    "inputSchema": {
+      "properties": {
+        "filename": {
+          "type": "string"
+        },
+        "rows": {
+          "type": "integer"
+        },
+        "cols": {
+          "type": "integer"
+        },
+        "data": {
+          "default": null,
+          "items": {},
+          "type": "array"
+        }
+      },
+      "required": [
+        "filename",
+        "rows",
+        "cols"
+      ],
+      "type": "object"
+    },
+    "_meta": {
+      "_fastmcp": {
+        "tags": []
+      }
+    }
+  },
+  {
+    "name": "add_page_break",
+    "description": "Add a page break to the document.",
+    "inputSchema": {
+      "properties": {
+        "filename": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "filename"
+      ],
+      "type": "object"
+    },
+    "_meta": {
+      "_fastmcp": {
+        "tags": []
+      }
+    }
+  },
+  {
+    "name": "delete_paragraph",
+    "description": "Delete a paragraph from a document.",
+    "inputSchema": {
+      "properties": {
+        "filename": {
+          "type": "string"
+        },
+        "paragraph_index": {
+          "type": "integer"
+        }
+      },
+      "required": [
+        "filename",
+        "paragraph_index"
+      ],
+      "type": "object"
+    },
+    "_meta": {
+      "_fastmcp": {
+        "tags": []
+      }
+    }
+  },
+  {
+    "name": "search_and_replace",
+    "description": "Search for text and replace all occurrences.",
+    "inputSchema": {
+      "properties": {
+        "filename": {
+          "type": "string"
+        },
+        "find_text": {
+          "type": "string"
+        },
+        "replace_text": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "filename",
+        "find_text",
+        "replace_text"
+      ],
+      "type": "object"
+    },
+    "_meta": {
+      "_fastmcp": {
+        "tags": []
+      }
+    }
+  },
+  {
+    "name": "create_custom_style",
+    "description": "Create a custom style in the document.",
+    "inputSchema": {
+      "properties": {
+        "filename": {
+          "type": "string"
+        },
+        "style_name": {
+          "type": "string"
+        },
+        "bold": {
+          "default": null,
+          "type": "boolean"
+        },
+        "italic": {
+          "default": null,
+          "type": "boolean"
+        },
+        "font_size": {
+          "default": null,
+          "type": "integer"
+        },
+        "font_name": {
+          "default": null,
+          "type": "string"
+        },
+        "color": {
+          "default": null,
+          "type": "string"
+        },
+        "base_style": {
+          "default": null,
+          "type": "string"
+        }
+      },
+      "required": [
+        "filename",
+        "style_name"
+      ],
+      "type": "object"
+    },
+    "_meta": {
+      "_fastmcp": {
+        "tags": []
+      }
+    }
+  },
+  {
+    "name": "format_text",
+    "description": "Format a specific range of text within a paragraph.",
+    "inputSchema": {
+      "properties": {
+        "filename": {
+          "type": "string"
+        },
+        "paragraph_index": {
+          "type": "integer"
+        },
+        "start_pos": {
+          "type": "integer"
+        },
+        "end_pos": {
+          "type": "integer"
+        },
+        "bold": {
+          "default": null,
+          "type": "boolean"
+        },
+        "italic": {
+          "default": null,
+          "type": "boolean"
+        },
+        "underline": {
+          "default": null,
+          "type": "boolean"
+        },
+        "color": {
+          "default": null,
+          "type": "string"
+        },
+        "font_size": {
+          "default": null,
+          "type": "integer"
+        },
+        "font_name": {
+          "default": null,
+          "type": "string"
+        }
+      },
+      "required": [
+        "filename",
+        "paragraph_index",
+        "start_pos",
+        "end_pos"
+      ],
+      "type": "object"
+    },
+    "_meta": {
+      "_fastmcp": {
+        "tags": []
+      }
+    }
+  },
+  {
+    "name": "format_table",
+    "description": "Format a table with borders, shading, and structure.",
+    "inputSchema": {
+      "properties": {
+        "filename": {
+          "type": "string"
+        },
+        "table_index": {
+          "type": "integer"
+        },
+        "has_header_row": {
+          "default": null,
+          "type": "boolean"
+        },
+        "border_style": {
+          "default": null,
+          "type": "string"
+        },
+        "shading": {
+          "default": null,
+          "items": {},
+          "type": "array"
+        }
+      },
+      "required": [
+        "filename",
+        "table_index"
+      ],
+      "type": "object"
+    },
+    "_meta": {
+      "_fastmcp": {
+        "tags": []
+      }
+    }
+  },
+  {
+    "name": "set_table_cell_shading",
+    "description": "Apply shading/filling to a specific table cell.",
+    "inputSchema": {
+      "properties": {
+        "filename": {
+          "type": "string"
+        },
+        "table_index": {
+          "type": "integer"
+        },
+        "row_index": {
+          "type": "integer"
+        },
+        "col_index": {
+          "type": "integer"
+        },
+        "fill_color": {
+          "type": "string"
+        },
+        "pattern": {
+          "default": "clear",
+          "type": "string"
+        }
+      },
+      "required": [
+        "filename",
+        "table_index",
+        "row_index",
+        "col_index",
+        "fill_color"
+      ],
+      "type": "object"
+    },
+    "_meta": {
+      "_fastmcp": {
+        "tags": []
+      }
+    }
+  },
+  {
+    "name": "apply_table_alternating_rows",
+    "description": "Apply alternating row colors to a table for better readability.",
+    "inputSchema": {
+      "properties": {
+        "filename": {
+          "type": "string"
+        },
+        "table_index": {
+          "type": "integer"
+        },
+        "color1": {
+          "default": "FFFFFF",
+          "type": "string"
+        },
+        "color2": {
+          "default": "F2F2F2",
+          "type": "string"
+        }
+      },
+      "required": [
+        "filename",
+        "table_index"
+      ],
+      "type": "object"
+    },
+    "_meta": {
+      "_fastmcp": {
+        "tags": []
+      }
+    }
+  },
+  {
+    "name": "highlight_table_header",
+    "description": "Apply special highlighting to table header row.",
+    "inputSchema": {
+      "properties": {
+        "filename": {
+          "type": "string"
+        },
+        "table_index": {
+          "type": "integer"
+        },
+        "header_color": {
+          "default": "4472C4",
+          "type": "string"
+        },
+        "text_color": {
+          "default": "FFFFFF",
+          "type": "string"
+        }
+      },
+      "required": [
+        "filename",
+        "table_index"
+      ],
+      "type": "object"
+    },
+    "_meta": {
+      "_fastmcp": {
+        "tags": []
+      }
+    }
+  },
+  {
+    "name": "merge_table_cells",
+    "description": "Merge cells in a rectangular area of a table.",
+    "inputSchema": {
+      "properties": {
+        "filename": {
+          "type": "string"
+        },
+        "table_index": {
+          "type": "integer"
+        },
+        "start_row": {
+          "type": "integer"
+        },
+        "start_col": {
+          "type": "integer"
+        },
+        "end_row": {
+          "type": "integer"
+        },
+        "end_col": {
+          "type": "integer"
+        }
+      },
+      "required": [
+        "filename",
+        "table_index",
+        "start_row",
+        "start_col",
+        "end_row",
+        "end_col"
+      ],
+      "type": "object"
+    },
+    "_meta": {
+      "_fastmcp": {
+        "tags": []
+      }
+    }
+  },
+  {
+    "name": "merge_table_cells_horizontal",
+    "description": "Merge cells horizontally in a single row.",
+    "inputSchema": {
+      "properties": {
+        "filename": {
+          "type": "string"
+        },
+        "table_index": {
+          "type": "integer"
+        },
+        "row_index": {
+          "type": "integer"
+        },
+        "start_col": {
+          "type": "integer"
+        },
+        "end_col": {
+          "type": "integer"
+        }
+      },
+      "required": [
+        "filename",
+        "table_index",
+        "row_index",
+        "start_col",
+        "end_col"
+      ],
+      "type": "object"
+    },
+    "_meta": {
+      "_fastmcp": {
+        "tags": []
+      }
+    }
+  },
+  {
+    "name": "merge_table_cells_vertical",
+    "description": "Merge cells vertically in a single column.",
+    "inputSchema": {
+      "properties": {
+        "filename": {
+          "type": "string"
+        },
+        "table_index": {
+          "type": "integer"
+        },
+        "col_index": {
+          "type": "integer"
+        },
+        "start_row": {
+          "type": "integer"
+        },
+        "end_row": {
+          "type": "integer"
+        }
+      },
+      "required": [
+        "filename",
+        "table_index",
+        "col_index",
+        "start_row",
+        "end_row"
+      ],
+      "type": "object"
+    },
+    "_meta": {
+      "_fastmcp": {
+        "tags": []
+      }
+    }
+  },
+  {
+    "name": "set_table_cell_alignment",
+    "description": "Set text alignment for a specific table cell.",
+    "inputSchema": {
+      "properties": {
+        "filename": {
+          "type": "string"
+        },
+        "table_index": {
+          "type": "integer"
+        },
+        "row_index": {
+          "type": "integer"
+        },
+        "col_index": {
+          "type": "integer"
+        },
+        "horizontal": {
+          "default": "left",
+          "type": "string"
+        },
+        "vertical": {
+          "default": "top",
+          "type": "string"
+        }
+      },
+      "required": [
+        "filename",
+        "table_index",
+        "row_index",
+        "col_index"
+      ],
+      "type": "object"
+    },
+    "_meta": {
+      "_fastmcp": {
+        "tags": []
+      }
+    }
+  },
+  {
+    "name": "set_table_alignment_all",
+    "description": "Set text alignment for all cells in a table.",
+    "inputSchema": {
+      "properties": {
+        "filename": {
+          "type": "string"
+        },
+        "table_index": {
+          "type": "integer"
+        },
+        "horizontal": {
+          "default": "left",
+          "type": "string"
+        },
+        "vertical": {
+          "default": "top",
+          "type": "string"
+        }
+      },
+      "required": [
+        "filename",
+        "table_index"
+      ],
+      "type": "object"
+    },
+    "_meta": {
+      "_fastmcp": {
+        "tags": []
+      }
+    }
+  },
+  {
+    "name": "protect_document",
+    "description": "Add password protection to a Word document.",
+    "inputSchema": {
+      "properties": {
+        "filename": {
+          "type": "string"
+        },
+        "password": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "filename",
+        "password"
+      ],
+      "type": "object"
+    },
+    "_meta": {
+      "_fastmcp": {
+        "tags": []
+      }
+    }
+  },
+  {
+    "name": "unprotect_document",
+    "description": "Remove password protection from a Word document.",
+    "inputSchema": {
+      "properties": {
+        "filename": {
+          "type": "string"
+        },
+        "password": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "filename",
+        "password"
+      ],
+      "type": "object"
+    },
+    "_meta": {
+      "_fastmcp": {
+        "tags": []
+      }
+    }
+  },
+  {
+    "name": "add_footnote_to_document",
+    "description": "Add a footnote to a specific paragraph in a Word document.",
+    "inputSchema": {
+      "properties": {
+        "filename": {
+          "type": "string"
+        },
+        "paragraph_index": {
+          "type": "integer"
+        },
+        "footnote_text": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "filename",
+        "paragraph_index",
+        "footnote_text"
+      ],
+      "type": "object"
+    },
+    "_meta": {
+      "_fastmcp": {
+        "tags": []
+      }
+    }
+  },
+  {
+    "name": "add_footnote_after_text",
+    "description": "Add a footnote after specific text with proper superscript formatting.\nThis enhanced function ensures footnotes display correctly as superscript.",
+    "inputSchema": {
+      "properties": {
+        "filename": {
+          "type": "string"
+        },
+        "search_text": {
+          "type": "string"
+        },
+        "footnote_text": {
+          "type": "string"
+        },
+        "output_filename": {
+          "default": null,
+          "type": "string"
+        }
+      },
+      "required": [
+        "filename",
+        "search_text",
+        "footnote_text"
+      ],
+      "type": "object"
+    },
+    "_meta": {
+      "_fastmcp": {
+        "tags": []
+      }
+    }
+  },
+  {
+    "name": "add_footnote_before_text",
+    "description": "Add a footnote before specific text with proper superscript formatting.\nThis enhanced function ensures footnotes display correctly as superscript.",
+    "inputSchema": {
+      "properties": {
+        "filename": {
+          "type": "string"
+        },
+        "search_text": {
+          "type": "string"
+        },
+        "footnote_text": {
+          "type": "string"
+        },
+        "output_filename": {
+          "default": null,
+          "type": "string"
+        }
+      },
+      "required": [
+        "filename",
+        "search_text",
+        "footnote_text"
+      ],
+      "type": "object"
+    },
+    "_meta": {
+      "_fastmcp": {
+        "tags": []
+      }
+    }
+  },
+  {
+    "name": "add_footnote_enhanced",
+    "description": "Enhanced footnote addition with guaranteed superscript formatting.\nAdds footnote at the end of a specific paragraph with proper style handling.",
+    "inputSchema": {
+      "properties": {
+        "filename": {
+          "type": "string"
+        },
+        "paragraph_index": {
+          "type": "integer"
+        },
+        "footnote_text": {
+          "type": "string"
+        },
+        "output_filename": {
+          "default": null,
+          "type": "string"
+        }
+      },
+      "required": [
+        "filename",
+        "paragraph_index",
+        "footnote_text"
+      ],
+      "type": "object"
+    },
+    "_meta": {
+      "_fastmcp": {
+        "tags": []
+      }
+    }
+  },
+  {
+    "name": "add_endnote_to_document",
+    "description": "Add an endnote to a specific paragraph in a Word document.",
+    "inputSchema": {
+      "properties": {
+        "filename": {
+          "type": "string"
+        },
+        "paragraph_index": {
+          "type": "integer"
+        },
+        "endnote_text": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "filename",
+        "paragraph_index",
+        "endnote_text"
+      ],
+      "type": "object"
+    },
+    "_meta": {
+      "_fastmcp": {
+        "tags": []
+      }
+    }
+  },
+  {
+    "name": "customize_footnote_style",
+    "description": "Customize footnote numbering and formatting in a Word document.",
+    "inputSchema": {
+      "properties": {
+        "filename": {
+          "type": "string"
+        },
+        "numbering_format": {
+          "default": "1, 2, 3",
+          "type": "string"
+        },
+        "start_number": {
+          "default": 1,
+          "type": "integer"
+        },
+        "font_name": {
+          "default": null,
+          "type": "string"
+        },
+        "font_size": {
+          "default": null,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "filename"
+      ],
+      "type": "object"
+    },
+    "_meta": {
+      "_fastmcp": {
+        "tags": []
+      }
+    }
+  },
+  {
+    "name": "delete_footnote_from_document",
+    "description": "Delete a footnote from a Word document.\nIdentify the footnote either by ID (1, 2, 3, etc.) or by searching for text near it.",
+    "inputSchema": {
+      "properties": {
+        "filename": {
+          "type": "string"
+        },
+        "footnote_id": {
+          "default": null,
+          "type": "integer"
+        },
+        "search_text": {
+          "default": null,
+          "type": "string"
+        },
+        "output_filename": {
+          "default": null,
+          "type": "string"
+        }
+      },
+      "required": [
+        "filename"
+      ],
+      "type": "object"
+    },
+    "_meta": {
+      "_fastmcp": {
+        "tags": []
+      }
+    }
+  },
+  {
+    "name": "add_footnote_robust",
+    "description": "Add footnote with robust validation and Word compliance.\nThis is the production-ready version with comprehensive error handling.",
+    "inputSchema": {
+      "properties": {
+        "filename": {
+          "type": "string"
+        },
+        "search_text": {
+          "default": null,
+          "type": "string"
+        },
+        "paragraph_index": {
+          "default": null,
+          "type": "integer"
+        },
+        "footnote_text": {
+          "default": "",
+          "type": "string"
+        },
+        "validate_location": {
+          "default": true,
+          "type": "boolean"
+        },
+        "auto_repair": {
+          "default": false,
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "filename"
+      ],
+      "type": "object"
+    },
+    "_meta": {
+      "_fastmcp": {
+        "tags": []
+      }
+    }
+  },
+  {
+    "name": "validate_document_footnotes",
+    "description": "Validate all footnotes in document for coherence and compliance.\nReturns detailed report on ID conflicts, orphaned content, missing styles, etc.",
+    "inputSchema": {
+      "properties": {
+        "filename": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "filename"
+      ],
+      "type": "object"
+    },
+    "_meta": {
+      "_fastmcp": {
+        "tags": []
+      }
+    }
+  },
+  {
+    "name": "delete_footnote_robust",
+    "description": "Delete footnote with comprehensive cleanup and orphan removal.\nEnsures complete removal from document.xml, footnotes.xml, and relationships.",
+    "inputSchema": {
+      "properties": {
+        "filename": {
+          "type": "string"
+        },
+        "footnote_id": {
+          "default": null,
+          "type": "integer"
+        },
+        "search_text": {
+          "default": null,
+          "type": "string"
+        },
+        "clean_orphans": {
+          "default": true,
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "filename"
+      ],
+      "type": "object"
+    },
+    "_meta": {
+      "_fastmcp": {
+        "tags": []
+      }
+    }
+  },
+  {
+    "name": "get_paragraph_text_from_document",
+    "description": "Get text from a specific paragraph in a Word document.",
+    "inputSchema": {
+      "properties": {
+        "filename": {
+          "type": "string"
+        },
+        "paragraph_index": {
+          "type": "integer"
+        }
+      },
+      "required": [
+        "filename",
+        "paragraph_index"
+      ],
+      "type": "object"
+    },
+    "_meta": {
+      "_fastmcp": {
+        "tags": []
+      }
+    }
+  },
+  {
+    "name": "find_text_in_document",
+    "description": "Find occurrences of specific text in a Word document.",
+    "inputSchema": {
+      "properties": {
+        "filename": {
+          "type": "string"
+        },
+        "text_to_find": {
+          "type": "string"
+        },
+        "match_case": {
+          "default": true,
+          "type": "boolean"
+        },
+        "whole_word": {
+          "default": false,
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "filename",
+        "text_to_find"
+      ],
+      "type": "object"
+    },
+    "_meta": {
+      "_fastmcp": {
+        "tags": []
+      }
+    }
+  },
+  {
+    "name": "convert_to_pdf",
+    "description": "Convert a Word document to PDF format.",
+    "inputSchema": {
+      "properties": {
+        "filename": {
+          "type": "string"
+        },
+        "output_filename": {
+          "default": null,
+          "type": "string"
+        }
+      },
+      "required": [
+        "filename"
+      ],
+      "type": "object"
+    },
+    "_meta": {
+      "_fastmcp": {
+        "tags": []
+      }
+    }
+  },
+  {
+    "name": "replace_paragraph_block_below_header",
+    "description": "Reemplaza el bloque de p\u00e1rrafos debajo de un encabezado, evitando modificar TOC.",
+    "inputSchema": {
+      "properties": {
+        "filename": {
+          "type": "string"
+        },
+        "header_text": {
+          "type": "string"
+        },
+        "new_paragraphs": {
+          "items": {},
+          "type": "array"
+        },
+        "detect_block_end_fn": {
+          "default": null,
+          "title": "Detect Block End Fn"
+        }
+      },
+      "required": [
+        "filename",
+        "header_text",
+        "new_paragraphs"
+      ],
+      "type": "object"
+    },
+    "_meta": {
+      "_fastmcp": {
+        "tags": []
+      }
+    }
+  },
+  {
+    "name": "replace_block_between_manual_anchors",
+    "description": "Replace all content between start_anchor_text and end_anchor_text (or next logical header if not provided).",
+    "inputSchema": {
+      "properties": {
+        "filename": {
+          "type": "string"
+        },
+        "start_anchor_text": {
+          "type": "string"
+        },
+        "new_paragraphs": {
+          "items": {},
+          "type": "array"
+        },
+        "end_anchor_text": {
+          "default": null,
+          "type": "string"
+        },
+        "match_fn": {
+          "default": null,
+          "title": "Match Fn"
+        },
+        "new_paragraph_style": {
+          "default": null,
+          "type": "string"
+        }
+      },
+      "required": [
+        "filename",
+        "start_anchor_text",
+        "new_paragraphs"
+      ],
+      "type": "object"
+    },
+    "_meta": {
+      "_fastmcp": {
+        "tags": []
+      }
+    }
+  },
+  {
+    "name": "get_all_comments",
+    "description": "Extract all comments from a Word document.",
+    "inputSchema": {
+      "properties": {
+        "filename": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "filename"
+      ],
+      "type": "object"
+    },
+    "_meta": {
+      "_fastmcp": {
+        "tags": []
+      }
+    }
+  },
+  {
+    "name": "get_comments_by_author",
+    "description": "Extract comments from a specific author in a Word document.",
+    "inputSchema": {
+      "properties": {
+        "filename": {
+          "type": "string"
+        },
+        "author": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "filename",
+        "author"
+      ],
+      "type": "object"
+    },
+    "_meta": {
+      "_fastmcp": {
+        "tags": []
+      }
+    }
+  },
+  {
+    "name": "get_comments_for_paragraph",
+    "description": "Extract comments for a specific paragraph in a Word document.",
+    "inputSchema": {
+      "properties": {
+        "filename": {
+          "type": "string"
+        },
+        "paragraph_index": {
+          "type": "integer"
+        }
+      },
+      "required": [
+        "filename",
+        "paragraph_index"
+      ],
+      "type": "object"
+    },
+    "_meta": {
+      "_fastmcp": {
+        "tags": []
+      }
+    }
+  },
+  {
+    "name": "set_table_column_width",
+    "description": "Set the width of a specific table column.",
+    "inputSchema": {
+      "properties": {
+        "filename": {
+          "type": "string"
+        },
+        "table_index": {
+          "type": "integer"
+        },
+        "col_index": {
+          "type": "integer"
+        },
+        "width": {
+          "type": "number"
+        },
+        "width_type": {
+          "default": "points",
+          "type": "string"
+        }
+      },
+      "required": [
+        "filename",
+        "table_index",
+        "col_index",
+        "width"
+      ],
+      "type": "object"
+    },
+    "_meta": {
+      "_fastmcp": {
+        "tags": []
+      }
+    }
+  },
+  {
+    "name": "set_table_column_widths",
+    "description": "Set the widths of multiple table columns.",
+    "inputSchema": {
+      "properties": {
+        "filename": {
+          "type": "string"
+        },
+        "table_index": {
+          "type": "integer"
+        },
+        "widths": {
+          "items": {},
+          "type": "array"
+        },
+        "width_type": {
+          "default": "points",
+          "type": "string"
+        }
+      },
+      "required": [
+        "filename",
+        "table_index",
+        "widths"
+      ],
+      "type": "object"
+    },
+    "_meta": {
+      "_fastmcp": {
+        "tags": []
+      }
+    }
+  },
+  {
+    "name": "set_table_width",
+    "description": "Set the overall width of a table.",
+    "inputSchema": {
+      "properties": {
+        "filename": {
+          "type": "string"
+        },
+        "table_index": {
+          "type": "integer"
+        },
+        "width": {
+          "type": "number"
+        },
+        "width_type": {
+          "default": "points",
+          "type": "string"
+        }
+      },
+      "required": [
+        "filename",
+        "table_index",
+        "width"
+      ],
+      "type": "object"
+    },
+    "_meta": {
+      "_fastmcp": {
+        "tags": []
+      }
+    }
+  },
+  {
+    "name": "auto_fit_table_columns",
+    "description": "Set table columns to auto-fit based on content.",
+    "inputSchema": {
+      "properties": {
+        "filename": {
+          "type": "string"
+        },
+        "table_index": {
+          "type": "integer"
+        }
+      },
+      "required": [
+        "filename",
+        "table_index"
+      ],
+      "type": "object"
+    },
+    "_meta": {
+      "_fastmcp": {
+        "tags": []
+      }
+    }
+  },
+  {
+    "name": "format_table_cell_text",
+    "description": "Format text within a specific table cell.",
+    "inputSchema": {
+      "properties": {
+        "filename": {
+          "type": "string"
+        },
+        "table_index": {
+          "type": "integer"
+        },
+        "row_index": {
+          "type": "integer"
+        },
+        "col_index": {
+          "type": "integer"
+        },
+        "text_content": {
+          "default": null,
+          "type": "string"
+        },
+        "bold": {
+          "default": null,
+          "type": "boolean"
+        },
+        "italic": {
+          "default": null,
+          "type": "boolean"
+        },
+        "underline": {
+          "default": null,
+          "type": "boolean"
+        },
+        "color": {
+          "default": null,
+          "type": "string"
+        },
+        "font_size": {
+          "default": null,
+          "type": "integer"
+        },
+        "font_name": {
+          "default": null,
+          "type": "string"
+        }
+      },
+      "required": [
+        "filename",
+        "table_index",
+        "row_index",
+        "col_index"
+      ],
+      "type": "object"
+    },
+    "_meta": {
+      "_fastmcp": {
+        "tags": []
+      }
+    }
+  },
+  {
+    "name": "set_table_cell_padding",
+    "description": "Set padding/margins for a specific table cell.",
+    "inputSchema": {
+      "properties": {
+        "filename": {
+          "type": "string"
+        },
+        "table_index": {
+          "type": "integer"
+        },
+        "row_index": {
+          "type": "integer"
+        },
+        "col_index": {
+          "type": "integer"
+        },
+        "top": {
+          "default": null,
+          "type": "number"
+        },
+        "bottom": {
+          "default": null,
+          "type": "number"
+        },
+        "left": {
+          "default": null,
+          "type": "number"
+        },
+        "right": {
+          "default": null,
+          "type": "number"
+        },
+        "unit": {
+          "default": "points",
+          "type": "string"
+        }
+      },
+      "required": [
+        "filename",
+        "table_index",
+        "row_index",
+        "col_index"
+      ],
+      "type": "object"
+    },
+    "_meta": {
+      "_fastmcp": {
+        "tags": []
+      }
+    }
+  }
+]
