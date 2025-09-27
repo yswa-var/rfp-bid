@@ -9,6 +9,11 @@ Microsoft Teams bot that generates professional RFP proposals using LangGraph mu
 ```bash
 # Clone and setup
 git clone <repo-url>
+cd rfp-bid/main
+mkdir -p devTools/teamsapptester
+npm i @microsoft/teams-app-test-tool --prefix "devTools/teamsapptester"
+
+
 cd rfp-bid/main/src/teams
 
 # Create virtual environment
@@ -17,6 +22,8 @@ source venv/bin/activate
 
 # Install dependencies
 pip install -r requirements-teams.txt
+
+pip install botbuilder-core botbuilder-schema flask python-dotenv
 ```
 
 ## 🔑 Environment Setup
