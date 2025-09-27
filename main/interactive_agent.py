@@ -48,15 +48,32 @@ def main():
             
             # Process the question
             print("\n🔍 Processing your question...")
-            result = graph.invoke({"question": question})
+            
+            # Convert question to proper message format for the graph
+            from langchain_core.messages import HumanMessage
+            result = graph.invoke({
+                "messages": [HumanMessage(content=question)],
+                "question": question  # Keep for backward compatibility
+            })
             
             # Display results
             if result.get("error"):
                 print(f"❌ Error: {result['error']}")
             else:
+                # Check if result has messages (Word editor format)
+                if result.get("messages"):
+                    last_message = result["messages"][-1]
+                    if hasattr(last_message, 'content'):
+                        answer = last_message.content
+                    else:
+                        answer = str(last_message)
+                else:
+                    # Fallback to answer field (other agents format)
+                    answer = result.get("answer", "No answer generated")
+                
                 print("\n📝 Answer:")
                 print("-" * 40)
-                print(result.get("answer", "No answer generated"))
+                print(answer)
                 print("-" * 40)
                 
                 # Show sources if available

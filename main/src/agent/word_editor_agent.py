@@ -184,32 +184,28 @@ class ContextAwareWordEditorAgent:
             
             # Query template database for document structure/format context
             template_query = f"document template structure format {instruction} editing"
-            template_results = self.rag_coordinator.query_template_context(template_query, k=3)
-            if template_results:
-                context_info["template_results"] = template_results
-                print(f"📋 Found {len(template_results)} template context results")
+            all_results = self.rag_coordinator.query_all_rags(template_query, k=3)
+            
+            if all_results.get("template_context"):
+                context_info["template_results"] = all_results["template_context"]
+                print(f"📋 Found {len(all_results['template_context'])} template context results")
             
             # Query examples database for similar editing examples
-            examples_query = f"document editing examples {instruction} similar changes"
-            examples_results = self.rag_coordinator.query_examples_context(examples_query, k=3)
-            if examples_results:
-                context_info["examples_results"] = examples_results
-                print(f"📚 Found {len(examples_results)} example context results")
+            if all_results.get("examples_context"):
+                context_info["examples_results"] = all_results["examples_context"]
+                print(f"📚 Found {len(all_results['examples_context'])} example context results")
             
             # Query session database for conversation context
-            session_query = f"previous document edits {instruction} context"
-            if self.session_db:
-                session_results = self.session_db.query_similar(session_query, k=5)
-                if session_results:
-                    context_info["session_results"] = session_results
-                    print(f"💬 Found {len(session_results)} session context results")
+            if all_results.get("session_context"):
+                context_info["session_results"] = all_results["session_context"]
+                print(f"💬 Found {len(all_results['session_context'])} session context results")
             
             # Query for QA-specific context
             qa_query = f"quality assurance document editing standards {instruction}"
-            qa_context = self.rag_coordinator.query_template_context(qa_query, k=2)
-            if qa_context:
-                context_info["qa_context"] = qa_context
-                print(f"✅ Found {len(qa_context)} QA context results")
+            qa_results = self.rag_coordinator.query_all_rags(qa_query, k=2)
+            if qa_results.get("template_context"):
+                context_info["qa_context"] = qa_results["template_context"]
+                print(f"✅ Found {len(qa_results['template_context'])} QA context results")
             
         except Exception as e:
             print(f"⚠️ Error querying embeddings: {e}")
