@@ -165,3 +165,5 @@ uv.lock
 .langgraph_api/
 
 memory-sample-agent/
+
+devTools/
