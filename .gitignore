@@ -123,6 +123,7 @@ celerybeat.pid
 
 # Environments
 .env
+.env.teams
 .venv
 env/
 venv/
@@ -162,3 +163,7 @@ cython_debug/
 #.idea/
 uv.lock
 .langgraph_api/
+
+memory-sample-agent/
+
+devTools/

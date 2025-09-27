@@ -1,0 +1,7 @@
+python-dotenv
+aiohttp
+teams-ai
+botbuilder
+pydantic>=2.10.3
+litellm>=1.54.1
+teams_memory[azure-search]>=0.1.4a0
