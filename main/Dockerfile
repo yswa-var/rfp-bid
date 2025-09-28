@@ -18,8 +18,9 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Also install LangGraph CLI + extra if needed
 RUN pip install --no-cache-dir "langgraph-cli[all]"
 
-# Copy everything
+# Copy everything (including Mcp_client_word from parent directory)
 COPY . .
+COPY ../Mcp_client_word ./Mcp_client_word
 
 # Expose the port LangGraph Studio / Server will use
 EXPOSE 8080

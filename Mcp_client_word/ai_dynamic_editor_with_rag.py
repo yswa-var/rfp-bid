@@ -14,8 +14,9 @@ from openai import OpenAI
 from dotenv import load_dotenv
 
 # Add the main RFP system to path
-rfp_main_path = '/home/arun/Pictures/rfp-bid/main'
-rfp_src_path = '/home/arun/Pictures/rfp-bid/main/src'
+script_dir = os.path.dirname(os.path.abspath(__file__))
+rfp_main_path = os.path.join(os.path.dirname(script_dir), 'main')
+rfp_src_path = os.path.join(rfp_main_path, 'src')
 
 if os.path.exists(rfp_src_path):
     sys.path.insert(0, rfp_src_path)
@@ -40,8 +41,9 @@ class AIDynamicEditorWithRAG:
     """Enhanced AI Dynamic Editor with LangGraph RAG integration"""
     
     def __init__(self, document_name="proposal_20250927_142039.docx"):
-        self.document_path = f"/home/arun/Pictures/rfp-bid/Mcp_client_word/{document_name}"
-        self.server_path = "/home/arun/Pictures/rfp-bid/Mcp_client_word/Office-Word-MCP-Server/word_mcp_server.py"
+        script_dir = os.path.dirname(os.path.abspath(__file__))
+        self.document_path = os.path.join(script_dir, document_name)
+        self.server_path = os.path.join(os.path.dirname(script_dir), "Office-Word-MCP-Server", "word_mcp_server.py")
         self.client = OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
         self.server_process = None
         self.tools = []

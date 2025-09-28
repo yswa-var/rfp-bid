@@ -12,9 +12,9 @@ def main():
     """Launch the AI Dynamic Editor with proper environment setup"""
     
     # Set up the environment
-    script_dir = "/home/arun/Pictures/rfp-bid/Mcp_client_word"
-    main_dir = "/home/arun/Pictures/rfp-bid/main"
-    src_dir = "/home/arun/Pictures/rfp-bid/main/src"
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    main_dir = os.path.join(os.path.dirname(script_dir), "main")
+    src_dir = os.path.join(main_dir, "src")
     
     # Set PYTHONPATH
     pythonpath = src_dir

@@ -5,5 +5,7 @@
   },
   "env": ".env",
   "image_distro": "wolfi",
-  "python_version": "3.11"
+  "python_version": "3.11",
+  "dockerfile": "Dockerfile",
+  "docker_compose": "docker-compose.yml"
 }

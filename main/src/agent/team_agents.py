@@ -70,7 +70,7 @@ class BaseTeamAgent:
             user_messages = [m for m in messages if isinstance(m, HumanMessage)]
             rfp_content = user_messages[-1].content if user_messages else "General RFP"
             
-            # Generate team-specific section
+            # Generate team-specific section optimized for RAG editor integration
             prompt = f"""Generate a professional proposal section focused on {specialization}.
 
 **Team Specialization:** {self.team_name} - {specialization}
@@ -89,43 +89,49 @@ class BaseTeamAgent:
 **Current RFP Details:** {rfp_content[:400]}
 
 **INSTRUCTIONS:**
-- Generate a Brief to the point crisp section that demonstrates expertise in {specialization}
+- Generate a comprehensive section that demonstrates expertise in {specialization}
 - Use the template context for proper structure and format
 - Incorporate relevant examples from similar RFPs
 - Align closely with the current RFP requirements
 - Write in professional proposal language
 - Make it specific and actionable, not generic
 - Include relevant details that demonstrate understanding of {specialization}
+- Format content for easy integration into DOCX documents
+- Use clear headings and bullet points where appropriate
+- Ensure content is self-contained and professional
 
 **{specialization.upper()} SECTION:**"""
 
             response = self.llm.invoke(prompt)
             
-            # Format the complete section
-            section_content = f"""## {specialization.title()}
-
-**Team:** {self.team_name}
-**Specialization:** {specialization}
-
-{response.content}
-"""
+            # Create structured output for RAG editor integration
+            team_node_name = self._get_team_node_name()
+            
+            # Store both formatted and raw content for different uses
+            section_content = {
+                "team_name": team_node_name,
+                "specialization": specialization,
+                "raw_content": response.content,
+                "formatted_content": self._format_for_document(response.content, specialization),
+                "metadata": {
+                    "context_sources": {
+                        "template_context": len(contexts.get('template_context', [])),
+                        "examples_context": len(contexts.get('examples_context', [])),
+                        "session_context": len(contexts.get('session_context', []))
+                    },
+                    "rfp_content_length": len(rfp_content),
+                    "generation_timestamp": self._get_timestamp()
+                }
+            }
             
             # Store contribution in state
             team_contributions = state.get("team_contributions", {})
             team_contributions[self.team_name] = section_content
             state["team_contributions"] = team_contributions
             
-            # Add completion message with proper team name mapping
+            # Add completion message with structured content
             messages = state.get("messages", [])
-            team_name_mapping = {
-                "Technical Team": "technical_team",
-                "Finance Team": "finance_team", 
-                "Legal Team": "legal_team",
-                "QA Team": "qa_team"
-            }
-            team_node_name = team_name_mapping.get(self.team_name, self.team_name.lower().replace(" ", "_"))
-            
-            messages.append(AIMessage(content=section_content, name=team_node_name))
+            messages.append(AIMessage(content=section_content["formatted_content"], name=team_node_name))
             state["messages"] = messages
             
             return state
@@ -137,6 +143,31 @@ class BaseTeamAgent:
             messages.append(AIMessage(content=f"❌ {self.team_name} failed: {str(e)}", name=self.team_name))
             state["messages"] = messages
             return state
+    
+    def _get_team_node_name(self) -> str:
+        """Get the team node name for routing."""
+        team_name_mapping = {
+            "Technical Team": "technical_team",
+            "Finance Team": "finance_team", 
+            "Legal Team": "legal_team",
+            "QA Team": "qa_team"
+        }
+        return team_name_mapping.get(self.team_name, self.team_name.lower().replace(" ", "_"))
+    
+    def _format_for_document(self, content: str, specialization: str) -> str:
+        """Format content for document integration."""
+        return f"""## {specialization.title()}
+
+**Team:** {self.team_name}
+**Specialization:** {specialization}
+
+{content}
+"""
+    
+    def _get_timestamp(self) -> str:
+        """Get current timestamp."""
+        import time
+        return time.strftime('%Y-%m-%d %H:%M:%S')
     
     def _format_context_for_llm(self, context_docs) -> str:
         """Format context documents for LLM processing."""

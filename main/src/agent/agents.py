@@ -14,6 +14,8 @@ from .milvus_ops import MilvusOps
 
 from .template_rag import TemplateRAG
 from .rfp_rag import RFPRAG
+import subprocess
+import sys
 
 
 class DocumentResponse(BaseModel):
@@ -266,3 +268,115 @@ Provide a comprehensive answer based on the document content.
             
         except Exception as e:
             return {"messages": [AIMessage(content=f"Error processing your question: {e}")]}
+
+
+class RAGEditorAgent:
+    """Agent for launching the AI Dynamic Editor with RAG Integration."""
+    
+    def __init__(self):
+        # Dynamic path resolution for portability
+        self.base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+        self.project_root = os.path.dirname(self.base_dir)
+        self.script_dir = os.path.join(self.project_root, "Mcp_client_word")
+        self.launcher_script = "launch_rag_editor.py"
+    
+    def launch_rag_editor(self, state: MessagesState) -> Dict[str, Any]:
+        """Launch the RAG-enhanced AI Dynamic Editor."""
+        try:
+            # Get the last user message to check for document name
+            user_messages = [m for m in state["messages"] if isinstance(m, HumanMessage)]
+            document_name = "proposal_20250927_142039.docx"  # Default document
+            
+            if user_messages:
+                last_message = user_messages[-1].content.lower()
+                # Look for document name in the message
+                if ".docx" in last_message:
+                    import re
+                    doc_match = re.search(r'(\w+\.docx)', last_message)
+                    if doc_match:
+                        document_name = doc_match.group(1)
+            
+            # Check if launcher script exists
+            launcher_path = os.path.join(self.script_dir, self.launcher_script)
+            if not os.path.exists(launcher_path):
+                return {
+                    "messages": [
+                        AIMessage(
+                            content=f"❌ RAG Editor launcher not found at: {launcher_path}\n"
+                                   f"Please ensure the Mcp_client_word directory is present in the project root."
+                        )
+                    ]
+                }
+            
+            # Prepare the launch command
+            launch_cmd = [sys.executable, launcher_path]
+            
+            # Set up environment with dynamic paths
+            env = os.environ.copy()
+            src_dir = os.path.join(self.base_dir, "src")
+            pythonpath = src_dir
+            if 'PYTHONPATH' in env:
+                pythonpath = f"{src_dir}:{env['PYTHONPATH']}"
+            env['PYTHONPATH'] = pythonpath
+            
+            # Launch the editor
+            print(f"🚀 Launching AI Dynamic Editor with RAG Integration")
+            print(f"📁 Script directory: {self.script_dir}")
+            print(f"📄 Document: {document_name}")
+            print(f"🐍 PYTHONPATH: {pythonpath}")
+            print("=" * 60)
+            
+            # Start the process
+            process = subprocess.Popen(
+                launch_cmd,
+                cwd=self.script_dir,
+                env=env,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True
+            )
+            
+            # Wait a moment to see if it starts successfully
+            import time
+            time.sleep(2)
+            
+            if process.poll() is None:
+                # Process is still running
+                return {
+                    "messages": [
+                        AIMessage(
+                            content=f"✅ Successfully launched AI Dynamic Editor with RAG Integration!\n"
+                                   f"📄 Working with document: {document_name}\n"
+                                   f"🔧 RAG databases are ready for enhanced document editing\n"
+                                   f"💡 The editor is now running in a separate process\n\n"
+                                   f"**Features available:**\n"
+                                   f"- AI-powered document editing with RAG context\n"
+                                   f"- Template and example database integration\n"
+                                   f"- Interactive editing with AI assistance\n"
+                                   f"- Real-time proposal enhancement\n\n"
+                                   f"Check the terminal where the editor was launched for interactive commands."
+                        )
+                    ]
+                }
+            else:
+                # Process exited, get error output
+                stdout, stderr = process.communicate()
+                error_msg = stderr if stderr else stdout
+                return {
+                    "messages": [
+                        AIMessage(
+                            content=f"❌ Failed to launch RAG Editor: {error_msg}\n"
+                                   f"Please check the dependencies and try again."
+                        )
+                    ]
+                }
+                
+        except Exception as e:
+            return {
+                "messages": [
+                    AIMessage(
+                        content=f"❌ Error launching RAG Editor: {e}\n"
+                               f"Make sure all dependencies are installed and paths are correct."
+                    )
+                ]
+            }

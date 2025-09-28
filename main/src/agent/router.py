@@ -30,6 +30,18 @@ def supervisor_router(state: MessagesState) -> str:
             "generate proposal", "create proposal", "proposal generation", "rfp response", "hierarchical proposal"
         ]):
             return "proposal_supervisor"
+        
+        if any(phrase in last_user_content for phrase in [
+            "launch editor", "rag editor", "ai editor", "document editor", "interactive editor", 
+            "edit document", "launch rag", "ai dynamic editor", "mcp editor"
+        ]):
+            return "rag_editor"
+        
+        if any(phrase in last_user_content for phrase in [
+            "enhance proposal", "enhance content", "rag enhancement", "improve proposal",
+            "enhance document", "rag improve", "content enhancement"
+        ]):
+            return "rag_enhancement"
     
     # Check if session database was created - end the session
     last_message = messages[-1].content if hasattr(messages[-1], 'content') else ""
@@ -54,5 +66,7 @@ def supervisor_router(state: MessagesState) -> str:
     # Check supervisor's decision
     if "pdf_parser" in last_supervisor_message or "parse" in last_supervisor_message:
         return "pdf_parser"
+    elif "rag_editor" in last_supervisor_message or "editor" in last_supervisor_message:
+        return "rag_editor"
     else:
         return "general_assistant"

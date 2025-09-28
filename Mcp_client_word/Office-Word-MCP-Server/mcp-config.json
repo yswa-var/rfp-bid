@@ -1,12 +1,12 @@
 {
   "mcpServers": {
     "word-document-server": {
-      "command": "/Users/gongzhe/GitRepos/Office-Word-MCP-Server/.venv/bin/python",
+      "command": "/Users/yash/Documents/rfp/rfp-bid/venv/bin/python",
       "args": [
-        "/Users/gongzhe/GitRepos/Office-Word-MCP-Server/word_mcp_server.py"
+        "/Users/yash/Documents/rfp/rfp-bid/Mcp_client_word/Office-Word-MCP-Server/word_mcp_server.py"
       ],
       "env": {
-        "PYTHONPATH": "/Users/gongzhe/GitRepos/Office-Word-MCP-Server",
+        "PYTHONPATH": "/Users/yash/Documents/rfp/rfp-bid/Mcp_client_word/Office-Word-MCP-Server",
         "MCP_TRANSPORT": "stdio"
       }
     }
