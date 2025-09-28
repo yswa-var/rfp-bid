@@ -166,21 +166,56 @@ class ProposalSupervisorAgent:
             # Save team responses to JSON file
             import json
             from pathlib import Path
+            from .document_generator import DocumentGenerator
             
             responses_file = Path("team_responses.json")
             with open(responses_file, 'w') as f:
                 json.dump(team_responses, f, indent=2, default=str)
             print(f"💾 Team responses saved to {responses_file}")
+
+            # Generate structured documents using DocumentGenerator
+            doc_generator = DocumentGenerator()
+            responses_dir = Path("responses")
+            responses_dir.mkdir(exist_ok=True)
             
+            print("🏗️ Generating structured proposal documents...")
+            generated_files = doc_generator.generate_all_formats(team_responses, responses_dir)
+            
+            # Create summary proposal for backward compatibility
             proposal_parts = [
                 "# 🎯 **PROPOSAL RESPONSE**",
                 f"**Generated:** {time.strftime('%Y-%m-%d %H:%M:%S')}",
                 f"**Teams Involved:** {', '.join(team_responses.keys())}",
                 f"**Responses File:** {responses_file}",
-                "---\n"
+                "",
+                "## 📋 **Generated Documents**"
             ]
             
-            # Team section mapping
+            for format_type, file_path in generated_files.items():
+                proposal_parts.append(f"- **{format_type.upper()}**: {file_path}")
+            
+            proposal_parts.extend([
+                "",
+                "---",
+                "",
+                "## 📊 **Document Structure**",
+                "",
+                "The generated proposal follows this structure:",
+                "",
+                "1. **Summary** - Executive Overview, Key Benefits, Competitive Advantages, Success Metrics",
+                "2. **About CPX** - Company information, certifications, and team composition", 
+                "3. **Understanding of Requirements** - Project scope, stakeholder needs, success criteria",
+                "4. **Proposed Solution** - Technical architecture and implementation approach",
+                "5. **Implementation Plan** - Project phases, timeline, and resource allocation",
+                "6. **Team and Experience** - Core team members and relevant experience",
+                "7. **Pricing** - Cost breakdown, pricing model, and payment terms",
+                "8. **Terms and Conditions** - Contractual terms and service agreements",
+                "9. **Additional Services** - Optional modules and future enhancements",
+                "10. **Appendices** - Technical specifications and supporting documentation",
+                ""
+            ])
+            
+            # Team section mapping for legacy display
             team_sections = {
                 "technical_team": "## Technical Architecture & Solution Design",
                 "finance_team": "## Pricing & Financial Analysis", 
@@ -188,8 +223,11 @@ class ProposalSupervisorAgent:
                 "qa_team": "## Quality Assurance & Risk Management"
             }
             
-            # Compose sections in logical order
+            # Compose sections in logical order for summary
             section_order = ["technical_team", "finance_team", "legal_team", "qa_team"]
+            
+            proposal_parts.append("## 🔍 **Team Contributions Summary**")
+            proposal_parts.append("")
             
             for team in section_order:
                 if team in team_responses:
@@ -200,7 +238,13 @@ class ProposalSupervisorAgent:
                     proposal_parts.append(f"**Team:** {response.get('team', team)}")
                     proposal_parts.append(f"**Completed:** {response.get('timestamp', 'Unknown')}")
                     proposal_parts.append("")
-                    proposal_parts.append(response.get('content', 'No content available'))
+                    
+                    # Add truncated content for summary
+                    content = response.get('content', 'No content available')
+                    if len(content) > 500:
+                        content = content[:500] + "... [Full content available in generated documents]"
+                    
+                    proposal_parts.append(content)
                     proposal_parts.append("")
             
             # Add generation summary
@@ -208,21 +252,24 @@ class ProposalSupervisorAgent:
                 "---",
                 "## 📊 **GENERATION SUMMARY**",
                 f"- **Teams Completed:** {len(team_responses)}/4",
-                f"- **Processing Method:** Hierarchical team-based generation",
-                f"- **Context Sources:** Multi-RAG with team specialization",
-                f"- **Response Collection:** JSON file saved for reference"
+                f"- **Documents Generated:** {len(generated_files)} formats",
+                f"- **Processing Method:** Hierarchical team-based generation with structured output",
+                f"- **Response Collection:** JSON file saved for reference",
+                "",
+                "**📋 Next Steps:**",
+                "1. Review the generated structured proposal documents",
+                "2. Customize content as needed for specific RFP requirements", 
+                "3. Add company-specific branding and formatting",
+                "4. Submit the final proposal in required format"
             ])
             
             final_proposal = "\n".join(proposal_parts)
             
-            # Save final response to markdown file
-            responses_dir = Path("responses")
-            responses_dir.mkdir(exist_ok=True)
-            
-            markdown_file = responses_dir / "last_response.md"
+            # Save final response to markdown file for backward compatibility
+            markdown_file = responses_dir / "last_response_main.md"
             with open(markdown_file, 'w', encoding='utf-8') as f:
                 f.write(final_proposal)
-            print(f"📄 Final response saved to {markdown_file}")
+            print(f"📄 Summary response saved to {markdown_file}")
             
             return {
                 "messages": [AIMessage(content=final_proposal, name="proposal_supervisor")],
