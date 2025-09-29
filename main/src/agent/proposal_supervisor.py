@@ -328,14 +328,22 @@ def proposal_team_router(state: MessagesState) -> str:
     """Route to the appropriate team based on supervisor decision."""
     messages = state.get("messages", [])
     
+    # Check if proposal is already generated (HIGHEST PRIORITY)
+    if state.get("proposal_generated", False):
+        print("🎯 Proposal generation completed - ending flow")
+        return "__end__"
+    
     # Check if all teams are completed FIRST (highest priority)
     teams_completed = state.get("teams_completed", set())
     all_teams = {"finance_team", "legal_team", "qa_team", "technical_team"}
     if len(teams_completed) >= len(all_teams):
         # All teams completed, check if RAG enhancement is needed
         rag_enhanced = state.get("rag_editor_integrated", False)
-        if not rag_enhanced:
+        enhancement_completed = state.get("enhancement_completed", False)
+        if not rag_enhanced and not enhancement_completed:
+            print("🎯 All teams completed - starting RAG enhancement")
             return "rag_editor_enhancement"
+        print("🎯 All teams completed and enhanced - ending flow")
         return "__end__"
     
     # Check for explicit next_team in state
@@ -493,7 +501,7 @@ def build_parent_proposal_graph():
     workflow.add_edge("legal_team", "proposal_supervisor")
     workflow.add_edge("qa_team", "proposal_supervisor")
     workflow.add_edge("technical_team", "proposal_supervisor")
-    workflow.add_edge("rag_editor_enhancement", "proposal_supervisor")
+    workflow.add_edge("rag_editor_enhancement", END)  # RAG enhancement goes directly to END
     
     # Compile with enhanced visualization support
     compiled_graph = workflow.compile()

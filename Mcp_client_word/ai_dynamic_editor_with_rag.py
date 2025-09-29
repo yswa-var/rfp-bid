@@ -43,7 +43,7 @@ class AIDynamicEditorWithRAG:
     def __init__(self, document_name="proposal_20250927_142039.docx"):
         script_dir = os.path.dirname(os.path.abspath(__file__))
         self.document_path = os.path.join(script_dir, document_name)
-        self.server_path = os.path.join(os.path.dirname(script_dir), "Office-Word-MCP-Server", "word_mcp_server.py")
+        self.server_path = os.path.join(script_dir, "Office-Word-MCP-Server", "word_mcp_server.py")
         self.client = OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
         self.server_process = None
         self.tools = []

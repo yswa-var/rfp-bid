@@ -32,9 +32,29 @@ def supervisor_router(state: MessagesState) -> str:
             return "proposal_supervisor"
         
         if any(phrase in last_user_content for phrase in [
-            "launch editor", "rag editor", "ai editor", "document editor", "interactive editor", 
-            "edit document", "launch rag", "ai dynamic editor", "mcp editor"
+            "launch rag editor", "launch editor", "interactive editor", "start rag editor", 
+            "open document editor", "enhanced editor", "launch interactive", "full rag editor",
+            "beautiful rag", "interactive rag", "launch rag", "start interactive"
         ]):
+            return "interactive_rag_launcher"
+        
+        # RAG Editor takes priority for specific editor commands
+        if any(phrase in last_user_content for phrase in [
+            "rag editor", "ai editor", "document editor", "edit document", 
+            "ai dynamic editor", "mcp editor"
+        ]):
+            return "rag_editor"
+        
+        # Check if we're already in a RAG editor session and continuing
+        rag_messages = [msg for msg in messages if hasattr(msg, 'name') and msg.name == 'rag_editor']
+        if rag_messages and any(cmd in last_user_content for cmd in ['load ', 'search ', 'add ', 'edit ', 'format', 'status', 'help']):
+            return "rag_editor"
+        
+        # Route RAG commands to rag_editor (not full_rag_studio) - keep session in same node
+        if any(phrase in last_user_content for phrase in [
+            "find ", "search ", "replace ", "rag query ", "add content ", "add context ", "explore ",
+            "info", "document info", "load document", "load ", "understanding of requirements", "status"
+        ]) or last_user_content.startswith(("find ", "search ", "replace ", "rag query ", "add content ", "add context ", "explore ", "status")):
             return "rag_editor"
         
         if any(phrase in last_user_content for phrase in [
@@ -66,6 +86,8 @@ def supervisor_router(state: MessagesState) -> str:
     # Check supervisor's decision
     if "pdf_parser" in last_supervisor_message or "parse" in last_supervisor_message:
         return "pdf_parser"
+    elif "interactive_rag_launcher" in last_supervisor_message or "interactive" in last_supervisor_message:
+        return "interactive_rag_launcher"
     elif "rag_editor" in last_supervisor_message or "editor" in last_supervisor_message:
         return "rag_editor"
     else:

@@ -135,7 +135,10 @@ class GeneralAssistantAgent:
 
     def query_documents(self, state: MessagesState) -> Dict[str, Any]:
         # Create MilvusOps instance and check if session.db exists
-        self.milvus_ops = MilvusOps("/Users/yash/Documents/rfp/rfp-bid/main/session.db")
+        # Use dynamic path resolution instead of hard-coded path
+        base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+        session_db_path = os.path.join(base_dir, "session.db")
+        self.milvus_ops = MilvusOps(session_db_path)
         
         if not os.path.exists(self.milvus_ops.db_path):
             return {"messages": [AIMessage(content="Session DB not found. Please run create_rag after parsing PDFs.")]}
