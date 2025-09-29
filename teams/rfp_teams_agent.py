@@ -111,7 +111,7 @@ class RFPTeamsAgent:
             
           
             config = {
-                "recursion_limit": 50,  # Higher limit to let it complete all teams
+                "recursion_limit": 12,  # if it creates too many proposal please change it to lower number
                 "configurable": {
                     "thread_id": f"simple_{user_id}_{int(datetime.now().timestamp())}"
                 }
