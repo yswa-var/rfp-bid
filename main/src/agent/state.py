@@ -26,3 +26,14 @@ class MessagesState(TypedDict):
     rfp_content: Optional[str]  # Current RFP content being processed
 
 
+class State(TypedDict):
+    """State schema for the ReAct agent system."""
+    messages: List[BaseMessage]
+    is_last_step: Optional[bool]
+
+
+class InputState(TypedDict):
+    """Input state schema for the ReAct agent system."""
+    messages: List[BaseMessage]
+
+
