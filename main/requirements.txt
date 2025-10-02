@@ -29,6 +29,7 @@ PyMuPDF>=1.23.0
 
 # Document processing
 python-docx>=1.1.0
+docx2python>=2.0.0
 
 # Text processing
 langchain-text-splitters>=0.1.0
