@@ -14,8 +14,6 @@ from langgraph.graph import StateGraph, START, END
 
 from .state import MessagesState
 from .proposal_rag_coordinator import ProposalRAGCoordinator
-from .rag_editor_integration import integrate_rag_editor_with_proposal
-from .rag_editor_agent import create_rag_enhancement_node
 
 
 class ProposalSupervisorAgent:
@@ -183,34 +181,6 @@ class ProposalSupervisorAgent:
             print("🏗️ Generating structured proposal documents...")
             generated_files = doc_generator.generate_all_formats(team_responses, responses_dir)
             
-            # NEW: Integrate RAG Editor for enhanced DOCX generation
-            print("🚀 Integrating RAG Editor for enhanced document generation...")
-            rfp_content = state.get("rfp_content", "")
-            
-            try:
-                rag_editor_results = integrate_rag_editor_with_proposal(
-                    team_responses, 
-                    rfp_content, 
-                    str(responses_dir)
-                )
-                
-                if rag_editor_results:
-                    print("✅ RAG Editor integration completed successfully")
-                    generated_files.update({
-                        "rag_enhanced_json": rag_editor_results.get("enhanced_json"),
-                        "rag_enhanced_outputs": rag_editor_results.get("enhanced_outputs", {})
-                    })
-                    
-                    if "final_docx" in rag_editor_results:
-                        generated_files["rag_enhanced_docx"] = rag_editor_results["final_docx"]
-                        print(f"📄 RAG-enhanced DOCX saved to {rag_editor_results['final_docx']}")
-                else:
-                    print("⚠️ RAG Editor integration failed, continuing with standard generation")
-                    
-            except Exception as e:
-                print(f"⚠️ RAG Editor integration error: {e}")
-                print("Continuing with standard document generation...")
-            
             # Create summary proposal for backward compatibility
             proposal_parts = [
                 "# 🎯 **PROPOSAL RESPONSE**",
@@ -283,15 +253,14 @@ class ProposalSupervisorAgent:
                 "## 📊 **GENERATION SUMMARY**",
                 f"- **Teams Completed:** {len(team_responses)}/4",
                 f"- **Documents Generated:** {len(generated_files)} formats",
-                f"- **Processing Method:** Hierarchical team-based generation with RAG-enhanced document integration",
+                f"- **Processing Method:** Hierarchical team-based generation",
                 f"- **Response Collection:** JSON file saved for reference",
                 "",
                 "**📋 Next Steps:**",
                 "1. Review the generated structured proposal documents",
-                "2. Check the RAG-enhanced DOCX for improved content quality",
-                "3. Customize content as needed for specific RFP requirements", 
-                "4. Add company-specific branding and formatting",
-                "5. Submit the final proposal in required format"
+                "2. Customize content as needed for specific RFP requirements", 
+                "3. Add company-specific branding and formatting",
+                "4. Submit the final proposal in required format"
             ])
             
             final_proposal = "\n".join(proposal_parts)
@@ -308,8 +277,7 @@ class ProposalSupervisorAgent:
                 "teams_completed": set(team_responses.keys()),
                 "responses_file": str(responses_file),
                 "markdown_file": str(markdown_file),
-                "generated_files": generated_files,
-                "rag_editor_integrated": "rag_enhanced_docx" in generated_files
+                "generated_files": generated_files
             }
             
         except Exception as e:
@@ -337,13 +305,7 @@ def proposal_team_router(state: MessagesState) -> str:
     teams_completed = state.get("teams_completed", set())
     all_teams = {"finance_team", "legal_team", "qa_team", "technical_team"}
     if len(teams_completed) >= len(all_teams):
-        # All teams completed, check if RAG enhancement is needed
-        rag_enhanced = state.get("rag_editor_integrated", False)
-        enhancement_completed = state.get("enhancement_completed", False)
-        if not rag_enhanced and not enhancement_completed:
-            print("🎯 All teams completed - starting RAG enhancement")
-            return "rag_editor_enhancement"
-        print("🎯 All teams completed and enhanced - ending flow")
+        print("🎯 All teams completed - ending flow")
         return "__end__"
     
     # Check for explicit next_team in state
@@ -365,8 +327,6 @@ def proposal_team_router(state: MessagesState) -> str:
                 return "qa_team"
             elif "routing to technical_team" in content:
                 return "technical_team"
-            elif "routing to rag_editor" in content:
-                return "rag_editor_enhancement"
             elif "composing final proposal" in content:
                 return "__end__"
     
@@ -476,9 +436,6 @@ def build_parent_proposal_graph():
     workflow.add_node("qa_team", qa_graph, metadata={"team": "QA", "specialization": "Quality Assurance & Risk Management"})
     workflow.add_node("technical_team", technical_graph, metadata={"team": "Technical", "specialization": "Architecture & Solution Design"})
     
-    # Add RAG editor node for proposal enhancement
-    workflow.add_node("rag_editor_enhancement", create_rag_enhancement_node(), metadata={"team": "RAG Editor", "specialization": "Content Enhancement & Document Processing"})
-    
     # Entry
     workflow.add_edge(START, "proposal_supervisor")
     
@@ -491,7 +448,6 @@ def build_parent_proposal_graph():
             "legal_team": "legal_team",
             "qa_team": "qa_team",
             "technical_team": "technical_team",
-            "rag_editor_enhancement": "rag_editor_enhancement",
             "__end__": END,
         },
     )
@@ -501,7 +457,6 @@ def build_parent_proposal_graph():
     workflow.add_edge("legal_team", "proposal_supervisor")
     workflow.add_edge("qa_team", "proposal_supervisor")
     workflow.add_edge("technical_team", "proposal_supervisor")
-    workflow.add_edge("rag_editor_enhancement", END)  # RAG enhancement goes directly to END
     
     # Compile with enhanced visualization support
     compiled_graph = workflow.compile()
@@ -509,9 +464,9 @@ def build_parent_proposal_graph():
     # Add graph metadata for Studio visualization
     compiled_graph.metadata = {
         "title": "Hierarchical Proposal Generation System",
-        "description": "Multi-team proposal generation with specialized agents and RAG editor integration",
+        "description": "Multi-team proposal generation with specialized agents",
         "version": "1.0",
-        "teams": ["Technical", "Finance", "Legal", "QA", "RAG Editor"],
+        "teams": ["Technical", "Finance", "Legal", "QA"],
         "visualization": {
             "xray": True,
             "show_destinations": True,
@@ -519,8 +474,7 @@ def build_parent_proposal_graph():
                 "technical_team": "#3B82F6",  # Blue
                 "finance_team": "#10B981",    # Green  
                 "legal_team": "#F59E0B",      # Yellow
-                "qa_team": "#EF4444",         # Red
-                "rag_editor_enhancement": "#8B5CF6"  # Purple
+                "qa_team": "#EF4444"          # Red
             }
         }
     }
