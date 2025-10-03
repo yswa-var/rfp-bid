@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional
 from docx2python import docx2python
 from docx import Document
+from docx.shared import Inches
 from react_agent.docx_indexer import DocxIndexer
 
 
@@ -131,6 +132,147 @@ class DocxManager:
             output_path: Path to save the JSON file
         """
         self.indexer.save_index(output_path)
+    
+    def insert_image(self, image_path: str, width: Optional[float] = None, height: Optional[float] = None, 
+                     anchor: Optional[List[Any]] = None, after_anchor: Optional[List[Any]] = None,
+                     position: str = "after") -> bool:
+        """Insert an image into the document.
+        
+        Args:
+            image_path: Path to the image file
+            width: Image width in inches (optional)
+            height: Image height in inches (optional)
+            anchor: Anchor to insert image at (optional)
+            after_anchor: Insert image after this anchor (optional)
+            position: Position relative to anchor ("before", "after", "replace") - default "after"
+            
+        Returns:
+            True if successful, False otherwise
+        """
+        try:
+            # Validate image file exists
+            image_path = Path(image_path)
+            if not image_path.exists():
+                print(f"Image file not found: {image_path}")
+                return False
+            
+            # Load the document with python-docx for editing
+            doc = Document(str(self.docx_path))
+            
+            # If no anchor specified, add image at the end
+            if anchor is None and after_anchor is None:
+                paragraph = doc.add_paragraph()
+                run = paragraph.add_run()
+                if width and height:
+                    run.add_picture(str(image_path), width=Inches(width), height=Inches(height))
+                elif width:
+                    run.add_picture(str(image_path), width=Inches(width))
+                elif height:
+                    run.add_picture(str(image_path), height=Inches(height))
+                else:
+                    run.add_picture(str(image_path), width=Inches(4.0))  # Default width
+                
+                # Save the document
+                doc.save(str(self.docx_path))
+                
+                # Refresh index
+                self._refresh_index()
+                return True
+            
+            # Use after_anchor if provided, otherwise use anchor
+            target_anchor = after_anchor if after_anchor is not None else anchor
+            
+            # Find the target paragraph
+            target_para = self.get_paragraph(target_anchor)
+            if not target_para:
+                print(f"Anchor not found: {target_anchor}")
+                return False
+            
+            target_text = target_para['text']
+            
+            # Find the paragraph in the document and insert image
+            for i, paragraph in enumerate(doc.paragraphs):
+                if paragraph.text.strip() == target_text:
+                    if position == "before":
+                        # Insert image before this paragraph
+                        new_para = doc.paragraphs[i]._element.getparent().insert_before(
+                            doc._body._element.makeelement('w:p'), 
+                            doc.paragraphs[i]._element
+                        )
+                        new_para = paragraph._parent._element.insert_before(
+                            doc._body._element.makeelement('w:p'), 
+                            paragraph._element
+                        )
+                        # Create new paragraph object
+                        new_para_obj = paragraph._parent._element.insert_before(
+                            doc._body._element.makeelement('w:p'), 
+                            paragraph._element
+                        )
+                        # Add run and image
+                        run = new_para_obj.add_run()
+                        if width and height:
+                            run.add_picture(str(image_path), width=Inches(width), height=Inches(height))
+                        elif width:
+                            run.add_picture(str(image_path), width=Inches(width))
+                        elif height:
+                            run.add_picture(str(image_path), height=Inches(height))
+                        else:
+                            run.add_picture(str(image_path), width=Inches(4.0))
+                    
+                    elif position == "after":
+                        # Insert image after this paragraph
+                        if i + 1 < len(doc.paragraphs):
+                            # Insert before next paragraph
+                            next_para = doc.paragraphs[i + 1]
+                            new_para = doc.add_paragraph()
+                            run = new_para.add_run()
+                            if width and height:
+                                run.add_picture(str(image_path), width=Inches(width), height=Inches(height))
+                            elif width:
+                                run.add_picture(str(image_path), width=Inches(width))
+                            elif height:
+                                run.add_picture(str(image_path), height=Inches(height))
+                            else:
+                                run.add_picture(str(image_path), width=Inches(4.0))
+                        else:
+                            # Add at the end
+                            new_para = doc.add_paragraph()
+                            run = new_para.add_run()
+                            if width and height:
+                                run.add_picture(str(image_path), width=Inches(width), height=Inches(height))
+                            elif width:
+                                run.add_picture(str(image_path), width=Inches(width))
+                            elif height:
+                                run.add_picture(str(image_path), height=Inches(height))
+                            else:
+                                run.add_picture(str(image_path), width=Inches(4.0))
+                    
+                    elif position == "replace":
+                        # Replace paragraph content with image
+                        paragraph.clear()
+                        run = paragraph.add_run()
+                        if width and height:
+                            run.add_picture(str(image_path), width=Inches(width), height=Inches(height))
+                        elif width:
+                            run.add_picture(str(image_path), width=Inches(width))
+                        elif height:
+                            run.add_picture(str(image_path), height=Inches(height))
+                        else:
+                            run.add_picture(str(image_path), width=Inches(4.0))
+                    
+                    # Save the document
+                    doc.save(str(self.docx_path))
+                    
+                    # Refresh index
+                    self._refresh_index()
+                    return True
+            
+            print(f"Target paragraph not found in document: {target_text}")
+            return False
+            
+        except Exception as e:
+            print(f"Error inserting image: {e}")
+            return False
 
 
 # Global instance (will be initialized when needed)

@@ -168,6 +168,57 @@ async def get_document_outline() -> dict[str, Any]:
     }
 
 
+async def insert_image(image_path: str, width: Optional[float] = None, height: Optional[float] = None,
+                      anchor: Optional[List[Any]] = None, after_anchor: Optional[List[Any]] = None,
+                      position: str = "after") -> dict[str, Any]:
+    """Insert an image into the DOCX document.
+    
+    This tool inserts an image at a specified location in the document. The image can be placed
+    relative to an existing paragraph using anchors, or at the end of the document if no anchor is provided.
+    
+    Args:
+        image_path: Path to the image file to insert
+        width: Optional width in inches for the image
+        height: Optional height in inches for the image  
+        anchor: Optional anchor position [body, table, row, col, par] to insert relative to
+        after_anchor: Optional anchor to insert the image after (takes precedence over anchor)
+        position: Position relative to anchor ("before", "after", "replace") - defaults to "after"
+    
+    Returns:
+        Dict with success status and operation details
+    """
+    manager = get_docx_manager()
+    await manager._ensure_index_loaded()
+    
+    success = await asyncio.to_thread(
+        manager.insert_image, 
+        image_path, 
+        width, 
+        height, 
+        anchor, 
+        after_anchor, 
+        position
+    )
+    
+    if success:
+        return {
+            "success": True,
+            "message": "Image inserted successfully",
+            "image_path": image_path,
+            "width": width,
+            "height": height,
+            "anchor": anchor or after_anchor,
+            "position": position
+        }
+    else:
+        return {
+            "success": False,
+            "message": "Failed to insert image. Check that the image file exists and the anchor is valid.",
+            "image_path": image_path,
+            "anchor": anchor or after_anchor
+        }
+
+
 # MCP-exposed tools - primary tools for external use
 TOOLS: List[Callable[..., Any]] = [
     index_docx,
@@ -176,4 +227,5 @@ TOOLS: List[Callable[..., Any]] = [
     get_paragraph,
     search_document,
     get_document_outline,
+    insert_image,
 ]

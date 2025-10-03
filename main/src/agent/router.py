@@ -40,7 +40,7 @@ def supervisor_router(state: MessagesState) -> str:
         if any(phrase in last_user_content for phrase in [
             "generate proposal", "create proposal", "proposal generation", "rfp response", "hierarchical proposal"
         ]):
-            return "technical_team"
+            return "proposal_supervisor"
         
     
     # Check if session database was created - end the session
@@ -68,7 +68,7 @@ def supervisor_router(state: MessagesState) -> str:
         return "pdf_parser"
     elif "docx_agent" in last_supervisor_message or "word document" in last_supervisor_message:
         return "docx_agent"
-    elif "technical_team" in last_supervisor_message or "proposal" in last_supervisor_message:
-        return "technical_team"
+    elif "proposal_supervisor" in last_supervisor_message or "proposal" in last_supervisor_message:
+        return "proposal_supervisor"
     else:
         return "general_assistant"
