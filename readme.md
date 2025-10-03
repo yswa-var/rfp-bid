@@ -1,5 +1,6 @@
 
-<img width="952" height="281" alt="Screenshot 2025-09-17 at 1 49 32 PM" src="https://github.com/user-attachments/assets/c351b0cc-52fe-4295-bc18-1a2e3fc6a0c9" />
+<img width="803" height="275" alt="Screenshot 2025-10-03 at 12 09 34 PM" src="https://github.com/user-attachments/assets/22f87226-b814-431b-aabf-466770f2078a" />
+
 
 ## 🚀 Quick Start
 
