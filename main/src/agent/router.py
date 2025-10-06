@@ -22,6 +22,9 @@ def supervisor_router(state: MessagesState) -> str:
         
         # PRIORITY 1: Check for EXPLICIT agent names (highest priority)
         # This allows users to directly invoke specific agents
+        if "image_adder" in last_user_content or "image adder" in last_user_content:
+            return "image_adder"
+        
         if "docx_agent" in last_user_content or "docx agent" in last_user_content:
             return "docx_agent"
         
@@ -34,7 +37,16 @@ def supervisor_router(state: MessagesState) -> str:
         if "rfp_supervisor" in last_user_content or "rfp supervisor" in last_user_content:
             return "rfp_supervisor"
         
-        # PRIORITY 2: Check for DOCX-related operations (high priority)
+        # PRIORITY 2: Check for IMAGE-related operations (high priority)
+        # Handle requests to add/insert images
+        if any(phrase in last_user_content for phrase in [
+            "add images", "insert images", "place images",
+            "add image", "insert image", "place image",
+            "add pictures", "insert pictures", "add photo"
+        ]):
+            return "image_adder"
+        
+        # PRIORITY 3: Check for DOCX-related operations (high priority)
         # These are common operations that should not be confused with RFP
         if any(phrase in last_user_content for phrase in [
             "docx", ".docx", "word document", "word doc",
@@ -46,13 +58,13 @@ def supervisor_router(state: MessagesState) -> str:
         ]):
             return "docx_agent"
         
-        # PRIORITY 3: Check for PDF parsing requests
+        # PRIORITY 4: Check for PDF parsing requests
         if any(phrase in last_user_content for phrase in [
             "parse pdf", ".pdf", "index pdf", "extract from pdf", "upload pdf"
         ]):
             return "pdf_parser"
         
-        # PRIORITY 4: Check for RFP proposal requests (more specific matching)
+        # PRIORITY 5: Check for RFP proposal requests (more specific matching)
         # Only route to RFP if it's clearly about RFP proposals, not just mentioning "rfp"
         rfp_indicators = ["generate proposal", "create proposal", "proposal content",
                          "finance team", "technical team", "legal team", "qa team",

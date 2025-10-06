@@ -220,32 +220,30 @@ class DocxManager:
                             run.add_picture(str(image_path), width=Inches(4.0))
                     
                     elif position == "after":
-                        # Insert image after this paragraph
-                        if i + 1 < len(doc.paragraphs):
-                            # Insert before next paragraph
-                            next_para = doc.paragraphs[i + 1]
-                            new_para = doc.add_paragraph()
-                            run = new_para.add_run()
-                            if width and height:
-                                run.add_picture(str(image_path), width=Inches(width), height=Inches(height))
-                            elif width:
-                                run.add_picture(str(image_path), width=Inches(width))
-                            elif height:
-                                run.add_picture(str(image_path), height=Inches(height))
-                            else:
-                                run.add_picture(str(image_path), width=Inches(4.0))
+                        # Insert image after this paragraph using element API
+                        from docx.oxml import OxmlElement
+                        from docx.oxml.ns import qn
+                        
+                        # Create a new paragraph element
+                        new_para_element = OxmlElement('w:p')
+                        
+                        # Insert it right after the current paragraph's element
+                        paragraph._element.addnext(new_para_element)
+                        
+                        # Create a Paragraph object wrapper for the new element
+                        from docx.text.paragraph import Paragraph
+                        new_para = Paragraph(new_para_element, paragraph._parent)
+                        
+                        # Add run and image to the new paragraph
+                        run = new_para.add_run()
+                        if width and height:
+                            run.add_picture(str(image_path), width=Inches(width), height=Inches(height))
+                        elif width:
+                            run.add_picture(str(image_path), width=Inches(width))
+                        elif height:
+                            run.add_picture(str(image_path), height=Inches(height))
                         else:
-                            # Add at the end
-                            new_para = doc.add_paragraph()
-                            run = new_para.add_run()
-                            if width and height:
-                                run.add_picture(str(image_path), width=Inches(width), height=Inches(height))
-                            elif width:
-                                run.add_picture(str(image_path), width=Inches(width))
-                            elif height:
-                                run.add_picture(str(image_path), height=Inches(height))
-                            else:
-                                run.add_picture(str(image_path), width=Inches(4.0))
+                            run.add_picture(str(image_path), width=Inches(4.0))
                     
                     elif position == "replace":
                         # Replace paragraph content with image

@@ -21,6 +21,7 @@ if str(_SRC_DIR) not in sys.path:
 from agent.state import MessagesState
 from agent.agents import PDFParserAgent, CreateRAGAgent, GeneralAssistantAgent, RFPProposalTeam
 from agent.router import supervisor_router, rfp_team_router, rfp_to_docx_router
+from agent.image_adder_node import add_images_to_document
 from react_agent.graph import graph as docx_agent_graph
 
 __all__ = ["graph"]
@@ -47,13 +48,15 @@ def create_supervisor_system():
         "- docx_agent: Handles ALL DOCX/Word document operations independently (read, search, edit, create, modify documents).\n"
         "- pdf_parser: Parses user-provided PDF paths, creates text chunks, then automatically creates the RAG database.\n"
         "- general_assistant: Answers questions using the RAG database independently.\n"
-        "- rfp_supervisor: Manages COMPLETE RFP proposal generation with specialized teams (finance, technical, legal, QA).\n\n"
+        "- rfp_supervisor: Manages COMPLETE RFP proposal generation with specialized teams (finance, technical, legal, QA).\n"
+        "- image_adder: Intelligently adds images to document sections based on content analysis.\n\n"
         "ROUTING PRIORITY (Check in this order):\n"
-        "1. If user explicitly mentions an agent name (e.g., 'docx_agent', 'pdf_parser', 'general_assistant'), route to that agent.\n"
-        "2. If user wants to edit/modify/update/read/create a document or mentions 'docx'/'word document', respond: 'I will route this to docx_agent'.\n"
-        "3. If user provides PDF files or asks to 'parse PDFs'/'index PDFs', respond: 'I will route this to pdf_parser'.\n"
-        "4. If user wants to GENERATE/CREATE a complete RFP proposal (not just edit a document with 'rfp' in the name), respond: 'I will route this to rfp_supervisor'.\n"
-        "5. For general questions or queries about existing knowledge, respond: 'I will route this to general_assistant'.\n\n"
+        "1. If user explicitly mentions an agent name (e.g., 'docx_agent', 'pdf_parser', 'general_assistant', 'image_adder'), route to that agent.\n"
+        "2. If user wants to add/insert images to document, respond: 'I will route this to image_adder'.\n"
+        "3. If user wants to edit/modify/update/read/create a document or mentions 'docx'/'word document', respond: 'I will route this to docx_agent'.\n"
+        "4. If user provides PDF files or asks to 'parse PDFs'/'index PDFs', respond: 'I will route this to pdf_parser'.\n"
+        "5. If user wants to GENERATE/CREATE a complete RFP proposal (not just edit a document with 'rfp' in the name), respond: 'I will route this to rfp_supervisor'.\n"
+        "6. For general questions or queries about existing knowledge, respond: 'I will route this to general_assistant'.\n\n"
         "IMPORTANT:\n"
         "- Each agent works INDEPENDENTLY - they don't need the supervisor except for routing.\n"
         "- If a user mentions 'rfp' as part of a filename (e.g., 'rfp-9903'), it's likely a document name, NOT an RFP proposal request.\n"
@@ -77,6 +80,7 @@ def create_supervisor_system():
     workflow.add_node("create_rag", create_rag_agent.create_rag_database)
     workflow.add_node("general_assistant", general_assistant.query_documents)
     workflow.add_node("docx_agent", docx_agent_graph)
+    workflow.add_node("image_adder", add_images_to_document)
     
     # RFP Proposal Team nodes
     workflow.add_node("rfp_supervisor", rfp_team.rfp_supervisor)
@@ -97,6 +101,7 @@ def create_supervisor_system():
             "general_assistant": "general_assistant",
             "docx_agent": "docx_agent",
             "rfp_supervisor": "rfp_supervisor",
+            "image_adder": "image_adder",
             "__end__": END
         }
     )
@@ -159,6 +164,9 @@ def create_supervisor_system():
     
     # Direct docx_agent flow (for standalone document operations)
     workflow.add_edge("docx_agent", END)
+    
+    # Image adder flow - separate path for image insertion
+    workflow.add_edge("image_adder", END)
 
     return workflow.compile()
 
