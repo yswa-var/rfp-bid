@@ -1,6 +1,6 @@
 """Shared state types for the multi-agent system."""
 
-from typing import List, Optional, Any
+from typing import List, Optional, Any, Dict
 from typing_extensions import TypedDict
 
 from langchain_core.messages import BaseMessage
@@ -18,11 +18,11 @@ class MessagesState(TypedDict):
     follow_up_questions: List[str]  # Follow-up questions from the assistant
     parsed_response: Optional[Any]  # Structured response from Pydantic parser
     
-    # Proposal Supervisor state tracking
-    teams_completed: Optional[set]  # Set of completed team names
-    team_responses: Optional[dict]  # Dictionary of team responses
-    team_sequence: Optional[List[str]]  # Planned team execution sequence
-    next_team: Optional[str]  # Next team to execute
-    rfp_content: Optional[str]  # Current RFP content being processed
+    # RFP Proposal Team State
+    rfp_content: Dict[str, Any]  # Generated RFP content by node type (finance, technical, legal, qa)
+    current_rfp_node: Optional[str]  # Current RFP node being processed
+    rfp_query: Optional[str]  # Current RFP query
+    rfp_team_completed: bool  # Track if RFP team work is completed
+    document_path: Optional[str]  # Path to the document to update
 
 

@@ -383,3 +383,222 @@ class RAGEditorAgent:
                     )
                 ]
             }
+
+
+class RFPProposalTeam:
+    """
+    RFP Proposal Team Agent - Manages specialized nodes for RFP proposal generation.
+    
+    This team coordinates finance, technical, legal, and QA nodes to generate
+    comprehensive RFP proposal content, then routes it to the docx_agent for document updates.
+    """
+    
+    def __init__(self):
+        from .RFP_proposal_agent import RFPProposalAgent
+        self.rfp_agent = RFPProposalAgent(response_file="rfp_team_responses.json")
+        self.llm = ChatOpenAI(
+            model=os.getenv("LLM_MODEL", "gpt-4o-mini"),
+            temperature=0,
+            api_key=os.getenv("OPENAI_API_KEY"),
+        )
+    
+    def finance_node(self, state: MessagesState) -> Dict[str, Any]:
+        """Generate finance-focused content for RFP proposal."""
+        query = state.get("rfp_query", "")
+        if not query:
+            # Extract from messages
+            user_messages = [m for m in state["messages"] if isinstance(m, HumanMessage)]
+            if user_messages:
+                query = user_messages[-1].content
+        
+        try:
+            result = self.rfp_agent.finance_node(query, k=5)
+            
+            if result['success']:
+                content = result['response']
+                message = f" **Update Docx document with Finance Team Response (create a new section if needed):**\n\n{content}\n\n"
+                
+                # Update state with generated content
+                rfp_content = state.get("rfp_content", {})
+                rfp_content["finance"] = {
+                    "content": content,
+                    "context": result.get('context', []),
+                    "metadata": result.get('metadata', {})
+                }
+                
+                return {
+                    "messages": [AIMessage(content=message)],
+                    "rfp_content": rfp_content,
+                    "current_rfp_node": "finance"
+                }
+            else:
+                return {
+                    "messages": [AIMessage(content=f"❌ Finance node error: {result['response']}")],
+                    "current_rfp_node": "finance"
+                }
+        except Exception as e:
+            return {
+                "messages": [AIMessage(content=f"❌ Finance node exception: {str(e)}")],
+                "current_rfp_node": "finance"
+            }
+    
+    def technical_node(self, state: MessagesState) -> Dict[str, Any]:
+        """Generate technical-focused content for RFP proposal."""
+        query = state.get("rfp_query", "")
+        if not query:
+            user_messages = [m for m in state["messages"] if isinstance(m, HumanMessage)]
+            if user_messages:
+                query = user_messages[-1].content
+        
+        try:
+            result = self.rfp_agent.technical_node(query, k=5)
+            
+            if result['success']:
+                content = result['response']
+                message = f"🔧 **Update Docx document with Technical Team Response (create a new section if needed):**\n\n{content}\n\n"
+                
+                rfp_content = state.get("rfp_content", {})
+                rfp_content["technical"] = {
+                    "content": content,
+                    "context": result.get('context', []),
+                    "metadata": result.get('metadata', {})
+                }
+                
+                return {
+                    "messages": [AIMessage(content=message)],
+                    "rfp_content": rfp_content,
+                    "current_rfp_node": "technical"
+                }
+            else:
+                return {
+                    "messages": [AIMessage(content=f"❌ Technical node error: {result['response']}")],
+                    "current_rfp_node": "technical"
+                }
+        except Exception as e:
+            return {
+                "messages": [AIMessage(content=f"❌ Technical node exception: {str(e)}")],
+                "current_rfp_node": "technical"
+            }
+    
+    def legal_node(self, state: MessagesState) -> Dict[str, Any]:
+        """Generate legal-focused content for RFP proposal."""
+        query = state.get("rfp_query", "")
+        if not query:
+            user_messages = [m for m in state["messages"] if isinstance(m, HumanMessage)]
+            if user_messages:
+                query = user_messages[-1].content
+        
+        try:
+            result = self.rfp_agent.legal_node(query, k=5)
+            
+            if result['success']:
+                content = result['response']
+                message = f"⚖️  **Update Docx document with Legal content (create a new section if needed):**\n\n{content}\n\n"
+                
+                rfp_content = state.get("rfp_content", {})
+                rfp_content["legal"] = {
+                    "content": content,
+                    "context": result.get('context', []),
+                    "metadata": result.get('metadata', {})
+                }
+                
+                return {
+                    "messages": [AIMessage(content=message)],
+                    "rfp_content": rfp_content,
+                    "current_rfp_node": "legal"
+                }
+            else:
+                return {
+                    "messages": [AIMessage(content=f"❌ Legal node error: {result['response']}")],
+                    "current_rfp_node": "legal"
+                }
+        except Exception as e:
+            return {
+                "messages": [AIMessage(content=f"❌ Legal node exception: {str(e)}")],
+                "current_rfp_node": "legal"
+            }
+    
+    def qa_node(self, state: MessagesState) -> Dict[str, Any]:
+        """Generate QA/testing-focused content for RFP proposal."""
+        query = state.get("rfp_query", "")
+        if not query:
+            user_messages = [m for m in state["messages"] if isinstance(m, HumanMessage)]
+            if user_messages:
+                query = user_messages[-1].content
+        
+        try:
+            result = self.rfp_agent.qa_node(query, k=5)
+            
+            if result['success']:
+                content = result['response']
+                message = f"🧪 **Update Docx document with QA Team Response (create a new section if needed):**\n\n{content}\n\n"
+                
+                rfp_content = state.get("rfp_content", {})
+                rfp_content["qa"] = {
+                    "content": content,
+                    "context": result.get('context', []),
+                    "metadata": result.get('metadata', {})
+                }
+                
+                return {
+                    "messages": [AIMessage(content=message)],
+                    "rfp_content": rfp_content,
+                    "current_rfp_node": "qa"
+                }
+            else:
+                return {
+                    "messages": [AIMessage(content=f"❌ QA node error: {result['response']}")],
+                    "current_rfp_node": "qa"
+                }
+        except Exception as e:
+            return {
+                "messages": [AIMessage(content=f"❌ QA node exception: {str(e)}")],
+                "current_rfp_node": "qa"
+            }
+    
+    def rfp_supervisor(self, state: MessagesState) -> Dict[str, Any]:
+        """
+        RFP Team Supervisor - Routes to appropriate specialized node or docx_agent.
+        
+        Uses LangGraph's Command pattern to route between nodes and coordinate the workflow.
+        """
+        user_messages = [m for m in state["messages"] if isinstance(m, HumanMessage)]
+        if not user_messages:
+            return {
+                "messages": [AIMessage(content="Please provide an RFP requirement or query.")]
+            }
+        
+        last_message = user_messages[-1].content.lower()
+        
+        # Determine which RFP node to route to
+        if any(word in last_message for word in ["finance", "budget", "cost", "pricing", "payment"]):
+            return {
+                "messages": [AIMessage(content="📊 Routing to Finance Team...")],
+                "rfp_query": user_messages[-1].content,
+                "current_rfp_node": "finance"
+            }
+        elif any(word in last_message for word in ["technical", "architecture", "technology", "implementation"]):
+            return {
+                "messages": [AIMessage(content="🔧 Routing to Technical Team...")],
+                "rfp_query": user_messages[-1].content,
+                "current_rfp_node": "technical"
+            }
+        elif any(word in last_message for word in ["legal", "contract", "compliance", "liability"]):
+            return {
+                "messages": [AIMessage(content="⚖️  Routing to Legal Team...")],
+                "rfp_query": user_messages[-1].content,
+                "current_rfp_node": "legal"
+            }
+        elif any(word in last_message for word in ["qa", "quality", "testing", "test"]):
+            return {
+                "messages": [AIMessage(content="🧪 Routing to QA Team...")],
+                "rfp_query": user_messages[-1].content,
+                "current_rfp_node": "qa"
+            }
+        else:
+            # Default to finance for general RFP queries
+            return {
+                "messages": [AIMessage(content="📊 Routing to Finance Team (default)...")],
+                "rfp_query": user_messages[-1].content,
+                "current_rfp_node": "finance"
+            }

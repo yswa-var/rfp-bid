@@ -40,7 +40,7 @@ async def index_docx(docx_path: Optional[str] = None, export_json: bool = False)
     
     if export_json:
         output_path = "document_index.json"
-        manager.export_index(output_path)
+        await asyncio.to_thread(manager.export_index, output_path)
         result["exported_to"] = output_path
     
     return result
