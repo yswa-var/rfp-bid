@@ -1,0 +1,38 @@
+# Environment and secrets
+.env
+*.env
+!.env.template
+
+# Runtime data
+thread_mappings.json
+teams_bot.log
+*.log
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+
+# Virtual environment
+venv/
+env/
+ENV/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Testing
+test_mappings.json
+*.test.json
+

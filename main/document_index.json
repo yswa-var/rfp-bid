@@ -9,7 +9,7 @@
     ],
     "breadcrumb": "Document Root",
     "style": "Normal",
-    "text": "rfp-bid-990.3",
+    "text": "rfp-asd-2349991-V3",
     "level": 0
   },
   {
@@ -87,7 +87,7 @@
     ],
     "breadcrumb": "Document Root",
     "style": "Normal",
-    "text": "• Executive Overview - Tony Stark",
+    "text": "--\t• Executive Overview - Tony Stark",
     "level": 0
   },
   {
@@ -100,7 +100,7 @@
     ],
     "breadcrumb": "Document Root",
     "style": "Normal",
-    "text": "• Key Benefits",
+    "text": "--\t   • Key Benefits",
     "level": 0
   },
   {
@@ -113,7 +113,7 @@
     ],
     "breadcrumb": "Document Root",
     "style": "Normal",
-    "text": "• Competitive Advantages",
+    "text": "--\t   • Competitive Advantages",
     "level": 0
   },
   {
@@ -126,7 +126,7 @@
     ],
     "breadcrumb": "Document Root",
     "style": "Normal",
-    "text": "• Success Metrics",
+    "text": "--\t   • Success Metrics",
     "level": 0
   },
   {
@@ -137,9 +137,9 @@
       0,
       12
     ],
-    "breadcrumb": "2. About TechCorp",
+    "breadcrumb": "2. About CPX",
     "style": "Heading 2",
-    "text": "2. About TechCorp",
+    "text": "2. About CPX",
     "level": 2
   },
   {
@@ -152,7 +152,7 @@
     ],
     "breadcrumb": "Document Root",
     "style": "Normal",
-    "text": "• 2.1. CPX Purpose & Value",
+    "text": "--\t   • 2.1. CPX Purpose & Value",
     "level": 0
   },
   {
@@ -165,7 +165,7 @@
     ],
     "breadcrumb": "Document Root",
     "style": "Normal",
-    "text": "• 2.2. Key Information",
+    "text": "--\t   • 2.2. Key Information",
     "level": 0
   },
   {
@@ -178,7 +178,7 @@
     ],
     "breadcrumb": "Document Root",
     "style": "Normal",
-    "text": "• 2.3. Certifications & Accreditations",
+    "text": "--\t   • 2.3. Certifications & Accreditations",
     "level": 0
   },
   {
@@ -191,7 +191,7 @@
     ],
     "breadcrumb": "Document Root",
     "style": "Normal",
-    "text": "• 2.4. Organizational Structure",
+    "text": "--\t   • 2.4. Organizational Structure",
     "level": 0
   },
   {
@@ -204,7 +204,7 @@
     ],
     "breadcrumb": "Document Root",
     "style": "Normal",
-    "text": "• 2.5. Team Composition",
+    "text": "--\t   • 2.5. Team Composition",
     "level": 0
   },
   {
@@ -230,7 +230,7 @@
     ],
     "breadcrumb": "Document Root",
     "style": "Normal",
-    "text": "• 3.1. Project Scope Analysis",
+    "text": "----media/image2.png----",
     "level": 0
   },
   {
@@ -243,20 +243,7 @@
     ],
     "breadcrumb": "Document Root",
     "style": "Normal",
-    "text": "• 3.2. Stakeholder Requirements",
-    "level": 0
-  },
-  {
-    "anchor": [
-      "body",
-      0,
-      0,
-      0,
-      22
-    ],
-    "breadcrumb": "Document Root",
-    "style": "Normal",
-    "text": "• 3.3. Success Criteria",
+    "text": "----media/image2.png----",
     "level": 0
   },
   {
@@ -269,7 +256,20 @@
     ],
     "breadcrumb": "Document Root",
     "style": "Normal",
-    "text": "• 3.4. Risk Assessment",
+    "text": "--\t   • 3.1. Project Scope Analysis",
+    "level": 0
+  },
+  {
+    "anchor": [
+      "body",
+      0,
+      0,
+      0,
+      24
+    ],
+    "breadcrumb": "Document Root",
+    "style": "Normal",
+    "text": "--\t   • 3.2. Stakeholder Requirements",
     "level": 0
   },
   {
@@ -279,6 +279,32 @@
       0,
       0,
       25
+    ],
+    "breadcrumb": "Document Root",
+    "style": "Normal",
+    "text": "--\t   • 3.3. Success Criteria",
+    "level": 0
+  },
+  {
+    "anchor": [
+      "body",
+      0,
+      0,
+      0,
+      26
+    ],
+    "breadcrumb": "Document Root",
+    "style": "Normal",
+    "text": "--\t   • 3.4. Risk Assessment",
+    "level": 0
+  },
+  {
+    "anchor": [
+      "body",
+      0,
+      0,
+      0,
+      28
     ],
     "breadcrumb": "4. Proposed Solution",
     "style": "Heading 2",
@@ -291,50 +317,24 @@
       0,
       0,
       0,
-      26
-    ],
-    "breadcrumb": "Document Root",
-    "style": "Normal",
-    "text": "• 4.1. Technical Architecture",
-    "level": 0
-  },
-  {
-    "anchor": [
-      "body",
-      0,
-      0,
-      0,
-      27
-    ],
-    "breadcrumb": "Document Root",
-    "style": "Normal",
-    "text": "• 4.2. Implementation Approach",
-    "level": 0
-  },
-  {
-    "anchor": [
-      "body",
-      0,
-      0,
-      0,
-      28
-    ],
-    "breadcrumb": "Document Root",
-    "style": "Normal",
-    "text": "• 4.3. Solution Components",
-    "level": 0
-  },
-  {
-    "anchor": [
-      "body",
-      0,
-      0,
-      0,
       29
     ],
     "breadcrumb": "Document Root",
     "style": "Normal",
-    "text": "• 4.4. Integration Strategy",
+    "text": "----media/image1.png----",
+    "level": 0
+  },
+  {
+    "anchor": [
+      "body",
+      0,
+      0,
+      0,
+      30
+    ],
+    "breadcrumb": "Document Root",
+    "style": "Normal",
+    "text": "----media/image1.png----",
     "level": 0
   },
   {
@@ -345,10 +345,10 @@
       0,
       31
     ],
-    "breadcrumb": "5. Implementation Plan",
-    "style": "Heading 2",
-    "text": "5. Implementation Plan",
-    "level": 2
+    "breadcrumb": "Document Root",
+    "style": "Normal",
+    "text": "----media/image2.png----",
+    "level": 0
   },
   {
     "anchor": [
@@ -360,7 +360,7 @@
     ],
     "breadcrumb": "Document Root",
     "style": "Normal",
-    "text": "• 5.1. Project Phases",
+    "text": "----media/image1.png----",
     "level": 0
   },
   {
@@ -373,7 +373,7 @@
     ],
     "breadcrumb": "Document Root",
     "style": "Normal",
-    "text": "• 5.2. Timeline & Milestones",
+    "text": "----media/image2.png----",
     "level": 0
   },
   {
@@ -386,7 +386,7 @@
     ],
     "breadcrumb": "Document Root",
     "style": "Normal",
-    "text": "• 5.3. Resource Allocation",
+    "text": "----media/image1.png----",
     "level": 0
   },
   {
@@ -395,11 +395,11 @@
       0,
       0,
       0,
-      35
+      36
     ],
     "breadcrumb": "Document Root",
     "style": "Normal",
-    "text": "• 5.4. Quality Assurance",
+    "text": "--\t   • 4.1. Technical Architecture",
     "level": 0
   },
   {
@@ -410,10 +410,10 @@
       0,
       37
     ],
-    "breadcrumb": "6. Team and Experience",
-    "style": "Heading 2",
-    "text": "6. Team and Experience",
-    "level": 2
+    "breadcrumb": "Document Root",
+    "style": "Normal",
+    "text": "--\t   • 4.2. Implementation Approach",
+    "level": 0
   },
   {
     "anchor": [
@@ -425,7 +425,7 @@
     ],
     "breadcrumb": "Document Root",
     "style": "Normal",
-    "text": "• 6.1. Core Team Members",
+    "text": "--\t   • 4.3. Solution Components",
     "level": 0
   },
   {
@@ -438,20 +438,7 @@
     ],
     "breadcrumb": "Document Root",
     "style": "Normal",
-    "text": "• 6.2. Relevant Experience",
-    "level": 0
-  },
-  {
-    "anchor": [
-      "body",
-      0,
-      0,
-      0,
-      40
-    ],
-    "breadcrumb": "Document Root",
-    "style": "Normal",
-    "text": "• 6.3. Similar Projects",
+    "text": "--\t   • 4.4. Integration Strategy",
     "level": 0
   },
   {
@@ -462,9 +449,22 @@
       0,
       41
     ],
+    "breadcrumb": "5. Implementation Plan",
+    "style": "Heading 2",
+    "text": "5. Implementation Plan",
+    "level": 2
+  },
+  {
+    "anchor": [
+      "body",
+      0,
+      0,
+      0,
+      42
+    ],
     "breadcrumb": "Document Root",
     "style": "Normal",
-    "text": "• 6.4. Client References",
+    "text": "----media/image4.png----",
     "level": 0
   },
   {
@@ -477,7 +477,7 @@
     ],
     "breadcrumb": "Document Root",
     "style": "Normal",
-    "text": "Updated RFP Response",
+    "text": "----media/image3.png----",
     "level": 0
   },
   {
@@ -490,7 +490,7 @@
     ],
     "breadcrumb": "Document Root",
     "style": "Normal",
-    "text": "• 7.1. Cost Breakdown",
+    "text": "--\t   • 5.1. Project Phases",
     "level": 0
   },
   {
@@ -503,7 +503,7 @@
     ],
     "breadcrumb": "Document Root",
     "style": "Normal",
-    "text": "• 7.2. Pricing Model",
+    "text": "--\t   • 5.2. Timeline & Milestones",
     "level": 0
   },
   {
@@ -516,7 +516,7 @@
     ],
     "breadcrumb": "Document Root",
     "style": "Normal",
-    "text": "• 7.3. Payment Terms",
+    "text": "--\t   • 5.3. Resource Allocation",
     "level": 0
   },
   {
@@ -529,7 +529,7 @@
     ],
     "breadcrumb": "Document Root",
     "style": "Normal",
-    "text": "• 7.4. Value Analysis",
+    "text": "--\t   • 5.4. Quality Assurance",
     "level": 0
   },
   {
@@ -540,23 +540,10 @@
       0,
       49
     ],
-    "breadcrumb": "8. Terms and Conditions",
+    "breadcrumb": "6. Team and Experience",
     "style": "Heading 2",
-    "text": "8. Terms and Conditions",
+    "text": "6. Team and Experience",
     "level": 2
-  },
-  {
-    "anchor": [
-      "body",
-      0,
-      0,
-      0,
-      50
-    ],
-    "breadcrumb": "Document Root",
-    "style": "Normal",
-    "text": "• 8.1. Contractual Terms",
-    "level": 0
   },
   {
     "anchor": [
@@ -568,7 +555,7 @@
     ],
     "breadcrumb": "Document Root",
     "style": "Normal",
-    "text": "• 8.2. Service Level Agreements",
+    "text": "--\t   • 6.1. Core Team Members",
     "level": 0
   },
   {
@@ -581,7 +568,7 @@
     ],
     "breadcrumb": "Document Root",
     "style": "Normal",
-    "text": "• 8.3. Liability & Warranty",
+    "text": "--\t   • 6.2. Relevant Experience",
     "level": 0
   },
   {
@@ -594,7 +581,7 @@
     ],
     "breadcrumb": "Document Root",
     "style": "Normal",
-    "text": "• 8.4. Intellectual Property",
+    "text": "--\t   • 6.3. Similar Projects",
     "level": 0
   },
   {
@@ -603,12 +590,12 @@
       0,
       0,
       0,
-      55
+      54
     ],
-    "breadcrumb": "9. Additional Services",
-    "style": "Heading 2",
-    "text": "9. Additional Services",
-    "level": 2
+    "breadcrumb": "Document Root",
+    "style": "Normal",
+    "text": "--\t   • 6.4. Client References",
+    "level": 0
   },
   {
     "anchor": [
@@ -620,7 +607,7 @@
     ],
     "breadcrumb": "Document Root",
     "style": "Normal",
-    "text": "• 9.1. Optional Modules",
+    "text": "Updated RFP Response",
     "level": 0
   },
   {
@@ -633,7 +620,7 @@
     ],
     "breadcrumb": "Document Root",
     "style": "Normal",
-    "text": "• 9.2. Future Enhancements",
+    "text": "--\t   • 7.1. Cost Breakdown",
     "level": 0
   },
   {
@@ -646,7 +633,7 @@
     ],
     "breadcrumb": "Document Root",
     "style": "Normal",
-    "text": "• 9.3. Support Services",
+    "text": "--\t   • 7.2. Pricing Model",
     "level": 0
   },
   {
@@ -659,7 +646,7 @@
     ],
     "breadcrumb": "Document Root",
     "style": "Normal",
-    "text": "• 9.4. Training Programs",
+    "text": "--\t   • 7.3. Payment Terms",
     "level": 0
   },
   {
@@ -668,12 +655,12 @@
       0,
       0,
       0,
-      61
+      60
     ],
-    "breadcrumb": "10. Appendices",
-    "style": "Heading 2",
-    "text": "10. Appendices",
-    "level": 2
+    "breadcrumb": "Document Root",
+    "style": "Normal",
+    "text": "--\t   • 7.4. Value Analysis",
+    "level": 0
   },
   {
     "anchor": [
@@ -685,7 +672,7 @@
     ],
     "breadcrumb": "Document Root",
     "style": "Normal",
-    "text": "• 10.1. Technical Specifications",
+    "text": "## Finance Team Response\n\n### Budget Overview\n- Total project budget: $2,000,000 - $5,000,000\n- Ongoing operational costs: $200,000 - $500,000 annually\n- Cost optimization and savings targets\n- ROI analysis and justification\n\n### Budget Breakdown\n| Item                        | Cost Estimate    |\n|-----------------------------|------------------|\n| Software Development        | $1,500,000       |\n| Hardware Infrastructure     | $500,000         |\n| Training and Implementation | $300,000         |\n| Contingency                 | $200,000         |\n| Total                       | $2,500,000       |\n\n### Pricing Model and Payment Terms\n- Fixed-price contract with milestone payments\n- 30% upfront, 30% at project midpoint, 40% upon completion\n- Payment terms: Net 30 days\n\n### Financial Justifications and ROI Analysis\n- Cost savings from process automation and error reduction\n- Improved data visibility leading to better decision-making\n- Enhanced user experience and productivity gains\n- Scalability and maintainability benefits\n- ROI projected at 20% over 3 years\n\n### Cost-Benefit Analysis\n- Cost savings vs. operational efficiency improvements\n- Long-term benefits vs. initial investment\n- Value proposition compared to alternative solutions\n\n### Resource Allocation\n- Dedicated project team with relevant expertise\n- Allocation of resources based on project phases and requirements\n- Backup resources identified for risk mitigation\n\n### Financial Risk Assessment\n- Identified technical risks and mitigation strategies\n- Contingency planning for schedule risks\n- Resource risks addressed with backup plans\n- Quality risks mitigated through testing procedures\n\n### Payment Schedules and Milestones\n- Milestone 1: Software Development Kickoff - 30% payment\n- Milestone 2: System Testing and User Training - 30% payment\n- Milestone 3: Go-Live and Implementation - 40% payment\n\nEnsure all financial content is accurate, compliant with industry standards, transparent, detailed, and aligned with the client's requirements.",
     "level": 0
   },
   {
@@ -698,7 +685,7 @@
     ],
     "breadcrumb": "Document Root",
     "style": "Normal",
-    "text": "• 10.2. Certifications",
+    "text": "--\t   • 8.1. Contractual Terms",
     "level": 0
   },
   {
@@ -711,7 +698,7 @@
     ],
     "breadcrumb": "Document Root",
     "style": "Normal",
-    "text": "• 10.3. Case Studies",
+    "text": "--\t   • 8.2. Service Level Agreements",
     "level": 0
   },
   {
@@ -724,7 +711,20 @@
     ],
     "breadcrumb": "Document Root",
     "style": "Normal",
-    "text": "• 10.4. Additional Documentation",
+    "text": "--\t   • 8.3. Liability & Warranty",
+    "level": 0
+  },
+  {
+    "anchor": [
+      "body",
+      0,
+      0,
+      0,
+      66
+    ],
+    "breadcrumb": "Document Root",
+    "style": "Normal",
+    "text": "--\t   • 8.4. Intellectual Property",
     "level": 0
   },
   {
@@ -735,23 +735,10 @@
       0,
       68
     ],
-    "breadcrumb": "1. Summary",
+    "breadcrumb": "9. Additional Services",
     "style": "Heading 2",
-    "text": "1. Summary",
+    "text": "9. Additional Services",
     "level": 2
-  },
-  {
-    "anchor": [
-      "body",
-      0,
-      0,
-      0,
-      69
-    ],
-    "breadcrumb": "Document Root",
-    "style": "Normal",
-    "text": "Section Structure:",
-    "level": 0
   },
   {
     "anchor": [
@@ -763,7 +750,7 @@
     ],
     "breadcrumb": "Document Root",
     "style": "Normal",
-    "text": "• Executive Overview",
+    "text": "--\t   • 9.1. Optional Modules",
     "level": 0
   },
   {
@@ -776,7 +763,7 @@
     ],
     "breadcrumb": "Document Root",
     "style": "Normal",
-    "text": "• Key Benefits",
+    "text": "--\t   • 9.2. Future Enhancements",
     "level": 0
   },
   {
@@ -789,7 +776,7 @@
     ],
     "breadcrumb": "Document Root",
     "style": "Normal",
-    "text": "• Competitive Advantages",
+    "text": "--\t   • 9.3. Support Services",
     "level": 0
   },
   {
@@ -802,7 +789,7 @@
     ],
     "breadcrumb": "Document Root",
     "style": "Normal",
-    "text": "• Success Metrics",
+    "text": "--\t   • 9.4. Training Programs",
     "level": 0
   },
   {
@@ -813,10 +800,10 @@
       0,
       75
     ],
-    "breadcrumb": "Document Root",
-    "style": "Normal",
-    "text": "Executive Overview",
-    "level": 0
+    "breadcrumb": "10. Appendices",
+    "style": "Heading 2",
+    "text": "10. Appendices",
+    "level": 2
   },
   {
     "anchor": [
@@ -828,7 +815,7 @@
     ],
     "breadcrumb": "Document Root",
     "style": "Normal",
-    "text": "This proposal, led by CEO Yashaswa Varshney, presents a comprehensive solution designed to meet your organization's specific requirements. Our multi-disciplinary team has analyzed the requirements and developed an integrated approach that leverages cutting-edge technology, proven methodologies, and industry best practices.",
+    "text": "--\t   • 10.1. Technical Specifications",
     "level": 0
   },
   {
@@ -841,7 +828,7 @@
     ],
     "breadcrumb": "Document Root",
     "style": "Normal",
-    "text": "Key Benefits",
+    "text": "--\t   • 10.2. Certifications",
     "level": 0
   },
   {
@@ -854,7 +841,7 @@
     ],
     "breadcrumb": "Document Root",
     "style": "Normal",
-    "text": "- **Technical Excellence**: Robust, scalable architecture designed for long-term success",
+    "text": "--\t   • 10.3. Case Studies",
     "level": 0
   },
   {
@@ -867,33 +854,7 @@
     ],
     "breadcrumb": "Document Root",
     "style": "Normal",
-    "text": "- **Financial Value**: Competitive pricing with clear ROI and value proposition",
-    "level": 0
-  },
-  {
-    "anchor": [
-      "body",
-      0,
-      0,
-      0,
-      80
-    ],
-    "breadcrumb": "Document Root",
-    "style": "Normal",
-    "text": "- **Legal Compliance**: Full adherence to regulatory requirements and industry standards",
-    "level": 0
-  },
-  {
-    "anchor": [
-      "body",
-      0,
-      0,
-      0,
-      81
-    ],
-    "breadcrumb": "Document Root",
-    "style": "Normal",
-    "text": "- **Quality Assurance**: Comprehensive testing and risk management processes",
+    "text": "--\t   • 10.4. Additional Documentation",
     "level": 0
   },
   {
@@ -904,10 +865,10 @@
       0,
       82
     ],
-    "breadcrumb": "Document Root",
-    "style": "Normal",
-    "text": "Competitive Advantages",
-    "level": 0
+    "breadcrumb": "1. Summary",
+    "style": "Heading 2",
+    "text": "1. Summary",
+    "level": 2
   },
   {
     "anchor": [
@@ -919,7 +880,7 @@
     ],
     "breadcrumb": "Document Root",
     "style": "Normal",
-    "text": "- Multi-disciplinary team approach ensuring holistic solution design",
+    "text": "Section Structure:",
     "level": 0
   },
   {
@@ -932,7 +893,7 @@
     ],
     "breadcrumb": "Document Root",
     "style": "Normal",
-    "text": "- Proven track record in similar projects and industries",
+    "text": "--\t• Executive Overview",
     "level": 0
   },
   {
@@ -945,7 +906,7 @@
     ],
     "breadcrumb": "Document Root",
     "style": "Normal",
-    "text": "- Flexible implementation methodology adaptable to changing requirements",
+    "text": "--\t• Key Benefits",
     "level": 0
   },
   {
@@ -958,7 +919,7 @@
     ],
     "breadcrumb": "Document Root",
     "style": "Normal",
-    "text": "- Comprehensive support and maintenance services",
+    "text": "--\t• Competitive Advantages",
     "level": 0
   },
   {
@@ -971,20 +932,7 @@
     ],
     "breadcrumb": "Document Root",
     "style": "Normal",
-    "text": "Success Metrics",
-    "level": 0
-  },
-  {
-    "anchor": [
-      "body",
-      0,
-      0,
-      0,
-      88
-    ],
-    "breadcrumb": "Document Root",
-    "style": "Normal",
-    "text": "- On-time delivery with milestone-based progress tracking",
+    "text": "--\t• Success Metrics",
     "level": 0
   },
   {
@@ -997,7 +945,7 @@
     ],
     "breadcrumb": "Document Root",
     "style": "Normal",
-    "text": "- Budget adherence with transparent cost management",
+    "text": "Executive Overview",
     "level": 0
   },
   {
@@ -1010,7 +958,7 @@
     ],
     "breadcrumb": "Document Root",
     "style": "Normal",
-    "text": "- Quality standards exceeding industry benchmarks",
+    "text": "This proposal, led by CEO Yashaswa Varshney, presents a comprehensive solution designed to meet your organization's specific requirements. Our multi-disciplinary team has analyzed the requirements and developed an integrated approach that leverages cutting-edge technology, proven methodologies, and industry best practices.",
     "level": 0
   },
   {
@@ -1023,7 +971,20 @@
     ],
     "breadcrumb": "Document Root",
     "style": "Normal",
-    "text": "- Client satisfaction and long-term partnership development",
+    "text": "Key Benefits",
+    "level": 0
+  },
+  {
+    "anchor": [
+      "body",
+      0,
+      0,
+      0,
+      92
+    ],
+    "breadcrumb": "Document Root",
+    "style": "Normal",
+    "text": "- **Technical Excellence**: Robust, scalable architecture designed for long-term success",
     "level": 0
   },
   {
@@ -1034,10 +995,10 @@
       0,
       93
     ],
-    "breadcrumb": "2. About CPX",
-    "style": "Heading 2",
-    "text": "2. About CPX",
-    "level": 2
+    "breadcrumb": "Document Root",
+    "style": "Normal",
+    "text": "- **Financial Value**: Competitive pricing with clear ROI and value proposition",
+    "level": 0
   },
   {
     "anchor": [
@@ -1049,7 +1010,7 @@
     ],
     "breadcrumb": "Document Root",
     "style": "Normal",
-    "text": "Section Structure:",
+    "text": "- **Legal Compliance**: Full adherence to regulatory requirements and industry standards",
     "level": 0
   },
   {
@@ -1062,7 +1023,7 @@
     ],
     "breadcrumb": "Document Root",
     "style": "Normal",
-    "text": "• 2.1. CPX Purpose & Value",
+    "text": "- **Quality Assurance**: Comprehensive testing and risk management processes",
     "level": 0
   },
   {
@@ -1075,7 +1036,7 @@
     ],
     "breadcrumb": "Document Root",
     "style": "Normal",
-    "text": "• 2.2. Key Information",
+    "text": "Competitive Advantages",
     "level": 0
   },
   {
@@ -1088,7 +1049,7 @@
     ],
     "breadcrumb": "Document Root",
     "style": "Normal",
-    "text": "• 2.3. Certifications & Accreditations",
+    "text": "- Multi-disciplinary team approach ensuring holistic solution design",
     "level": 0
   },
   {
@@ -1101,7 +1062,7 @@
     ],
     "breadcrumb": "Document Root",
     "style": "Normal",
-    "text": "• 2.4. Organizational Structure",
+    "text": "- Proven track record in similar projects and industries",
     "level": 0
   },
   {
@@ -1114,7 +1075,20 @@
     ],
     "breadcrumb": "Document Root",
     "style": "Normal",
-    "text": "• 2.5. Team Composition",
+    "text": "- Flexible implementation methodology adaptable to changing requirements",
+    "level": 0
+  },
+  {
+    "anchor": [
+      "body",
+      0,
+      0,
+      0,
+      100
+    ],
+    "breadcrumb": "Document Root",
+    "style": "Normal",
+    "text": "- Comprehensive support and maintenance services",
     "level": 0
   },
   {
@@ -1125,10 +1099,10 @@
       0,
       101
     ],
-    "breadcrumb": "2.1. CPX Purpose & Value",
-    "style": "Heading 3",
-    "text": "2.1. CPX Purpose & Value",
-    "level": 3
+    "breadcrumb": "Document Root",
+    "style": "Normal",
+    "text": "Success Metrics",
+    "level": 0
   },
   {
     "anchor": [
@@ -1140,7 +1114,7 @@
     ],
     "breadcrumb": "Document Root",
     "style": "Normal",
-    "text": "CPX is a leading technology solutions provider specializing in enterprise-grade systems integration, custom software development, and digital transformation initiatives. Our purpose is to deliver innovative solutions that drive business growth and operational excellence.",
+    "text": "- On-time delivery with milestone-based progress tracking",
     "level": 0
   },
   {
@@ -1151,10 +1125,10 @@
       0,
       103
     ],
-    "breadcrumb": "2.2. Key Information",
-    "style": "Heading 3",
-    "text": "2.2. Key Information",
-    "level": 3
+    "breadcrumb": "Document Root",
+    "style": "Normal",
+    "text": "- Budget adherence with transparent cost management",
+    "level": 0
   },
   {
     "anchor": [
@@ -1166,7 +1140,7 @@
     ],
     "breadcrumb": "Document Root",
     "style": "Normal",
-    "text": "- **Founded**: 2015",
+    "text": "- Quality standards exceeding industry benchmarks",
     "level": 0
   },
   {
@@ -1179,20 +1153,7 @@
     ],
     "breadcrumb": "Document Root",
     "style": "Normal",
-    "text": "- **Headquarters**: Global presence with offices in major business centers",
-    "level": 0
-  },
-  {
-    "anchor": [
-      "body",
-      0,
-      0,
-      0,
-      106
-    ],
-    "breadcrumb": "Document Root",
-    "style": "Normal",
-    "text": "- **Team Size**: 500+ certified professionals",
+    "text": "- Client satisfaction and long-term partnership development",
     "level": 0
   },
   {
@@ -1203,204 +1164,9 @@
       0,
       107
     ],
-    "breadcrumb": "Document Root",
-    "style": "Normal",
-    "text": "- **Industries Served**: Financial Services, Healthcare, Government, Manufacturing",
-    "level": 0
-  },
-  {
-    "anchor": [
-      "body",
-      0,
-      0,
-      0,
-      108
-    ],
-    "breadcrumb": "Document Root",
-    "style": "Normal",
-    "text": "- **Client Base**: 200+ satisfied clients worldwide",
-    "level": 0
-  },
-  {
-    "anchor": [
-      "body",
-      0,
-      0,
-      0,
-      109
-    ],
-    "breadcrumb": "2.3. Certifications & Accreditations",
-    "style": "Heading 3",
-    "text": "2.3. Certifications & Accreditations",
-    "level": 3
-  },
-  {
-    "anchor": [
-      "body",
-      0,
-      0,
-      0,
-      110
-    ],
-    "breadcrumb": "Document Root",
-    "style": "Normal",
-    "text": "- ISO 27001 Information Security Management",
-    "level": 0
-  },
-  {
-    "anchor": [
-      "body",
-      0,
-      0,
-      0,
-      111
-    ],
-    "breadcrumb": "Document Root",
-    "style": "Normal",
-    "text": "- ISO 9001 Quality Management Systems",
-    "level": 0
-  },
-  {
-    "anchor": [
-      "body",
-      0,
-      0,
-      0,
-      112
-    ],
-    "breadcrumb": "Document Root",
-    "style": "Normal",
-    "text": "- CMMI Level 5 for Development and Services",
-    "level": 0
-  },
-  {
-    "anchor": [
-      "body",
-      0,
-      0,
-      0,
-      113
-    ],
-    "breadcrumb": "Document Root",
-    "style": "Normal",
-    "text": "- Cloud platform certifications (AWS, Azure, GCP)",
-    "level": 0
-  },
-  {
-    "anchor": [
-      "body",
-      0,
-      0,
-      0,
-      114
-    ],
-    "breadcrumb": "Document Root",
-    "style": "Normal",
-    "text": "- Industry-specific compliance certifications",
-    "level": 0
-  },
-  {
-    "anchor": [
-      "body",
-      0,
-      0,
-      0,
-      115
-    ],
-    "breadcrumb": "2.4. Organizational Structure",
-    "style": "Heading 3",
-    "text": "2.4. Organizational Structure",
-    "level": 3
-  },
-  {
-    "anchor": [
-      "body",
-      0,
-      0,
-      0,
-      116
-    ],
-    "breadcrumb": "Document Root",
-    "style": "Normal",
-    "text": "Our organization is structured around centers of excellence, ensuring deep domain expertise while maintaining agility and cross-functional collaboration.",
-    "level": 0
-  },
-  {
-    "anchor": [
-      "body",
-      0,
-      0,
-      0,
-      117
-    ],
-    "breadcrumb": "2.5. Team Composition",
-    "style": "Heading 3",
-    "text": "2.5. Team Composition",
-    "level": 3
-  },
-  {
-    "anchor": [
-      "body",
-      0,
-      0,
-      0,
-      118
-    ],
-    "breadcrumb": "Document Root",
-    "style": "Normal",
-    "text": "- **Technical Leadership**: Senior architects and technology leads",
-    "level": 0
-  },
-  {
-    "anchor": [
-      "body",
-      0,
-      0,
-      0,
-      119
-    ],
-    "breadcrumb": "Document Root",
-    "style": "Normal",
-    "text": "- **Project Management**: Certified PMP and Agile practitioners",
-    "level": 0
-  },
-  {
-    "anchor": [
-      "body",
-      0,
-      0,
-      0,
-      120
-    ],
-    "breadcrumb": "Document Root",
-    "style": "Normal",
-    "text": "- **Quality Assurance**: Dedicated QA and testing specialists",
-    "level": 0
-  },
-  {
-    "anchor": [
-      "body",
-      0,
-      0,
-      0,
-      121
-    ],
-    "breadcrumb": "Document Root",
-    "style": "Normal",
-    "text": "- **Legal & Compliance**: In-house legal and compliance experts",
-    "level": 0
-  },
-  {
-    "anchor": [
-      "body",
-      0,
-      0,
-      0,
-      123
-    ],
-    "breadcrumb": "3. Understanding of Requirements",
+    "breadcrumb": "2. About CPX",
     "style": "Heading 2",
-    "text": "3. Understanding of Requirements",
+    "text": "2. About CPX",
     "level": 2
   },
   {
@@ -1409,7 +1175,7 @@
       0,
       0,
       0,
-      124
+      108
     ],
     "breadcrumb": "Document Root",
     "style": "Normal",
@@ -1422,11 +1188,206 @@
       0,
       0,
       0,
+      109
+    ],
+    "breadcrumb": "Document Root",
+    "style": "Normal",
+    "text": "--\t• 2.1. CPX Purpose & Value",
+    "level": 0
+  },
+  {
+    "anchor": [
+      "body",
+      0,
+      0,
+      0,
+      110
+    ],
+    "breadcrumb": "Document Root",
+    "style": "Normal",
+    "text": "--\t• 2.2. Key Information",
+    "level": 0
+  },
+  {
+    "anchor": [
+      "body",
+      0,
+      0,
+      0,
+      111
+    ],
+    "breadcrumb": "Document Root",
+    "style": "Normal",
+    "text": "--\t• 2.3. Certifications & Accreditations",
+    "level": 0
+  },
+  {
+    "anchor": [
+      "body",
+      0,
+      0,
+      0,
+      112
+    ],
+    "breadcrumb": "Document Root",
+    "style": "Normal",
+    "text": "--\t• 2.4. Organizational Structure",
+    "level": 0
+  },
+  {
+    "anchor": [
+      "body",
+      0,
+      0,
+      0,
+      113
+    ],
+    "breadcrumb": "Document Root",
+    "style": "Normal",
+    "text": "--\t• 2.5. Team Composition",
+    "level": 0
+  },
+  {
+    "anchor": [
+      "body",
+      0,
+      0,
+      0,
+      115
+    ],
+    "breadcrumb": "Document Root",
+    "style": "Normal",
+    "text": "Test Update",
+    "level": 0
+  },
+  {
+    "anchor": [
+      "body",
+      0,
+      0,
+      0,
+      116
+    ],
+    "breadcrumb": "Document Root",
+    "style": "Normal",
+    "text": "CPX is a leading technology solutions provider specializing in enterprise-grade systems integration, custom software development, and digital transformation initiatives. Our purpose is to deliver innovative solutions that drive business growth and operational excellence.",
+    "level": 0
+  },
+  {
+    "anchor": [
+      "body",
+      0,
+      0,
+      0,
+      117
+    ],
+    "breadcrumb": "2.2. Key Information",
+    "style": "Heading 3",
+    "text": "2.2. Key Information",
+    "level": 3
+  },
+  {
+    "anchor": [
+      "body",
+      0,
+      0,
+      0,
+      118
+    ],
+    "breadcrumb": "Document Root",
+    "style": "Normal",
+    "text": "- **Founded**: 2015",
+    "level": 0
+  },
+  {
+    "anchor": [
+      "body",
+      0,
+      0,
+      0,
+      119
+    ],
+    "breadcrumb": "Document Root",
+    "style": "Normal",
+    "text": "- **Headquarters**: Global presence with offices in major business centers",
+    "level": 0
+  },
+  {
+    "anchor": [
+      "body",
+      0,
+      0,
+      0,
+      120
+    ],
+    "breadcrumb": "Document Root",
+    "style": "Normal",
+    "text": "- **Team Size**: 500+ certified professionals",
+    "level": 0
+  },
+  {
+    "anchor": [
+      "body",
+      0,
+      0,
+      0,
+      121
+    ],
+    "breadcrumb": "Document Root",
+    "style": "Normal",
+    "text": "- **Industries Served**: Financial Services, Healthcare, Government, Manufacturing",
+    "level": 0
+  },
+  {
+    "anchor": [
+      "body",
+      0,
+      0,
+      0,
+      122
+    ],
+    "breadcrumb": "Document Root",
+    "style": "Normal",
+    "text": "- **Client Base**: 200+ satisfied clients worldwide",
+    "level": 0
+  },
+  {
+    "anchor": [
+      "body",
+      0,
+      0,
+      0,
+      123
+    ],
+    "breadcrumb": "2.3. Certifications & Accreditations",
+    "style": "Heading 3",
+    "text": "2.3. Certifications & Accreditations",
+    "level": 3
+  },
+  {
+    "anchor": [
+      "body",
+      0,
+      0,
+      0,
+      124
+    ],
+    "breadcrumb": "Document Root",
+    "style": "Normal",
+    "text": "- ISO 27001 Information Security Management",
+    "level": 0
+  },
+  {
+    "anchor": [
+      "body",
+      0,
+      0,
+      0,
       125
     ],
     "breadcrumb": "Document Root",
     "style": "Normal",
-    "text": "• 3.1. Project Scope Analysis",
+    "text": "- ISO 9001 Quality Management Systems",
     "level": 0
   },
   {
@@ -1439,7 +1400,7 @@
     ],
     "breadcrumb": "Document Root",
     "style": "Normal",
-    "text": "• 3.2. Stakeholder Requirements",
+    "text": "- CMMI Level 5 for Development and Services",
     "level": 0
   },
   {
@@ -1452,7 +1413,7 @@
     ],
     "breadcrumb": "Document Root",
     "style": "Normal",
-    "text": "• 3.3. Success Criteria",
+    "text": "- Cloud platform certifications (AWS, Azure, GCP)",
     "level": 0
   },
   {
@@ -1465,7 +1426,7 @@
     ],
     "breadcrumb": "Document Root",
     "style": "Normal",
-    "text": "• 3.4. Risk Assessment",
+    "text": "- Industry-specific compliance certifications",
     "level": 0
   },
   {
@@ -1474,11 +1435,11 @@
       0,
       0,
       0,
-      130
+      129
     ],
-    "breadcrumb": "3.1. Project Scope Analysis",
+    "breadcrumb": "2.4. Organizational Structure",
     "style": "Heading 3",
-    "text": "3.1. Project Scope Analysis",
+    "text": "2.4. Organizational Structure",
     "level": 3
   },
   {
@@ -1491,7 +1452,7 @@
     ],
     "breadcrumb": "Document Root",
     "style": "Normal",
-    "text": "Based on our comprehensive analysis of the RFP requirements, we have identified the key scope elements and deliverables. Our understanding encompasses both functional and non-functional requirements, ensuring complete coverage of your needs.",
+    "text": "Our organization is structured around centers of excellence, ensuring deep domain expertise while maintaining agility and cross-functional collaboration.",
     "level": 0
   },
   {
@@ -1502,23 +1463,10 @@
       0,
       132
     ],
-    "breadcrumb": "3.2. Stakeholder Requirements",
+    "breadcrumb": "2.5. Team Composition",
     "style": "Heading 3",
-    "text": "3.2. Stakeholder Requirements",
+    "text": "2.5. Team Composition",
     "level": 3
-  },
-  {
-    "anchor": [
-      "body",
-      0,
-      0,
-      0,
-      133
-    ],
-    "breadcrumb": "Document Root",
-    "style": "Normal",
-    "text": "We have identified and analyzed requirements from all stakeholder groups, including end-users, technical teams, management, and compliance officers. Our solution addresses the unique needs of each stakeholder group.",
-    "level": 0
   },
   {
     "anchor": [
@@ -1528,10 +1476,10 @@
       0,
       134
     ],
-    "breadcrumb": "3.3. Success Criteria",
-    "style": "Heading 3",
-    "text": "3.3. Success Criteria",
-    "level": 3
+    "breadcrumb": "Document Root",
+    "style": "Normal",
+    "text": "- **Technical Leadership**: Senior architects and technology leads",
+    "level": 0
   },
   {
     "anchor": [
@@ -1543,7 +1491,7 @@
     ],
     "breadcrumb": "Document Root",
     "style": "Normal",
-    "text": "Clear, measurable success criteria have been established, including performance metrics, quality standards, timeline adherence, and user satisfaction benchmarks.",
+    "text": "- **Project Management**: Certified PMP and Agile practitioners",
     "level": 0
   },
   {
@@ -1554,10 +1502,10 @@
       0,
       136
     ],
-    "breadcrumb": "3.4. Risk Assessment",
-    "style": "Heading 3",
-    "text": "3.4. Risk Assessment",
-    "level": 3
+    "breadcrumb": "Document Root",
+    "style": "Normal",
+    "text": "- **Quality Assurance**: Dedicated QA and testing specialists",
+    "level": 0
   },
   {
     "anchor": [
@@ -1569,7 +1517,7 @@
     ],
     "breadcrumb": "Document Root",
     "style": "Normal",
-    "text": "Comprehensive risk analysis has been conducted, identifying potential challenges and developing mitigation strategies to ensure project success.",
+    "text": "- **Legal & Compliance**: In-house legal and compliance experts",
     "level": 0
   },
   {
@@ -1580,9 +1528,9 @@
       0,
       139
     ],
-    "breadcrumb": "4. Proposed Solution",
+    "breadcrumb": "3. Understanding of Requirements",
     "style": "Heading 2",
-    "text": "4. Proposed Solution",
+    "text": "3. Understanding of Requirements",
     "level": 2
   },
   {
@@ -1608,7 +1556,7 @@
     ],
     "breadcrumb": "Document Root",
     "style": "Normal",
-    "text": "• 4.1. Technical Architecture",
+    "text": "--\t• 3.1. Project Scope Analysis",
     "level": 0
   },
   {
@@ -1621,7 +1569,7 @@
     ],
     "breadcrumb": "Document Root",
     "style": "Normal",
-    "text": "• 4.2. Implementation Approach",
+    "text": "--\t• 3.2. Stakeholder Requirements",
     "level": 0
   },
   {
@@ -1634,7 +1582,7 @@
     ],
     "breadcrumb": "Document Root",
     "style": "Normal",
-    "text": "• 4.3. Solution Components",
+    "text": "--\t• 3.3. Success Criteria",
     "level": 0
   },
   {
@@ -1647,7 +1595,7 @@
     ],
     "breadcrumb": "Document Root",
     "style": "Normal",
-    "text": "• 4.4. Integration Strategy",
+    "text": "--\t• 3.4. Risk Assessment",
     "level": 0
   },
   {
@@ -1658,10 +1606,10 @@
       0,
       146
     ],
-    "breadcrumb": "Document Root",
-    "style": "Normal",
-    "text": "Technical Architecture",
-    "level": 0
+    "breadcrumb": "3.1. Project Scope Analysis",
+    "style": "Heading 3",
+    "text": "3.1. Project Scope Analysis",
+    "level": 3
   },
   {
     "anchor": [
@@ -1673,8 +1621,21 @@
     ],
     "breadcrumb": "Document Root",
     "style": "Normal",
-    "text": "We propose a cloud-native, microservices architecture built on modern containerization platforms with automated CI/CD pipelines.",
+    "text": "Based on our comprehensive analysis of the RFP requirements, we have identified the key scope elements and deliverables. Our understanding encompasses both functional and non-functional requirements, ensuring complete coverage of your needs.",
     "level": 0
+  },
+  {
+    "anchor": [
+      "body",
+      0,
+      0,
+      0,
+      148
+    ],
+    "breadcrumb": "3.2. Stakeholder Requirements",
+    "style": "Heading 3",
+    "text": "3.2. Stakeholder Requirements",
+    "level": 3
   },
   {
     "anchor": [
@@ -1684,10 +1645,10 @@
       0,
       149
     ],
-    "breadcrumb": "5. Implementation Plan",
-    "style": "Heading 2",
-    "text": "5. Implementation Plan",
-    "level": 2
+    "breadcrumb": "Document Root",
+    "style": "Normal",
+    "text": "We have identified and analyzed requirements from all stakeholder groups, including end-users, technical teams, management, and compliance officers. Our solution addresses the unique needs of each stakeholder group.",
+    "level": 0
   },
   {
     "anchor": [
@@ -1697,10 +1658,10 @@
       0,
       150
     ],
-    "breadcrumb": "Document Root",
-    "style": "Normal",
-    "text": "Section Structure:",
-    "level": 0
+    "breadcrumb": "3.3. Success Criteria",
+    "style": "Heading 3",
+    "text": "3.3. Success Criteria",
+    "level": 3
   },
   {
     "anchor": [
@@ -1712,7 +1673,7 @@
     ],
     "breadcrumb": "Document Root",
     "style": "Normal",
-    "text": "• 5.1. Project Phases",
+    "text": "Clear, measurable success criteria have been established, including performance metrics, quality standards, timeline adherence, and user satisfaction benchmarks.",
     "level": 0
   },
   {
@@ -1723,10 +1684,10 @@
       0,
       152
     ],
-    "breadcrumb": "Document Root",
-    "style": "Normal",
-    "text": "• 5.2. Timeline & Milestones",
-    "level": 0
+    "breadcrumb": "3.4. Risk Assessment",
+    "style": "Heading 3",
+    "text": "3.4. Risk Assessment",
+    "level": 3
   },
   {
     "anchor": [
@@ -1738,7 +1699,7 @@
     ],
     "breadcrumb": "Document Root",
     "style": "Normal",
-    "text": "• 5.3. Resource Allocation",
+    "text": "Comprehensive risk analysis has been conducted, identifying potential challenges and developing mitigation strategies to ensure project success.",
     "level": 0
   },
   {
@@ -1747,12 +1708,12 @@
       0,
       0,
       0,
-      154
+      155
     ],
-    "breadcrumb": "Document Root",
-    "style": "Normal",
-    "text": "• 5.4. Quality Assurance",
-    "level": 0
+    "breadcrumb": "4. Proposed Solution",
+    "style": "Heading 2",
+    "text": "4. Proposed Solution",
+    "level": 2
   },
   {
     "anchor": [
@@ -1764,7 +1725,7 @@
     ],
     "breadcrumb": "Document Root",
     "style": "Normal",
-    "text": "Technical Architecture",
+    "text": "Section Structure:",
     "level": 0
   },
   {
@@ -1777,7 +1738,20 @@
     ],
     "breadcrumb": "Document Root",
     "style": "Normal",
-    "text": "We propose a cloud-native, microservices architecture built on modern containerization platforms with automated CI/CD pipelines.",
+    "text": "--\t• 4.1. Technical Architecture",
+    "level": 0
+  },
+  {
+    "anchor": [
+      "body",
+      0,
+      0,
+      0,
+      158
+    ],
+    "breadcrumb": "Document Root",
+    "style": "Normal",
+    "text": "--\t• 4.2. Implementation Approach",
     "level": 0
   },
   {
@@ -1788,10 +1762,10 @@
       0,
       159
     ],
-    "breadcrumb": "6. Team and Experience",
-    "style": "Heading 2",
-    "text": "6. Team and Experience",
-    "level": 2
+    "breadcrumb": "Document Root",
+    "style": "Normal",
+    "text": "--\t• 4.3. Solution Components",
+    "level": 0
   },
   {
     "anchor": [
@@ -1803,20 +1777,7 @@
     ],
     "breadcrumb": "Document Root",
     "style": "Normal",
-    "text": "Section Structure:",
-    "level": 0
-  },
-  {
-    "anchor": [
-      "body",
-      0,
-      0,
-      0,
-      161
-    ],
-    "breadcrumb": "Document Root",
-    "style": "Normal",
-    "text": "• 6.1. Core Team Members",
+    "text": "--\t• 4.4. Integration Strategy",
     "level": 0
   },
   {
@@ -1829,7 +1790,7 @@
     ],
     "breadcrumb": "Document Root",
     "style": "Normal",
-    "text": "• 6.2. Relevant Experience",
+    "text": "Technical Architecture",
     "level": 0
   },
   {
@@ -1842,7 +1803,7 @@
     ],
     "breadcrumb": "Document Root",
     "style": "Normal",
-    "text": "• 6.3. Similar Projects",
+    "text": "We propose a cloud-native, microservices architecture built on modern containerization platforms with automated CI/CD pipelines.",
     "level": 0
   },
   {
@@ -1855,7 +1816,20 @@
     ],
     "breadcrumb": "Document Root",
     "style": "Normal",
-    "text": "• 6.4. Client References",
+    "text": "----media/image5.png----",
+    "level": 0
+  },
+  {
+    "anchor": [
+      "body",
+      0,
+      0,
+      0,
+      165
+    ],
+    "breadcrumb": "Document Root",
+    "style": "Normal",
+    "text": "----media/image5.png----",
     "level": 0
   },
   {
@@ -1868,20 +1842,7 @@
     ],
     "breadcrumb": "Document Root",
     "style": "Normal",
-    "text": "Technical Architecture",
-    "level": 0
-  },
-  {
-    "anchor": [
-      "body",
-      0,
-      0,
-      0,
-      167
-    ],
-    "breadcrumb": "Document Root",
-    "style": "Normal",
-    "text": "We propose a cloud-native, microservices architecture built on modern containerization platforms with automated CI/CD pipelines.",
+    "text": "----media/image5.png----",
     "level": 0
   },
   {
@@ -1892,9 +1853,9 @@
       0,
       169
     ],
-    "breadcrumb": "7. Pricing",
+    "breadcrumb": "5. Implementation Plan",
     "style": "Heading 2",
-    "text": "7. Pricing",
+    "text": "5. Implementation Plan",
     "level": 2
   },
   {
@@ -1920,7 +1881,7 @@
     ],
     "breadcrumb": "Document Root",
     "style": "Normal",
-    "text": "• 7.1. Cost Breakdown",
+    "text": "--\t• 5.1. Project Phases",
     "level": 0
   },
   {
@@ -1933,7 +1894,7 @@
     ],
     "breadcrumb": "Document Root",
     "style": "Normal",
-    "text": "• 7.2. Pricing Model",
+    "text": "--\t• 5.2. Timeline & Milestones",
     "level": 0
   },
   {
@@ -1946,7 +1907,7 @@
     ],
     "breadcrumb": "Document Root",
     "style": "Normal",
-    "text": "• 7.3. Payment Terms",
+    "text": "--\t• 5.3. Resource Allocation",
     "level": 0
   },
   {
@@ -1959,7 +1920,7 @@
     ],
     "breadcrumb": "Document Root",
     "style": "Normal",
-    "text": "• 7.4. Value Analysis",
+    "text": "--\t• 5.4. Quality Assurance",
     "level": 0
   },
   {
@@ -1972,7 +1933,7 @@
     ],
     "breadcrumb": "Document Root",
     "style": "Normal",
-    "text": "Financial Analysis",
+    "text": "Technical Architecture",
     "level": 0
   },
   {
@@ -1985,7 +1946,7 @@
     ],
     "breadcrumb": "Document Root",
     "style": "Normal",
-    "text": "Our comprehensive financial analysis demonstrates exceptional value proposition through strategic cost optimization and ROI maximization.",
+    "text": "We propose a cloud-native, microservices architecture built on modern containerization platforms with automated CI/CD pipelines.",
     "level": 0
   },
   {
@@ -1996,9 +1957,9 @@
       0,
       179
     ],
-    "breadcrumb": "8. Terms and Conditions",
+    "breadcrumb": "6. Team and Experience",
     "style": "Heading 2",
-    "text": "8. Terms and Conditions",
+    "text": "6. Team and Experience",
     "level": 2
   },
   {
@@ -2024,7 +1985,7 @@
     ],
     "breadcrumb": "Document Root",
     "style": "Normal",
-    "text": "• 8.1. Contractual Terms",
+    "text": "--\t• 6.1. Core Team Members",
     "level": 0
   },
   {
@@ -2037,7 +1998,7 @@
     ],
     "breadcrumb": "Document Root",
     "style": "Normal",
-    "text": "• 8.2. Service Level Agreements",
+    "text": "--\t• 6.2. Relevant Experience",
     "level": 0
   },
   {
@@ -2050,7 +2011,7 @@
     ],
     "breadcrumb": "Document Root",
     "style": "Normal",
-    "text": "• 8.3. Liability & Warranty",
+    "text": "--\t• 6.3. Similar Projects",
     "level": 0
   },
   {
@@ -2063,7 +2024,7 @@
     ],
     "breadcrumb": "Document Root",
     "style": "Normal",
-    "text": "• 8.4. Intellectual Property",
+    "text": "--\t• 6.4. Client References",
     "level": 0
   },
   {
@@ -2076,7 +2037,7 @@
     ],
     "breadcrumb": "Document Root",
     "style": "Normal",
-    "text": "Legal & Compliance",
+    "text": "Technical Architecture",
     "level": 0
   },
   {
@@ -2089,7 +2050,7 @@
     ],
     "breadcrumb": "Document Root",
     "style": "Normal",
-    "text": "Full adherence to all regulatory requirements including GDPR, HIPAA, and industry-specific compliance standards.",
+    "text": "We propose a cloud-native, microservices architecture built on modern containerization platforms with automated CI/CD pipelines.",
     "level": 0
   },
   {
@@ -2100,9 +2061,9 @@
       0,
       189
     ],
-    "breadcrumb": "9. Additional Services",
+    "breadcrumb": "7. Pricing",
     "style": "Heading 2",
-    "text": "9. Additional Services",
+    "text": "7. Pricing",
     "level": 2
   },
   {
@@ -2128,7 +2089,7 @@
     ],
     "breadcrumb": "Document Root",
     "style": "Normal",
-    "text": "• 9.1. Optional Modules",
+    "text": "--\t• 7.1. Cost Breakdown",
     "level": 0
   },
   {
@@ -2141,7 +2102,7 @@
     ],
     "breadcrumb": "Document Root",
     "style": "Normal",
-    "text": "• 9.2. Future Enhancements",
+    "text": "--\t• 7.2. Pricing Model",
     "level": 0
   },
   {
@@ -2154,7 +2115,7 @@
     ],
     "breadcrumb": "Document Root",
     "style": "Normal",
-    "text": "• 9.3. Support Services",
+    "text": "--\t• 7.3. Payment Terms",
     "level": 0
   },
   {
@@ -2167,7 +2128,7 @@
     ],
     "breadcrumb": "Document Root",
     "style": "Normal",
-    "text": "• 9.4. Training Programs",
+    "text": "--\t• 7.4. Value Analysis",
     "level": 0
   },
   {
@@ -2180,7 +2141,7 @@
     ],
     "breadcrumb": "Document Root",
     "style": "Normal",
-    "text": "Technical Architecture",
+    "text": "Financial Analysis",
     "level": 0
   },
   {
@@ -2193,7 +2154,7 @@
     ],
     "breadcrumb": "Document Root",
     "style": "Normal",
-    "text": "We propose a cloud-native, microservices architecture built on modern containerization platforms with automated CI/CD pipelines.",
+    "text": "Our comprehensive financial analysis demonstrates exceptional value proposition through strategic cost optimization and ROI maximization.",
     "level": 0
   },
   {
@@ -2204,9 +2165,9 @@
       0,
       199
     ],
-    "breadcrumb": "10. Appendices",
+    "breadcrumb": "8. Terms and Conditions",
     "style": "Heading 2",
-    "text": "10. Appendices",
+    "text": "8. Terms and Conditions",
     "level": 2
   },
   {
@@ -2232,7 +2193,7 @@
     ],
     "breadcrumb": "Document Root",
     "style": "Normal",
-    "text": "• 10.1. Technical Specifications",
+    "text": "--\t• 8.1. Contractual Terms",
     "level": 0
   },
   {
@@ -2245,7 +2206,7 @@
     ],
     "breadcrumb": "Document Root",
     "style": "Normal",
-    "text": "• 10.2. Certifications",
+    "text": "--\t• 8.2. Service Level Agreements",
     "level": 0
   },
   {
@@ -2258,7 +2219,7 @@
     ],
     "breadcrumb": "Document Root",
     "style": "Normal",
-    "text": "• 10.3. Case Studies",
+    "text": "--\t• 8.3. Liability & Warranty",
     "level": 0
   },
   {
@@ -2271,7 +2232,7 @@
     ],
     "breadcrumb": "Document Root",
     "style": "Normal",
-    "text": "• 10.4. Additional Documentation",
+    "text": "--\t• 8.4. Intellectual Property",
     "level": 0
   },
   {
@@ -2282,10 +2243,10 @@
       0,
       206
     ],
-    "breadcrumb": "10.1. Technical Specifications",
-    "style": "Heading 3",
-    "text": "10.1. Technical Specifications",
-    "level": 3
+    "breadcrumb": "Document Root",
+    "style": "Normal",
+    "text": "Legal & Compliance",
+    "level": 0
   },
   {
     "anchor": [
@@ -2297,21 +2258,8 @@
     ],
     "breadcrumb": "Document Root",
     "style": "Normal",
-    "text": "Detailed technical specifications, system requirements, and architecture diagrams are provided as supporting documentation.",
+    "text": "Full adherence to all regulatory requirements including GDPR, HIPAA, and industry-specific compliance standards.",
     "level": 0
-  },
-  {
-    "anchor": [
-      "body",
-      0,
-      0,
-      0,
-      208
-    ],
-    "breadcrumb": "10.2. Certifications",
-    "style": "Heading 3",
-    "text": "10.2. Certifications",
-    "level": 3
   },
   {
     "anchor": [
@@ -2321,10 +2269,10 @@
       0,
       209
     ],
-    "breadcrumb": "Document Root",
-    "style": "Normal",
-    "text": "Complete documentation of our certifications, accreditations, and compliance attestations.",
-    "level": 0
+    "breadcrumb": "9. Additional Services",
+    "style": "Heading 2",
+    "text": "9. Additional Services",
+    "level": 2
   },
   {
     "anchor": [
@@ -2334,10 +2282,10 @@
       0,
       210
     ],
-    "breadcrumb": "10.3. Case Studies",
-    "style": "Heading 3",
-    "text": "10.3. Case Studies",
-    "level": 3
+    "breadcrumb": "Document Root",
+    "style": "Normal",
+    "text": "Section Structure:",
+    "level": 0
   },
   {
     "anchor": [
@@ -2349,7 +2297,7 @@
     ],
     "breadcrumb": "Document Root",
     "style": "Normal",
-    "text": "Relevant case studies demonstrating successful implementations of similar solutions.",
+    "text": "--\t• 9.1. Optional Modules",
     "level": 0
   },
   {
@@ -2360,10 +2308,10 @@
       0,
       212
     ],
-    "breadcrumb": "10.4. Additional Documentation",
-    "style": "Heading 3",
-    "text": "10.4. Additional Documentation",
-    "level": 3
+    "breadcrumb": "Document Root",
+    "style": "Normal",
+    "text": "--\t• 9.2. Future Enhancements",
+    "level": 0
   },
   {
     "anchor": [
@@ -2375,7 +2323,7 @@
     ],
     "breadcrumb": "Document Root",
     "style": "Normal",
-    "text": "Supporting materials including white papers, technical references, and methodology documentation.",
+    "text": "--\t• 9.3. Support Services",
     "level": 0
   },
   {
@@ -2384,12 +2332,12 @@
       0,
       0,
       0,
-      215
+      214
     ],
-    "breadcrumb": "Document Summary",
-    "style": "Heading 2",
-    "text": "Document Summary",
-    "level": 2
+    "breadcrumb": "Document Root",
+    "style": "Normal",
+    "text": "--\t• 9.4. Training Programs",
+    "level": 0
   },
   {
     "anchor": [
@@ -2401,7 +2349,7 @@
     ],
     "breadcrumb": "Document Root",
     "style": "Normal",
-    "text": "Generated: 2025-09-27T14:20:39.987003",
+    "text": "Technical Architecture",
     "level": 0
   },
   {
@@ -2414,20 +2362,7 @@
     ],
     "breadcrumb": "Document Root",
     "style": "Normal",
-    "text": "Total Sections: 10",
-    "level": 0
-  },
-  {
-    "anchor": [
-      "body",
-      0,
-      0,
-      0,
-      218
-    ],
-    "breadcrumb": "Document Root",
-    "style": "Normal",
-    "text": "Teams Involved: finance_team, technical_team, legal_team, qa_team",
+    "text": "We propose a cloud-native, microservices architecture built on modern containerization platforms with automated CI/CD pipelines.",
     "level": 0
   },
   {
@@ -2438,10 +2373,10 @@
       0,
       219
     ],
-    "breadcrumb": "Document Root",
-    "style": "Normal",
-    "text": "Processing Method: Multi-team structured generation",
-    "level": 0
+    "breadcrumb": "10. Appendices",
+    "style": "Heading 2",
+    "text": "10. Appendices",
+    "level": 2
   },
   {
     "anchor": [
@@ -2453,7 +2388,7 @@
     ],
     "breadcrumb": "Document Root",
     "style": "Normal",
-    "text": "This document was generated using an AI-powered proposal generation system.",
+    "text": "Section Structure:",
     "level": 0
   },
   {
@@ -2466,7 +2401,7 @@
     ],
     "breadcrumb": "Document Root",
     "style": "Normal",
-    "text": "----media/image1.png----",
+    "text": "--\t• 10.1. Technical Specifications",
     "level": 0
   },
   {
@@ -2479,7 +2414,215 @@
     ],
     "breadcrumb": "Document Root",
     "style": "Normal",
-    "text": "----media/image1.png----",
+    "text": "--\t• 10.2. Certifications",
+    "level": 0
+  },
+  {
+    "anchor": [
+      "body",
+      0,
+      0,
+      0,
+      223
+    ],
+    "breadcrumb": "Document Root",
+    "style": "Normal",
+    "text": "--\t• 10.3. Case Studies",
+    "level": 0
+  },
+  {
+    "anchor": [
+      "body",
+      0,
+      0,
+      0,
+      224
+    ],
+    "breadcrumb": "Document Root",
+    "style": "Normal",
+    "text": "--\t• 10.4. Additional Documentation",
+    "level": 0
+  },
+  {
+    "anchor": [
+      "body",
+      0,
+      0,
+      0,
+      226
+    ],
+    "breadcrumb": "10.1. Technical Specifications",
+    "style": "Heading 3",
+    "text": "10.1. Technical Specifications",
+    "level": 3
+  },
+  {
+    "anchor": [
+      "body",
+      0,
+      0,
+      0,
+      227
+    ],
+    "breadcrumb": "Document Root",
+    "style": "Normal",
+    "text": "Detailed technical specifications, system requirements, and architecture diagrams are provided as supporting documentation.",
+    "level": 0
+  },
+  {
+    "anchor": [
+      "body",
+      0,
+      0,
+      0,
+      228
+    ],
+    "breadcrumb": "10.2. Certifications",
+    "style": "Heading 3",
+    "text": "10.2. Certifications",
+    "level": 3
+  },
+  {
+    "anchor": [
+      "body",
+      0,
+      0,
+      0,
+      229
+    ],
+    "breadcrumb": "Document Root",
+    "style": "Normal",
+    "text": "Complete documentation of our certifications, accreditations, and compliance attestations.",
+    "level": 0
+  },
+  {
+    "anchor": [
+      "body",
+      0,
+      0,
+      0,
+      230
+    ],
+    "breadcrumb": "10.3. Case Studies",
+    "style": "Heading 3",
+    "text": "10.3. Case Studies",
+    "level": 3
+  },
+  {
+    "anchor": [
+      "body",
+      0,
+      0,
+      0,
+      231
+    ],
+    "breadcrumb": "Document Root",
+    "style": "Normal",
+    "text": "Relevant case studies demonstrating successful implementations of similar solutions.",
+    "level": 0
+  },
+  {
+    "anchor": [
+      "body",
+      0,
+      0,
+      0,
+      232
+    ],
+    "breadcrumb": "10.4. Additional Documentation",
+    "style": "Heading 3",
+    "text": "10.4. Additional Documentation",
+    "level": 3
+  },
+  {
+    "anchor": [
+      "body",
+      0,
+      0,
+      0,
+      233
+    ],
+    "breadcrumb": "Document Root",
+    "style": "Normal",
+    "text": "Supporting materials including white papers, technical references, and methodology documentation.",
+    "level": 0
+  },
+  {
+    "anchor": [
+      "body",
+      0,
+      0,
+      0,
+      235
+    ],
+    "breadcrumb": "Document Summary",
+    "style": "Heading 2",
+    "text": "Document Summary",
+    "level": 2
+  },
+  {
+    "anchor": [
+      "body",
+      0,
+      0,
+      0,
+      236
+    ],
+    "breadcrumb": "Document Root",
+    "style": "Normal",
+    "text": "Generated: 2025-09-27T14:20:39.987003",
+    "level": 0
+  },
+  {
+    "anchor": [
+      "body",
+      0,
+      0,
+      0,
+      237
+    ],
+    "breadcrumb": "Document Root",
+    "style": "Normal",
+    "text": "Total Sections: 10",
+    "level": 0
+  },
+  {
+    "anchor": [
+      "body",
+      0,
+      0,
+      0,
+      238
+    ],
+    "breadcrumb": "Document Root",
+    "style": "Normal",
+    "text": "Teams Involved: finance_team, technical_team, legal_team, qa_team",
+    "level": 0
+  },
+  {
+    "anchor": [
+      "body",
+      0,
+      0,
+      0,
+      239
+    ],
+    "breadcrumb": "Document Root",
+    "style": "Normal",
+    "text": "Processing Method: Multi-team structured generation",
+    "level": 0
+  },
+  {
+    "anchor": [
+      "body",
+      0,
+      0,
+      0,
+      240
+    ],
+    "breadcrumb": "Document Root",
+    "style": "Normal",
+    "text": "This document was generated using an AI-powered proposal generation system.",
     "level": 0
   }
 ]

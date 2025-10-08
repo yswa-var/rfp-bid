@@ -416,7 +416,7 @@ class RFPProposalTeam:
             
             if result['success']:
                 content = result['response']
-                message = f" **Update Docx document with Finance Team Response (create a new section if needed):**\n\n{content}\n\n"
+                message = f" **Update Docx document with Finance Team Response (create a new section if needed):**\n```\n{content}\n```\n\n"
                 
                 # Update state with generated content
                 rfp_content = state.get("rfp_content", {})
@@ -455,7 +455,7 @@ class RFPProposalTeam:
             
             if result['success']:
                 content = result['response']
-                message = f"🔧 **Update Docx document with Technical Team Response (create a new section if needed):**\n\n{content}\n\n"
+                message = f"🔧 **Update Docx document with Technical Team Response (create a new section if needed):**\n```\n{content}\n```\n\n"
                 
                 rfp_content = state.get("rfp_content", {})
                 rfp_content["technical"] = {
@@ -493,7 +493,7 @@ class RFPProposalTeam:
             
             if result['success']:
                 content = result['response']
-                message = f"⚖️  **Update Docx document with Legal content (create a new section if needed):**\n\n{content}\n\n"
+                message = f"⚖️  **Update Docx document with Legal content (create a new section if needed):**\n```\n{content}\n```\n\n"
                 
                 rfp_content = state.get("rfp_content", {})
                 rfp_content["legal"] = {
@@ -531,7 +531,7 @@ class RFPProposalTeam:
             
             if result['success']:
                 content = result['response']
-                message = f"🧪 **Update Docx document with QA Team Response (create a new section if needed):**\n\n{content}\n\n"
+                message = f"🧪 **Update Docx document with QA Team Response (create a new section if needed):**\n```\n{content}\n```\n\n"
                 
                 rfp_content = state.get("rfp_content", {})
                 rfp_content["qa"] = {

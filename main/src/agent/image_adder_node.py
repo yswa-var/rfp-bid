@@ -340,11 +340,11 @@ Rules:
                 )
                 result_parts.append(f"    └─ Reason: {reasoning}")
         
-        if errors:
-            result_parts.append("")
-            result_parts.append("Errors encountered:")
-            for error in errors:
-                result_parts.append(f"  ⚠️ {error}")
+        # if errors:
+        #     result_parts.append("")
+        #     result_parts.append("Errors encountered:")
+        #     for error in errors:
+        #         result_parts.append(f"  ⚠️ {error}")
         
         result_message = "\n".join(result_parts)
         
