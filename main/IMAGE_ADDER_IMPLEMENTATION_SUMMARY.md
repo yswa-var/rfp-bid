@@ -237,7 +237,7 @@ Handles:
 
 ### Dependencies
 - `langchain_openai.ChatOpenAI` - LLM matching
-- `react_agent.docx_manager` - Document operations
+- `rct_agent.docx_manager` - Document operations
 - `csv` - Metadata loading
 - `pathlib.Path` - File operations
 

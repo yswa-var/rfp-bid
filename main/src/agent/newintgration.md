@@ -356,9 +356,9 @@ If you also want the document manipulation capabilities:
 
 ```bash
 # Copy DOCX-specific modules
-cp main/src/react_agent/docx_manager.py your_project/
-cp main/src/react_agent/docx_indexer.py your_project/
-cp main/src/react_agent/tools.py your_project/
+cp main/src/rct_agent/docx_manager.py your_project/
+cp main/src/rct_agent/docx_indexer.py your_project/
+cp main/src/rct_agent/tools.py your_project/
 
 # Install dependencies
 pip install docx2python python-docx
@@ -419,12 +419,12 @@ From the DOCX-agent project:
 
 | File | Purpose | Do you need it? |
 |------|---------|----------------|
-| `main/src/react_agent/graph.py` | Core approval workflow | ✅ Yes (lines 77-237) |
-| `main/src/react_agent/state.py` | State with `pending_operation` | ✅ Yes |
+| `main/src/rct_agent/graph.py` | Core approval workflow | ✅ Yes (lines 77-237) |
+| `main/src/rct_agent/state.py` | State with `pending_operation` | ✅ Yes |
 | `backend/app.py` | FastAPI backend | ⚠️ If multi-platform |
 | `backend/session_manager.py` | Session handling | ⚠️ If multi-platform |
 | `backend/agent_runner.py` | LangGraph client | ⚠️ If multi-platform |
-| `main/src/react_agent/tools.py` | DOCX-specific tools | ❌ Unless you need DOCX |
+| `main/src/rct_agent/tools.py` | DOCX-specific tools | ❌ Unless you need DOCX |
 
 ---
 

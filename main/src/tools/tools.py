@@ -7,7 +7,7 @@ and searching content within the document structure. Tools are exposed via MCP s
 import asyncio
 from typing import Any, Callable, List, Optional, cast
 
-from react_agent.docx_manager import get_docx_manager
+from rct_agent.docx_manager import get_docx_manager
 
 
 async def index_docx(docx_path: Optional[str] = None, export_json: bool = False) -> dict[str, Any]:

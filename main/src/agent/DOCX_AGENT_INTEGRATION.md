@@ -1,7 +1,7 @@
 # DOCX Agent Integration Summary
 
 ## Overview
-The DOCX Agent (from `main/src/docx_agent` and `main/src/react_agent`) has been successfully integrated as a subgraph into the main supervisor system in `main/src/agent/graph.py`.
+The DOCX Agent (from `main/src/docx_agent` and `main/src/rct_agent`) has been successfully integrated as a subgraph into the main supervisor system in `main/src/agent/graph.py`.
 
 ## What Was Integrated
 
@@ -15,7 +15,7 @@ The DOCX Agent (from `main/src/docx_agent` and `main/src/react_agent`) has been 
   - Creating new Word documents
 
 ### 2. React Agent Components
-- **Location**: `main/src/react_agent/`
+- **Location**: `main/src/rct_agent/`
 - **Components Used**:
   - `state.py`: State management for DOCX operations
   - `context.py`: Configuration context
@@ -124,7 +124,7 @@ result = graph.invoke({
 
 ## Configuration
 
-The DOCX agent uses configuration from `react_agent.context.Context`:
+The DOCX agent uses configuration from `rct_agent.context.Context`:
 - `system_prompt`: System instructions for DOCX operations
 - `model`: LLM model to use (defaults to "openai/gpt-3.5-turbo")
 
@@ -142,7 +142,7 @@ The DOCX agent requires the following packages:
 
 ## State Management
 
-The DOCX agent uses its own state schema (`react_agent.state.State`) which includes:
+The DOCX agent uses its own state schema (`rct_agent.state.State`) which includes:
 - `messages`: Conversation history
 - `is_last_step`: Recursion limit flag
 - `pending_operation`: Pending operations awaiting approval
@@ -176,7 +176,7 @@ Potential improvements:
 - `/Users/yash/Documents/rfp/rfp-bid/main/src/agent/router.py` - Routing logic
 - `/Users/yash/Documents/rfp/rfp-bid/main/src/docx_agent/graph.py` - DOCX agent graph
 - `/Users/yash/Documents/rfp/rfp-bid/main/src/docx_agent/nodes.py` - DOCX agent nodes
-- `/Users/yash/Documents/rfp/rfp-bid/main/src/react_agent/` - React agent components
+- `/Users/yash/Documents/rfp/rfp-bid/main/src/rct_agent/` - React agent components
 
 ## Integration Date
 October 2, 2025

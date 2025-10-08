@@ -17,7 +17,7 @@ from pathlib import Path
 from typing import Dict, Any, List
 from langchain_openai import ChatOpenAI
 from langchain_core.messages import AIMessage, HumanMessage
-from react_agent.docx_manager import get_docx_manager
+from rct_agent.docx_manager import get_docx_manager
 
 
 def _resolve_images_dir() -> Path:

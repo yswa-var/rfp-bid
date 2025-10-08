@@ -2,7 +2,7 @@
 
 ## Integration Summary
 
-The DOCX Agent from `main/src/docx_agent` and `main/src/react_agent` has been successfully integrated into the main supervisor graph at `main/src/agent/graph.py`.
+The DOCX Agent from `main/src/docx_agent` and `main/src/rct_agent` has been successfully integrated into the main supervisor graph at `main/src/agent/graph.py`.
 
 ## Test Results
 
@@ -60,7 +60,7 @@ Main Supervisor System (LangGraph)
 - ✅ Added generic "create document" detection
 - ✅ Updated supervisor message parsing
 
-### 3. `/main/src/react_agent/utils.py`
+### 3. `/main/src/rct_agent/utils.py`
 - ✅ Fixed import issue (removed dependency on `langchain` package)
 - ✅ Updated `load_chat_model()` to use `ChatOpenAI` directly
 - ✅ Now compatible with existing requirements.txt
@@ -121,7 +121,7 @@ result = graph.invoke({
 
 1. **Test with real DOCX files**: Try the integration with actual Word documents
 2. **Extend tools**: Add more DOCX manipulation tools as needed
-3. **Configure prompts**: Customize the DOCX agent's system prompt in `react_agent/prompts.py`
+3. **Configure prompts**: Customize the DOCX agent's system prompt in `rct_agent/prompts.py`
 4. **Monitor performance**: Track token usage and response times
 5. **Add logging**: Implement comprehensive logging for debugging
 
@@ -129,7 +129,7 @@ result = graph.invoke({
 
 - Integration details: `/main/src/agent/DOCX_AGENT_INTEGRATION.md`
 - Test script: `/main/test_docx_integration.py`
-- React agent: `/main/src/react_agent/`
+- React agent: `/main/src/rct_agent/`
 - DOCX agent: `/main/src/docx_agent/`
 
 ## Status

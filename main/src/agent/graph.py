@@ -4,7 +4,7 @@ Multi-Agent Supervisor System (modular)
 Supervisor agent routes queries to worker agents.
 """
 
-import os
+
 import sys
 from pathlib import Path
 from typing import Dict, Any, List
@@ -22,8 +22,8 @@ from agent.state import MessagesState
 from agent.agents import PDFParserAgent, CreateRAGAgent, GeneralAssistantAgent, RFPProposalTeam
 from agent.router import supervisor_router, rfp_team_router, rfp_to_docx_router
 from agent.image_adder_node import add_images_to_document
-from react_agent.graph import graph as docx_agent_graph
-
+from rct_agent.graph import graph as docx_agent_graph
+import os
 __all__ = ["graph"]
 
 
@@ -31,7 +31,7 @@ def create_supervisor_system():
     """Create the complete supervisor system with RFP Proposal Team integration."""
 
     supervisor_llm = ChatOpenAI(
-        model=os.getenv("LLM_MODEL", "gpt-4o-mini"),
+        model="gpt-4o-mini",
         temperature=0,
         api_key=os.getenv("OPENAI_API_KEY"),
     )
@@ -79,7 +79,7 @@ def create_supervisor_system():
     workflow.add_node("pdf_parser", pdf_parser_agent.parse_pdfs)
     workflow.add_node("create_rag", create_rag_agent.create_rag_database)
     workflow.add_node("general_assistant", general_assistant.query_documents)
-    workflow.add_node("docx_agent", docx_agent_graph)
+    workflow.add_node("docx_agent", docx_agent_graph) # docx_agent have a human-in-the-loop approval workflow
     workflow.add_node("image_adder", add_images_to_document)
     
     # RFP Proposal Team nodes
@@ -168,6 +168,7 @@ def create_supervisor_system():
     # Image adder flow - separate path for image insertion
     workflow.add_edge("image_adder", END)
 
+    # LangGraph API handles persistence automatically
     return workflow.compile()
 
 graph = create_supervisor_system()

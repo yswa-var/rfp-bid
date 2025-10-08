@@ -263,10 +263,10 @@ image_adder_node.py
 ├── typing (Dict, Any, List)
 ├── langchain_openai.ChatOpenAI
 ├── langchain_core.messages (AIMessage, HumanMessage)
-└── react_agent.docx_manager.get_docx_manager
+└── rct_agent.docx_manager.get_docx_manager
         ├── docx2python
         ├── docx (python-docx)
-        └── react_agent.docx_indexer
+        └── rct_agent.docx_indexer
 ```
 
 ## Error Handling Flow
