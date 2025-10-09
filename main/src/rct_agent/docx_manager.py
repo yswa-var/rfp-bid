@@ -24,6 +24,11 @@ class DocxManager:
         """Refresh the internal index."""
         self.index_data = self.indexer.index()
         self._index_loaded = True
+
+    async def _refresh_index_async(self) -> None:
+        """Refresh the internal index asynchronously."""
+        self.index_data = await asyncio.to_thread(self.indexer.index)
+        self._index_loaded = True
     
     async def _ensure_index_loaded(self) -> None:
         """Ensure the index is loaded, loading it asynchronously if needed."""

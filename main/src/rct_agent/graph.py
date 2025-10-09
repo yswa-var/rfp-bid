@@ -73,7 +73,7 @@ async def call_model(
 
 
 # List of tools that require human approval (write operations)
-WRITE_TOOLS = {"apply_edit"}  # Add more write tools here as needed
+WRITE_TOOLS = {"apply_edit", "insert_content"}  # Add more write tools here as needed
 
 
 def requires_approval(tool_name: str) -> bool:

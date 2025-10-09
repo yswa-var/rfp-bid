@@ -189,7 +189,7 @@ async def insert_content(content: str, section_title: Optional[str] = None, styl
 
     if result["success"]:
         # Refresh index after successful insertion
-        manager._refresh_index()
+        await manager._refresh_index_async()
 
     return result
 
