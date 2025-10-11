@@ -1,87 +1,174 @@
-"""Define a custom Reasoning and Action agent.
+"""
+Multi-Agent Supervisor System (modular)
 
-Works with a chat model with tool calling support.
+Supervisor agent routes queries to worker agents.
 """
 
-from datetime import UTC, datetime
-from typing import Any, Dict, List, Literal, cast
 
-from langchain_core.messages import AIMessage, ToolMessage
-from langgraph.graph import StateGraph
-from langgraph.prebuilt import ToolNode
-from langgraph.runtime import Runtime
-from langgraph.types import Command, interrupt
+import sys
+from pathlib import Path
+from typing import Dict, Any, List
+from langchain_openai import ChatOpenAI
+from langchain_core.messages import AIMessage, HumanMessage
+from langgraph.graph import StateGraph, START, END
+from langgraph.prebuilt import create_react_agent
 
-from context import Context
-from state import InputState, State
-from tools import TOOLS
-from utils import load_chat_model
-from graph_factory import create_approval_graph
+_CURRENT_DIR = Path(__file__).resolve().parent
+_SRC_DIR = _CURRENT_DIR.parent
+if str(_SRC_DIR) not in sys.path:
+    sys.path.insert(0, str(_SRC_DIR))
 
-# Define the function that calls the model
+from agent.state import MessagesState
+from agent.agents import PDFParserAgent, CreateRAGAgent, GeneralAssistantAgent, RFPProposalTeam
+from agent.router import supervisor_router, rfp_team_router, rfp_to_docx_router
+from agent.image_adder_node import add_images_to_document
+from rct_agent.graph import graph as docx_agent_graph
+import os
+__all__ = ["graph"]
 
 
-async def call_model(
-    state: State, runtime: Runtime[Context]
-) -> Dict[str, List[AIMessage]]:
-    """Call the LLM powering our "agent".
+def create_supervisor_system():
+    """Create the complete supervisor system with RFP Proposal Team integration."""
 
-    This function prepares the prompt, initializes the model, and processes the response.
+    supervisor_llm = ChatOpenAI(
+        model="gpt-4o-mini",
+        temperature=0,
+        api_key=os.getenv("OPENAI_API_KEY"),
+    )
 
-    Args:
-        state (State): The current state of the conversation.
-        runtime (Runtime[Context]): Runtime context containing configuration.
-
-    Returns:
-        dict: A dictionary containing the model's response message.
-    """
-    try:
-        # Initialize the model with tool binding. Change the model or add more tools here.
-        model = load_chat_model(runtime.context.model).bind_tools(TOOLS)
-
-        # Format the system prompt. Customize this to change the agent's behavior.
-        system_message = runtime.context.system_prompt.format(
-            system_time=datetime.now(tz=UTC).isoformat()
-        )
-
-        # Get the model's response
-        response = await model.ainvoke(
-            [{"role": "system", "content": system_message}, *state.messages]
-        )
-
-        # Ensure we got an AIMessage
-        if not isinstance(response, AIMessage):
-            raise ValueError(f"Model returned {type(response).__name__}, expected AIMessage")
-
-        # Handle the case when it's the last step and the model still wants to use a tool
-        if state.is_last_step and response.tool_calls:
-            return {
-                "messages": [
-                    AIMessage(
-                        id=response.id,
-                        content="Sorry, I could not find an answer to your question in the specified number of steps.",
-                    )
-                ]
-            }
-
-        # Return the model's response as a list to be added to existing messages
-        return {"messages": [response]}
+    # Initialize agents
+    pdf_parser_agent = PDFParserAgent()
+    create_rag_agent = CreateRAGAgent()
+    general_assistant = GeneralAssistantAgent()
+    rfp_team = RFPProposalTeam()
     
-    except Exception as e:
-        # If there's an error, return an error message as AIMessage
-        error_message = AIMessage(
-            content=f"An error occurred while calling the model: {str(e)}"
-        )
-        return {"messages": [error_message]}
+    supervisor_prompt = (
+        "You are a supervisor managing multiple INDEPENDENT agents:\n\n"
+        "AGENTS:\n"
+        "- docx_agent: Handles ALL DOCX/Word document operations independently (read, search, edit, create, modify documents).\n"
+        "- pdf_parser: Parses user-provided PDF paths, creates text chunks, then automatically creates the RAG database.\n"
+        "- general_assistant: Answers questions using the RAG database independently.\n"
+        "- rfp_supervisor: Manages COMPLETE RFP proposal generation with specialized teams (finance, technical, legal, QA).\n"
+        "- image_adder: Intelligently adds images to document sections based on content analysis.\n\n"
+        "ROUTING PRIORITY (Check in this order):\n"
+        "1. If user explicitly mentions an agent name (e.g., 'docx_agent', 'pdf_parser', 'general_assistant', 'image_adder'), route to that agent.\n"
+        "2. If user wants to add/insert images to document, respond: 'I will route this to image_adder'.\n"
+        "3. If user wants to edit/modify/update/read/create a document or mentions 'docx'/'word document', respond: 'I will route this to docx_agent'.\n"
+        "4. If user provides PDF files or asks to 'parse PDFs'/'index PDFs', respond: 'I will route this to pdf_parser'.\n"
+        "5. If user wants to GENERATE/CREATE a complete RFP proposal (not just edit a document with 'rfp' in the name), respond: 'I will route this to rfp_supervisor'.\n"
+        "6. For general questions or queries about existing knowledge, respond: 'I will route this to general_assistant'.\n\n"
+        "IMPORTANT:\n"
+        "- Each agent works INDEPENDENTLY - they don't need the supervisor except for routing.\n"
+        "- If a user mentions 'rfp' as part of a filename (e.g., 'rfp-9903'), it's likely a document name, NOT an RFP proposal request.\n"
+        "- Document operations (edit, update, modify, read) should ALWAYS go to docx_agent, even if 'rfp' is in the document name.\n"
+        "- Always respond with exactly ONE routing decision using the exact phrases above.\n"
+        "- Do not do any work yourself, only route to the appropriate agent."
+    )
 
+    supervisor_agent = create_react_agent(
+        supervisor_llm,
+        tools=[],
+        prompt=supervisor_prompt,
+        name="supervisor",
+    )
 
-# Configuration for the approval system
-WRITE_TOOLS = {"apply_edit"}  # Tools that require human approval
+    workflow = StateGraph(MessagesState)
+    
+    # Main supervisor and worker agents
+    workflow.add_node("supervisor", supervisor_agent)
+    workflow.add_node("pdf_parser", pdf_parser_agent.parse_pdfs)
+    workflow.add_node("create_rag", create_rag_agent.create_rag_database)
+    workflow.add_node("general_assistant", general_assistant.query_documents)
+    workflow.add_node("docx_agent", docx_agent_graph) # docx_agent have a human-in-the-loop approval workflow
+    workflow.add_node("image_adder", add_images_to_document)
+    
+    # RFP Proposal Team nodes
+    workflow.add_node("rfp_supervisor", rfp_team.rfp_supervisor)
+    workflow.add_node("rfp_finance", rfp_team.finance_node)
+    workflow.add_node("rfp_technical", rfp_team.technical_node)
+    workflow.add_node("rfp_legal", rfp_team.legal_node)
+    workflow.add_node("rfp_qa", rfp_team.qa_node)
 
-# Create the graph using the modular factory
-graph = create_approval_graph(
-    call_model_func=call_model,
-    tools=TOOLS,
-    write_tools=WRITE_TOOLS,
-    graph_name="ReAct Agent"
-)
+    # Main entry point
+    workflow.add_edge(START, "supervisor")
+
+    # Supervisor routing
+    workflow.add_conditional_edges(
+        "supervisor",
+        supervisor_router,
+        {
+            "pdf_parser": "pdf_parser",
+            "general_assistant": "general_assistant",
+            "docx_agent": "docx_agent",
+            "rfp_supervisor": "rfp_supervisor",
+            "image_adder": "image_adder",
+            "__end__": END
+        }
+    )
+    
+    # PDF parser flow
+    workflow.add_edge("pdf_parser", "create_rag")
+    workflow.add_edge("create_rag", END)
+    
+    # General assistant flow
+    workflow.add_edge("general_assistant", END)
+    
+    # RFP Team flow - supervisor routes to appropriate team node
+    workflow.add_conditional_edges(
+        "rfp_supervisor",
+        rfp_team_router,
+        {
+            "rfp_finance": "rfp_finance",
+            "rfp_technical": "rfp_technical",
+            "rfp_legal": "rfp_legal",
+            "rfp_qa": "rfp_qa"
+        }
+    )
+    
+    # After each RFP team node completes, route to docx_agent to write content
+    workflow.add_conditional_edges(
+        "rfp_finance",
+        rfp_to_docx_router,
+        {
+            "docx_agent": "docx_agent",
+            "__end__": END
+        }
+    )
+    
+    workflow.add_conditional_edges(
+        "rfp_technical",
+        rfp_to_docx_router,
+        {
+            "docx_agent": "docx_agent",
+            "__end__": END
+        }
+    )
+    
+    workflow.add_conditional_edges(
+        "rfp_legal",
+        rfp_to_docx_router,
+        {
+            "docx_agent": "docx_agent",
+            "__end__": END
+        }
+    )
+    
+    workflow.add_conditional_edges(
+        "rfp_qa",
+        rfp_to_docx_router,
+        {
+            "docx_agent": "docx_agent",
+            "__end__": END
+        }
+    )
+    
+    # Direct docx_agent flow (for standalone document operations)
+    workflow.add_edge("docx_agent", END)
+    
+    # Image adder flow - separate path for image insertion
+    workflow.add_edge("image_adder", END)
+
+    # LangGraph API handles persistence automatically
+    return workflow.compile()
+
+graph = create_supervisor_system()

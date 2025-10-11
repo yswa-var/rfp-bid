@@ -1,373 +1,367 @@
-"""
-Enhanced Microsoft Teams Bot with full RFP system integration
-"""
-
-import asyncio
-import traceback
+import os
 import json
-from botbuilder.core import ActivityHandler, TurnContext, MessageFactory
-from botbuilder.schema import ChannelAccount, Activity, ActivityTypes
-from typing import List
-from pathlib import Path
+from typing import Dict, Any, Optional
 
-from rfp_teams_agent import RFPTeamsAgent
-from memory_management import TeamsMemoryManager
+import requests
+from botbuilder.core import ActivityHandler, TurnContext, MessageFactory, CardFactory
+from botbuilder.schema import (
+    Activity,
+    ActivityTypes,
+    Attachment,
+    SuggestedActions,
+    CardAction,
+    ActionTypes,
+)
+from botbuilder.core.conversation_state import ConversationState
+from botbuilder.core.user_state import UserState
+from config import DefaultConfig
+import logging
 
-class RFPBot(ActivityHandler):
-    """Enhanced RFP Bot using the EXISTING main system"""
-    
-    def __init__(self):
-        self.rfp_agent = RFPTeamsAgent()
-        self.memory_manager = TeamsMemoryManager()
-        self.initialization_task = None
-        self.initialized = False
-        self.user_sessions = set()  
-        print("🤖 RFP Bot initialized - will use EXISTING main system")
+logger = logging.getLogger(__name__)
+
+class DOCXAgentBot(ActivityHandler):
+    def __init__(self, conversation_state: ConversationState, user_state: UserState):
+        self.conversation_state = conversation_state
+        self.user_state = user_state
+        self.config = DefaultConfig()
         
-    async def on_startup(self):
-        """Initialize the bot systems"""
-        try:
-            print("🚀 Starting bot with EXISTING main system...")
-            self.initialization_task = asyncio.create_task(self.rfp_agent.initialize())
-            await self.initialization_task
-            self.initialized = True
-            print("✅ Bot startup complete")
-        except Exception as e:
-            print(f"❌ Bot startup failed: {e}")
-            traceback.print_exc()
-            self.initialized = False
-
-    async def _ensure_initialized(self):
-        """Ensure the agent is initialized"""
-        if not self.initialized:
-            try:
-                await self.rfp_agent.initialize()
-                self.initialized = True
-                print("✅ Bot agent initialized")
-            except Exception as e:
-                print(f"❌ Failed to initialize bot agent: {e}")
-                raise
+        # Backend API configuration
+        self.backend_url = self.config.BACKEND_API_URL
         
     async def on_message_activity(self, turn_context: TurnContext):
-        """Handle incoming message activities - FIXED to prevent double messages"""
-        try:
-         
-            await self._ensure_initialized()
-            
-           
-            user_id = getattr(turn_context.activity.from_property, 'id', 'anonymous')
-            
-           
-            message_text = turn_context.activity.text
-            
-           
-            if user_id not in self.user_sessions:
-                self.user_sessions.add(user_id)  
-                await self._send_welcome_message(turn_context, user_id)
-                
-                if message_text and message_text.strip():
-                    message_text = message_text.strip()
-                    print(f"📨 Processing first message after welcome: {message_text}")
-                    
-                else:
-                    return
-            
-            if not message_text or message_text.strip() == "":
-                await turn_context.send_activity(MessageFactory.text(
-                    "Hi! How can I help you today? Try 'Generate a proposal for [your project]' 🚀"
-                ))
-                return
-            
-            message_text = message_text.strip()
-            print(f"📨 Received message: {message_text}")
-            
-            if any(word in message_text.lower() for word in ["proposal", "create", "generate"]):
-                await self._send_typing_indicator(turn_context)
-            
-            try:
-                response = await self.process_rfp_message_with_fallback(message_text, user_id)
-                
-                # Split long responses for Teams
-                if len(response) > 4000:
-                    chunks = self._split_response(response)
-                    for chunk in chunks:
-                        await turn_context.send_activity(MessageFactory.text(chunk))
-                else:
-                    await turn_context.send_activity(MessageFactory.text(response))
-                    
-            except Exception as e:
-                print(f"❌ Error processing RFP message: {str(e)}")
-                traceback.print_exc()
-                fallback_response = await self._get_fallback_response(message_text, user_id)
-                await turn_context.send_activity(MessageFactory.text(fallback_response))
-                
-        except Exception as e:
-            print(f"❌ Error in on_message_activity: {str(e)}")
-            traceback.print_exc()
-            await turn_context.send_activity(MessageFactory.text(
-                "I'm sorry, I encountered an error. Please try again with a simpler request."
-            ))
+        """Handle incoming messages"""
+        user_id = turn_context.activity.from_property.id
+        user_name = turn_context.activity.from_property.name
+        # Handle cases where the activity may not include text (e.g., adaptive card submits)
+        raw_text = turn_context.activity.text or ""
+        message_text = raw_text.strip()
 
-    async def _send_welcome_message(self, turn_context: TurnContext, user_id: str):
-        """Send a short, friendly welcome message"""
-        welcome_message = """👋 **Hi! I'm your RFP Assistant**
-
-I create comprehensive proposals using AI teams:
-🔧 Technical • 💰 Finance • ⚖️ Legal • 🔍 QA
-
-**Try:** "Generate a proposal for cloud computing"
-
-Ready to create an amazing proposal? 🚀"""
-
-        await turn_context.send_activity(MessageFactory.text(welcome_message))
-
-    async def process_rfp_message_with_fallback(self, message: str, user_id: str) -> str:
-        """Process RFP messages with production-ready fallbacks"""
-        try:
-            # Check if this is a proposal generation request
-            if any(word in message.lower() for word in ["proposal", "create", "generate", "rfp"]):
-                return await self._handle_proposal_generation_with_fallback(message, user_id)
-            else:
-                response = await self.rfp_agent.process_message(message, user_id)
-                return response
-                
-        except Exception as e:
-            print(f"❌ Error in process_rfp_message_with_fallback: {str(e)}")
-            traceback.print_exc()
-            return await self._get_fallback_response(message, user_id)
-
-    async def _handle_proposal_generation_with_fallback(self, message: str, user_id: str) -> str:
-        """Handle proposal generation - LANGGRAPH ONLY, NO FALLBACKS"""
-        try:
-            print("🎯 PROPOSAL GENERATION - LANGGRAPH ONLY")
-           
-            response = await self.rfp_agent.process_message(message, user_id)
-            
-           
-            if isinstance(response, list):
-           
-                return "MULTIPLE_MESSAGES:" + json.dumps(response)
-            else:
-                return response
-                        
-        except Exception as e:
-            print(f"❌ LangGraph proposal generation failed: {e}")
-            traceback.print_exc()
-            return f"""❌ **LangGraph System Error**
-
-    The main LangGraph system encountered an error and cannot generate proposals.
-
-    **Error**: {str(e)}
-
-    **Action Required**: The main system must be debugged and fixed.
-    **No fallback systems available** - all proposals must go through LangGraph teams."""
-
-    async def on_message_activity(self, turn_context: TurnContext):
-        """Handle incoming message activities - FIXED to prevent double messages"""
-        try:
-            
-            await self._ensure_initialized()
-            
-            user_id = getattr(turn_context.activity.from_property, 'id', 'anonymous')
-            
-            message_text = turn_context.activity.text
-            
-           
-            if user_id not in self.user_sessions:
-                self.user_sessions.add(user_id)  # Mark as greeted FIRST
-                await self._send_welcome_message(turn_context, user_id)
-                
-                
-                if message_text and message_text.strip():
-                    message_text = message_text.strip()
-                else:
-                    return 
-           
-            if not message_text or message_text.strip() == "":
-                await turn_context.send_activity(MessageFactory.text(
-                    "Hi! How can I help you today? Try 'Generate a proposal for [your project]' 🚀"
-                ))
-                return
-            
-            message_text = message_text.strip()
-            print(f"📨 Received message: {message_text}")
-            
-           
-            if any(word in message_text.lower() for word in ["proposal", "create", "generate"]):
-                await self._send_typing_indicator(turn_context)
-            
-            try:
-                response = await self.process_rfp_message_with_fallback(message_text, user_id)
-
-                if response.startswith("MULTIPLE_MESSAGES:"):
-                    messages_json = response[len("MULTIPLE_MESSAGES:"):]
-                    messages = json.loads(messages_json)
-
-                    for i, message in enumerate(messages):
-                        await turn_context.send_activity(MessageFactory.text(message))
-                        
-                       
-                        if i < len(messages) - 1:  
-                            await asyncio.sleep(0.5)
-                            
-                elif len(response) > 4000:
-                    # Split long single responses for Teams
-                    chunks = self._split_response(response)
-                    for i, chunk in enumerate(chunks):
-                        await turn_context.send_activity(MessageFactory.text(chunk))
-                        if i < len(chunks) - 1:
-                            await asyncio.sleep(0.5)
-                else:
-                    # Single message
-                    await turn_context.send_activity(MessageFactory.text(response))
-                        
-            except Exception as e:
-                print(f"❌ Error processing RFP message: {str(e)}")
-                traceback.print_exc()
-                fallback_response = await self._get_fallback_response(message_text, user_id)
-                await turn_context.send_activity(MessageFactory.text(fallback_response))
-                
-        except Exception as e:
-            print(f"❌ Error in on_message_activity: {str(e)}")
-            traceback.print_exc()
-            await turn_context.send_activity(MessageFactory.text(
-                "I'm sorry, I encountered an error. Please try again with a simpler request."
-            ))
-    async def _generate_simple_fallback_only(self, message: str, user_id: str) -> str:
-        """Generate ONLY a simple fallback when main system fails"""
-        try:
-            print("🔄 Generating simple fallback only...")
-            
-            user_context = self.memory_manager.get_user_context(user_id)
-            
-            return f"""⚠️ **System Temporarily Busy**
-
-Hi {user_context.get('name', 'there')}! 
-
-I received your request for: *"{message}"*
-
-**Status**: Our main proposal system is currently processing other requests.
-
-**What I can do right now**:
-- Discuss your project requirements in detail
-- Provide preliminary cost estimates
-- Schedule a consultation call
-- Answer technical questions
-
-**Your Information**:
-- **Company**: {user_context.get('company', 'Your organization')}
-- **Budget**: {user_context.get('budget', 'To be discussed')}
-
-**Next Steps**:
-Try your request again in a moment for the full AI-generated proposal, or let me know what specific aspect you'd like to discuss!
-
-🚀 **Ready to proceed with your project?**"""
-            
-        except Exception as e:
-            print(f"❌ Simple fallback failed: {e}")
-            return "I received your request and our team is preparing a response. Please try again in a moment for the complete proposal!"
-
-    async def _get_fallback_response(self, message: str, user_id: str) -> str:
-        """Get a basic fallback response when all else fails"""
-        try:
-            user_context = self.memory_manager.get_user_context(user_id)
-            name = user_context.get('name', '')
-            
-            if any(word in message.lower() for word in ["proposal", "create", "generate", "rfp"]):
-                return f"""Hi {name}! 👋
-
-I understand you want to create a proposal. While our main system is temporarily unavailable, I can still help you get started:
-
-**What I can do right now:**
-- Discuss your project requirements
-- Provide basic cost estimates  
-- Schedule a detailed consultation
-- Share our service offerings
-
-**For a complete proposal, please:**
-1. Tell me about your project scope
-2. Share your timeline and budget
-3. Mention any specific technologies needed
-
-Let's start with: *What type of project are you planning?*
-
-The full system will be back online shortly for comprehensive proposal generation! 🚀"""
-            else:
-                return f"""Hi {name}! 👋
-
-I'm your RFP Assistant. I can help you with:
-- Creating comprehensive proposals
-- Technical solution design
-- Budget planning and analysis
-- Project timeline estimation
-
-What would you like to work on today?"""
-                
-        except Exception as e:
-            print(f"❌ Fallback response failed: {e}")
-            return await self._get_emergency_response(message, user_id)
-
-    async def _get_emergency_response(self, message: str, user_id: str) -> str:
-        """Emergency response when everything fails"""
-        return """🚨 **System Status**: Temporary Service Interruption
-
-I'm experiencing technical difficulties but I'm still here to help!
-
-**Immediate Actions:**
-- Your message has been received and logged
-- Our technical team has been notified
-- Service will be restored shortly
-
-**What you can do:**
-- Try a simpler request (e.g., "help" or "hello")
-- Check back in a few minutes
-- Contact support if urgent
-
-Thank you for your patience! 🙏"""
-
-    def _split_response(self, response: str, max_length: int = 4000) -> List[str]:
-        """Split long responses for Teams message limits"""
-        if len(response) <= max_length:
-            return [response]
+        # If this is an adaptive card submit with value payload, handle via submit action handler
+        if not message_text and turn_context.activity.value:
+            logger.info("Received adaptive card submit via message activity; delegating to submit handler")
+            await self.on_submit_action(turn_context)
+            return
         
-        chunks = []
-        lines = response.split('\n')
-        current_chunk = ""
+        # Get user profile for memory
+        user_profile = await self._get_user_profile(turn_context, user_id, user_name)
         
-        for line in lines:
-            if len(current_chunk + line + '\n') > max_length:
-                if current_chunk:
-                    chunks.append(current_chunk.strip())
-                    current_chunk = line + '\n'
-                else:
-                    # Single line too long, split it
-                    chunks.append(line[:max_length])
-                    current_chunk = line[max_length:] + '\n'
-            else:
-                current_chunk += line + '\n'
-        
-        if current_chunk:
-            chunks.append(current_chunk.strip())
-        
-        return chunks
-
-    async def _send_typing_indicator(self, turn_context: TurnContext):
-        """Send typing indicator for long operations"""
         try:
-            typing_activity = Activity(
-                type=ActivityTypes.typing,
-                from_property=turn_context.activity.recipient,
-                recipient=turn_context.activity.from_property,
-                conversation=turn_context.activity.conversation
+            if self._is_approval_response(message_text):
+                response = await self._handle_approval(turn_context, user_id, message_text, user_profile)
+            else:
+                response = await self._send_to_backend(user_id, message_text, user_profile)
+
+            if response.get("requires_approval", False):
+                await self._send_approval_message(turn_context, response)
+                await self._persist_user_profile(turn_context, user_profile)
+            else:
+                await turn_context.send_activity(MessageFactory.text(response["message"]))
+                
+        except Exception as e:
+            logger.error(f"Error processing message: {e}")
+            await turn_context.send_activity(
+                MessageFactory.text("Sorry, I encountered an error. Please try again.")
             )
-            await turn_context.send_activity(typing_activity)
-        except Exception as e:
-            print(f"⚠️ Could not send typing indicator: {e}")
-        
-    async def on_members_added_activity(self, members_added: List[ChannelAccount], turn_context: TurnContext):
-        """Welcome new members - but DON'T duplicate if they already got welcomed"""
+    
+    async def on_members_added_activity(self, members_added: list, turn_context: TurnContext):
+        """Greet new members"""
         for member in members_added:
             if member.id != turn_context.activity.recipient.id:
-                user_id = member.id
-                
-                print(f"📝 New member added: {user_id} - will welcome on first message")
+                welcome_message = (
+                    "👋 Hello! I'm your DOCX Document Agent.\n\n"
+                    "I can help you:\n"
+                    "• 📄 Index and analyze DOCX documents\n"
+                    "• ✏️ Edit document content (with approval)\n"
+                    "• 📋 Generate table of contents\n"
+                    "• 🔍 Search through documents\n"
+                    "• 📊 Get document outlines\n\n"
+                    "Just upload a DOCX file or ask me what you'd like to do!"
+                )
+                await turn_context.send_activity(MessageFactory.text(welcome_message))
+    
+    async def _get_user_profile(self, turn_context: TurnContext, user_id: str, user_name: str) -> Dict[str, Any]:
+        """Get or create user profile with memory"""
+        user_state_accessor = self.user_state.create_property("UserProfile")
+        user_profile = await user_state_accessor.get(turn_context, lambda: {})
+        
+      
+        if not user_profile.get("initialized"):
+            user_profile.update({
+                "user_id": user_id,
+                "name": user_name,
+                "teams_id": user_id,
+                "platform": "teams",
+                "initialized": True,
+                "preferences": {},
+                "interaction_count": 0
+            })
+        
+        
+        user_profile["interaction_count"] = user_profile.get("interaction_count", 0) + 1
+       
+        await user_state_accessor.set(turn_context, user_profile)
+        await self.user_state.save_changes(turn_context)
+        
+        return user_profile
+
+    async def _persist_user_profile(self, turn_context: TurnContext, user_profile: Dict[str, Any]):
+        """Persist updated user profile to user state"""
+        user_state_accessor = self.user_state.create_property("UserProfile")
+        await user_state_accessor.set(turn_context, user_profile)
+        await self.user_state.save_changes(turn_context)
+
+    async def _persist_pending_session(self, turn_context: TurnContext, session_id: str):
+        """Persist pending approval session id to user profile"""
+        user_state_accessor = self.user_state.create_property("UserProfile")
+        user_profile = await user_state_accessor.get(turn_context, lambda: {})
+        user_profile["pending_session_id"] = session_id
+        await user_state_accessor.set(turn_context, user_profile)
+        await self.user_state.save_changes(turn_context)
+    
+    def _is_approval_response(self, message: str) -> bool:
+        """Check if message is an approval response"""
+        if not message:
+            return False
+
+        normalized = message.strip().lower()
+        first_token = normalized.split()[0]
+        approval_keywords = {"yes", "no", "approve", "reject", "/approve", "/reject"}
+        return normalized in approval_keywords or first_token in approval_keywords
+
+    
+    async def _handle_approval(self, turn_context: TurnContext, user_id: str, message: str, user_profile: Dict) -> Dict[str, Any]:
+        """Handle approval/rejection responses via backend approval endpoint"""
+
+        normalized = message.lower().strip()
+        approval_keywords = {"yes", "approve", "/approve"}
+        rejection_keywords = {"no", "reject", "/reject"}
+        is_approval = normalized in approval_keywords
+        session_id = user_profile.get("pending_session_id")
+
+        # Allow message format "/approve <session_id>"
+        parts = message.split()
+        if len(parts) > 1:
+            session_id = parts[1]
+
+        if not session_id:
+            logger.warning("No pending session found, attempting recovery...")
+            return {
+                "message": "Your session has expired. Please start a new operation.",
+                "requires_approval": False
+            }
+
+        response = await self._send_approval_to_backend(
+            user_id=user_id,
+            session_id=session_id,
+            approved=is_approval,
+            user_profile=user_profile,
+        )
+
+        logger.info("Approval processed successfully via approval endpoint")
+
+        # Clear pending session id after completing approval
+        if "pending_session_id" in user_profile:
+            user_profile.pop("pending_session_id", None)
+        # Persist the updated user profile after clearing pending session
+        await self._persist_user_profile(turn_context, user_profile)
+
+        return response
+    
+    async def _send_to_backend(self, user_id: str, message: str, user_profile: Dict[str, Any]) -> Dict[str, Any]:
+        """Send message to FastAPI backend"""
+        payload = {
+            "user_id": f"teams_{user_id}",
+            "message": message,
+            "platform": "teams",
+            "metadata": {
+                "user_profile": user_profile,
+                "teams_context": True
+            }
+        }
+
+        logger.info(f"Sending to backend: user={payload['user_id']}, message='{message}'")
+        logger.info(f"Backend URL: {self.backend_url}/api/chat")
+
+        try:
+            response = requests.post(f"{self.backend_url}/api/chat", json=payload, timeout=30)
+            response.raise_for_status()
+            result = response.json()
+
+            logger.info(f"Backend response status: {response.status_code}")
+            logger.info(f"Backend response: {result.get('message', 'No message')[:100]}...")
+
+            if result.get("requires_approval"):
+                pending_session_id = result.get("session_id")
+                if pending_session_id:
+                    user_profile["pending_session_id"] = pending_session_id
+                    # Persist the user profile immediately after setting pending session
+                    await self._persist_user_profile(turn_context, user_profile)
+                logger.info(f"Approval required for session: {pending_session_id}")
+
+            return result
+
+        except requests.exceptions.RequestException as e:
+            logger.error(f"Backend request failed: {e}")
+            if hasattr(e, 'response') and e.response:
+                logger.error(f"Backend error response: {e.response.text}")
+            raise
+        except Exception as e:
+            logger.error(f"Unexpected error sending to backend: {e}")
+            raise
+
+    async def _send_approval_to_backend(self, user_id: str, session_id: str, approved: bool, user_profile: Dict[str, Any]) -> Dict[str, Any]:
+        """Send approval decision to FastAPI backend"""
+        payload = {
+            "user_id": f"teams_{user_id}",
+            "session_id": session_id,
+            "approved": approved,
+            "platform": "teams",
+            "user_profile": user_profile
+        }
+
+        logger.info(f"Sending approval to backend: user={payload['user_id']}, session={session_id}, approved={approved}")
+        logger.info(f"Backend URL: {self.backend_url}/api/approve")
+
+        try:
+            response = requests.post(f"{self.backend_url}/api/approve", json=payload, timeout=30)
+            response.raise_for_status()
+            result = response.json()
+
+            logger.info(f"Backend approval response status: {response.status_code}")
+            logger.info(f"Backend approval response: {result.get('message', 'No message')[:100]}...")
+
+            return result
+
+        except requests.exceptions.RequestException as e:
+            logger.error(f"Backend approval request failed: {e}")
+            if hasattr(e, 'response') and e.response:
+                logger.error(f"Backend approval error response: {e.response.text}")
+            raise
+        except Exception as e:
+            logger.error(f"Unexpected error sending approval to backend: {e}")
+            raise
+
+    async def _send_approval_message(self, turn_context: TurnContext, response: Dict[str, Any]):
+        """Send approval request with action buttons"""
+        approval_text = response.get("message", "🔔 Approval required")
+        session_id = response.get("session_id") or ""
+
+        if session_id:
+            approval_text = (
+                f"{approval_text}\n\nSession ID: {session_id}\n"
+                "Reply with /approve or /reject, or tap a button below."
+            )
+        else:
+            approval_text = (
+                f"{approval_text}\n\n"
+                "Reply with /approve or /reject, or tap a button below."
+            )
+
+        message = MessageFactory.text(approval_text)
+        message.suggested_actions = SuggestedActions(
+            actions=[
+                CardAction(
+                    title="✅ Approve",
+                    type=ActionTypes.im_back,
+                    value="/approve",
+                ),
+                CardAction(
+                    title="❌ Reject",
+                    type=ActionTypes.im_back,
+                    value="/reject",
+                ),
+            ]
+        )
+
+        await turn_context.send_activity(message)
+    
+    def _create_approval_card(self, response: Dict[str, Any]) -> Attachment:
+        """Create adaptive card for approval requests"""
+        card_content = {
+            "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+            "type": "AdaptiveCard",
+            "version": "1.3",
+            "body": [
+                {
+                    "type": "TextBlock",
+                    "text": "🔔 Approval Required",
+                    "weight": "Bolder",
+                    "size": "Medium",
+                    "color": "Attention"
+                },
+                {
+                    "type": "TextBlock",
+                    "text": response["message"],
+                    "wrap": True,
+                    "spacing": "Medium"
+                }
+            ],
+            "actions": [
+                {
+                    "type": "Action.Submit",
+                    "title": "✅ Approve",
+                    "data": {
+                        "action": "approve",
+                        "session_id": response.get("session_id")
+                    },
+                    "style": "positive"
+                },
+                {
+                    "type": "Action.Submit",
+                    "title": "❌ Reject", 
+                    "data": {
+                        "action": "reject",
+                        "session_id": response.get("session_id")
+                    },
+                    "style": "destructive"
+                }
+            ]
+        }
+        
+        return CardFactory.adaptive_card(card_content)
+    
+    async def on_submit_action(self, turn_context: TurnContext):
+        """Handle adaptive card submit actions"""
+        try:
+            action_data = turn_context.activity.value
+            user_id = turn_context.activity.from_property.id
+
+            logger.info(f"Processing submit action: {action_data}")
+            logger.info(f"From user: {turn_context.activity.from_property.name} ({user_id})")
+
+            if action_data.get("action") == "approve":
+                message = "/approve"
+                logger.info("User clicked approve button")
+            elif action_data.get("action") == "reject":
+                message = "/reject"
+                logger.info("User clicked reject button")
+            else:
+                logger.warning(f"Unknown action: {action_data.get('action')}")
+                return
+
+            session_id = action_data.get("session_id")
+            if session_id:
+                logger.info(f"Session ID included: {session_id}")
+
+            user_profile = await self._get_user_profile(turn_context, user_id, turn_context.activity.from_property.name)
+
+            # Ensure we track the pending session id in case card submit bypassed text flow
+            if session_id:
+                user_profile["pending_session_id"] = session_id
+                await self._persist_user_profile(turn_context, user_profile)
+
+            # Process approval using approval endpoint
+            logger.info("Sending approval to backend...")
+            response = await self._handle_approval(turn_context, user_id, message, user_profile)
+
+            logger.info(f"Approval response: {response.get('message', 'No message')[:100]}...")
+            await turn_context.send_activity(MessageFactory.text(response["message"]))
+            await self._persist_user_profile(turn_context, user_profile)
+
+        except Exception as e:
+            logger.error(f"Error in submit action: {e}")
+            logger.error(f"Action data: {action_data}")
+            logger.error(f"Turn context activity: {turn_context.activity}")
+            await turn_context.send_activity(
+                MessageFactory.text("Sorry, I encountered an error processing your approval. Please try again.")
+            )

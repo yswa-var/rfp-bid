@@ -8,7 +8,7 @@ from .state import MessagesState
 
 
 def supervisor_router(state: MessagesState) -> str:
-    """Enhanced router to handle Multi-RAG functionality."""
+    """Router for supervisor system with priority-based routing."""
     messages = state.get("messages", [])
     
     if not messages:
@@ -20,48 +20,69 @@ def supervisor_router(state: MessagesState) -> str:
     if user_messages:
         last_user_content = user_messages[-1].content.lower()
         
+        # PRIORITY 1: Check for EXPLICIT agent names (highest priority)
+        # This allows users to directly invoke specific agents
+        if "image_adder" in last_user_content or "image adder" in last_user_content:
+            return "image_adder"
+        
+        if "docx_agent" in last_user_content or "docx agent" in last_user_content:
+            return "docx_agent"
+        
+        if "pdf_parser" in last_user_content or "pdf parser" in last_user_content:
+            return "pdf_parser"
+        
+        if "general_assistant" in last_user_content or "general assistant" in last_user_content:
+            return "general_assistant"
+        
+        if "rfp_supervisor" in last_user_content or "rfp supervisor" in last_user_content:
+            return "rfp_supervisor"
+        
+        # PRIORITY 2: Check for IMAGE-related operations (high priority)
+        # Handle requests to add/insert images
         if any(phrase in last_user_content for phrase in [
-            "setup multi-rag", "setup rag", "multi rag", "template rag", 
-            "setup databases", "multi-rag", "setup multi"
+            "add images", "insert images", "place images",
+            "add image", "insert image", "place image",
+            "add pictures", "insert pictures", "add photo"
         ]):
-            return "multi_rag_setup"
+            return "image_adder"
         
+        # PRIORITY 3: Check for DOCX-related operations (high priority)
+        # These are common operations that should not be confused with RFP
         if any(phrase in last_user_content for phrase in [
-            "generate proposal", "create proposal", "proposal generation", "rfp response", "hierarchical proposal"
+            "docx", ".docx", "word document", "word doc",
+            "edit document", "modify document", "update document",
+            "read docx", "write docx", "create docx",
+            "document title", "document content", "document section",
+            "create a document", "create new document", "create document",
+            "new document"
         ]):
-            return "proposal_supervisor"
+            return "docx_agent"
         
+        # PRIORITY 4: Check for PDF parsing requests
         if any(phrase in last_user_content for phrase in [
-            "launch rag editor", "launch editor", "interactive editor", "start rag editor", 
-            "open document editor", "enhanced editor", "launch interactive", "full rag editor",
-            "beautiful rag", "interactive rag", "launch rag", "start interactive"
+            "parse pdf", ".pdf", "index pdf", "extract from pdf", "upload pdf"
         ]):
-            return "interactive_rag_launcher"
+            return "pdf_parser"
         
-        # RAG Editor takes priority for specific editor commands
-        if any(phrase in last_user_content for phrase in [
-            "rag editor", "ai editor", "document editor", "edit document", 
-            "ai dynamic editor", "mcp editor"
-        ]):
-            return "rag_editor"
+        # PRIORITY 5: Check for RFP proposal requests (more specific matching)
+        # Only route to RFP if it's clearly about RFP proposals, not just mentioning "rfp"
+        rfp_indicators = ["generate proposal", "create proposal", "proposal content",
+                         "finance team", "technical team", "legal team", "qa team",
+                         "rfp proposal", "proposal for rfp"]
         
-        # Check if we're already in a RAG editor session and continuing
-        rag_messages = [msg for msg in messages if hasattr(msg, 'name') and msg.name == 'rag_editor']
-        if rag_messages and any(cmd in last_user_content for cmd in ['load ', 'search ', 'add ', 'edit ', 'format', 'status', 'help']):
-            return "rag_editor"
+        # Check if it's ACTUALLY about RFP work (not just mentioning rfp in passing)
+        if any(phrase in last_user_content for phrase in rfp_indicators):
+            return "rfp_supervisor"
         
-        # Route RAG commands to rag_editor (not full_rag_studio) - keep session in same node
-        if any(phrase in last_user_content for phrase in [
-            "find ", "search ", "replace ", "rag query ", "add content ", "add context ", "explore ",
-            "info", "document info", "load document", "load ", "understanding of requirements", "status"
-        ]) or last_user_content.startswith(("find ", "search ", "replace ", "rag query ", "add content ", "add context ", "explore ", "status")):
-            return "rag_editor"
+        # Only route to RFP if "rfp" or "proposal" is at the START or is the main topic
+        words = last_user_content.split()
+        if len(words) > 0 and words[0] in ["rfp", "proposal"]:
+            return "rfp_supervisor"
         
-        if any(phrase in last_user_content for phrase in [
-            "enhance proposal", "enhance content", "rag enhancement", "improve proposal",
-            "enhance document", "rag improve", "content enhancement"
-        ]):
-            return "rag_enhancement"
+        # Check if "rfp" or "proposal" is the main subject (not just part of a filename/identifier)
+        if ("rfp" in last_user_content or "proposal" in last_user_content) and \
+           any(action in last_user_content for action in ["generate", "create", "draft", "write", "prepare"]):
+            return "rfp_supervisor"
     
     # Check if session database was created - end the session
     last_message = messages[-1].content if hasattr(messages[-1], 'content') else ""
@@ -86,9 +107,49 @@ def supervisor_router(state: MessagesState) -> str:
     # Check supervisor's decision
     if "pdf_parser" in last_supervisor_message or "parse" in last_supervisor_message:
         return "pdf_parser"
-    elif "interactive_rag_launcher" in last_supervisor_message or "interactive" in last_supervisor_message:
-        return "interactive_rag_launcher"
-    elif "rag_editor" in last_supervisor_message or "editor" in last_supervisor_message:
-        return "rag_editor"
+    elif "docx_agent" in last_supervisor_message or "word document" in last_supervisor_message:
+        return "docx_agent"
+    elif "rfp" in last_supervisor_message or "proposal" in last_supervisor_message:
+        return "rfp_supervisor"
     else:
         return "general_assistant"
+
+
+def rfp_team_router(state: MessagesState) -> str:
+    """
+    Router for RFP Team - Routes to appropriate specialized node based on current state.
+    """
+    current_node = state.get("current_rfp_node")
+    
+    if current_node == "finance":
+        return "rfp_finance"
+    elif current_node == "technical":
+        return "rfp_technical"
+    elif current_node == "legal":
+        return "rfp_legal"
+    elif current_node == "qa":
+        return "rfp_qa"
+    else:
+        # Default to finance if no node specified
+        return "rfp_finance"
+
+
+def rfp_to_docx_router(state: MessagesState) -> str:
+    """
+    Router to determine if we should go to docx_agent or end after RFP node completes.
+    
+    If rfp_content has been generated, route to docx_agent to write it to the document.
+    Otherwise, end the flow.
+    """
+    rfp_content = state.get("rfp_content", {})
+    current_node = state.get("current_rfp_node")
+    
+    # Check if we have content to write
+    if current_node and current_node in rfp_content:
+        content_data = rfp_content[current_node]
+        if content_data and content_data.get("content"):
+            # We have content, route to docx_agent
+            return "docx_agent"
+    
+    # No content or error, end the flow
+    return "__end__"
