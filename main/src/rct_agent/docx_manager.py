@@ -288,8 +288,10 @@ def get_docx_manager(docx_path: Optional[str] = None) -> DocxManager:
     
     if _docx_manager is None:
         if docx_path is None:
-            # Default path - you can make this configurable
-            docx_path = "/Users/yash/Documents/rfp/rfp-bid/master.docx"
+            # Default path - use dynamic path resolution
+            import os
+            base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+            docx_path = os.path.join(base_dir, "master.docx")
         _docx_manager = DocxManager(docx_path)
     
     return _docx_manager

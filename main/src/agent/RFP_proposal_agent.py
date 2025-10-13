@@ -90,8 +90,15 @@ class RFPProposalAgent:
             api_key=self.api_key
         )
         
-        # Response tracking
-        self.response_file = response_file
+        # Response tracking - use dynamic path resolution
+        if os.path.isabs(response_file):
+            # If absolute path provided, use as-is
+            self.response_file = response_file
+        else:
+            # If relative path, resolve relative to the main directory
+            base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+            self.response_file = os.path.join(base_dir, response_file)
+
         self.responses: List[Dict[str, Any]] = []
         self._load_responses()
         

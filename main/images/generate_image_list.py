@@ -11,8 +11,9 @@ from pathlib import Path
 def generate_image_list():
     """Generate a list of image files and save to CSV."""
     
-    # Define the images directory path
-    images_dir = Path("/Users/yash/Documents/rfp/rfp-bid/main/images")
+    # Define the images directory path - relative to this script
+    script_dir = Path(__file__).resolve().parent
+    images_dir = script_dir
     
     # Define the output CSV file path
     csv_file = images_dir / "image_name_dicription.csv"

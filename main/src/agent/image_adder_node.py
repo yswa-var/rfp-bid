@@ -35,8 +35,10 @@ def _resolve_images_dir() -> Path:
         if p.exists():
             return p
     
-    # 2) Known absolute path
-    absolute = Path("/Users/yash/Documents/rfp/rfp-bid/main/images")
+    # 2) Dynamic absolute path resolution
+    current_file = Path(__file__).resolve()
+    repo_root = current_file.parents[3]  # Go up to repo root
+    absolute = repo_root / "main" / "images"
     if absolute.exists():
         return absolute
     
@@ -140,7 +142,9 @@ async def add_images_to_document(state: Dict[str, Any]) -> Dict[str, Any]:
             }
         
         # Step 2: Read image descriptions from CSV
-        images_dir = Path("/Users/yash/Documents/rfp/rfp-bid/main/images")
+        current_file = Path(__file__).resolve()
+        repo_root = current_file.parents[3]  # Go up to repo root
+        images_dir = repo_root / "main" / "images"
         csv_path = images_dir / "image_name_dicription.csv"
         
         csv_exists = await asyncio.to_thread(lambda: csv_path.exists())

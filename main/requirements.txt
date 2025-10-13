@@ -6,7 +6,8 @@ langchain-milvus>=0.1.0
 
 # Vector database
 pymilvus>=2.3.0
-
+docx2python
+pymilvus[milvus_lite]
 # Environment management
 python-dotenv>=1.0.1
 

@@ -11,8 +11,9 @@ from pathlib import Path
 def add_descriptions():
     """Add random descriptions to the CSV file."""
     
-    # Define the CSV file path
-    csv_file = Path("/Users/yash/Documents/rfp/rfp-bid/main/images/image_name_dicription.csv")
+    # Define the CSV file path - relative to this script
+    script_dir = Path(__file__).resolve().parent
+    csv_file = script_dir / "image_name_dicription.csv"
     
     # Sample descriptions that would be relevant for RFP/proposal documents
     descriptions = [
