@@ -17,15 +17,15 @@ set -a
 source .env
 set +a
 
-# Check if virtual environment exists
-if [ ! -d "../venv" ]; then
-    echo "⚠️  Virtual environment not found at ../venv"
-    echo "Please create a virtual environment and install requirements:"
-    echo "  python3 -m venv ../venv"
-    echo "  source ../venv/bin/activate"
-    echo "  pip install -r requirements.txt"
-    exit 1
-fi
+# # Check if virtual environment exists
+# if [ ! -d "../venv" ]; then
+#     echo "⚠️  Virtual environment not found at ../venv"
+#     echo "Please create a virtual environment and install requirements:"
+#     echo "  python3 -m venv ../venv"
+#     echo "  source ../venv/bin/activate"
+#     echo "  pip install -r requirements.txt"
+#     exit 1
+# fi
 
 # Activate virtual environment
 echo "Activating virtual environment..."

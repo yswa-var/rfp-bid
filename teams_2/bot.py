@@ -156,6 +156,7 @@ class LangGraphTeamsBot(ActivityHandler):
             if isinstance(run, dict) and "messages" in run:
                 # This is the direct output from a successful run
                 logger.info("Received direct output from run")
+
                 await self._handle_success(turn_context, {"output": run})
             elif isinstance(run, dict) and "__interrupt__" in run:
                 # This is an interrupt response
@@ -434,79 +435,96 @@ class LangGraphTeamsBot(ActivityHandler):
     async def _handle_approval_response(self, turn_context: TurnContext, message: str):
         """Handle user's approval or rejection"""
         conversation_id = turn_context.activity.conversation.id
-        
+
         if conversation_id not in self.pending_approvals:
             await turn_context.send_activity(
                 "⚠️ No pending approval found. The request may have expired."
             )
             return
-        
+
         pending = self.pending_approvals[conversation_id]
         thread_id = pending["thread_id"]
-        
+        approval_data = pending.get("approval_data", {})
+
         # Determine if approved or rejected
         normalized = message.lower().strip()
         first_word = normalized.split()[0] if normalized.split() else ""
-        
+
         approved = (
             normalized in self.config.APPROVE_KEYWORDS or
             first_word in self.config.APPROVE_KEYWORDS
         )
-        
+
         logger.info(f"Approval decision: {'APPROVED' if approved else 'REJECTED'}")
-        
+
         try:
             # Send typing indicator
             await turn_context.send_activity(Activity(type=ActivityTypes.typing))
-            
+
+            # Clear pending approval before processing
+            del self.pending_approvals[conversation_id]
+
             if approved:
-                # Resume execution with approval
                 logger.info(f"Approving operation for thread {thread_id}")
+                await turn_context.send_activity("✅ Operation approved! Processing your request...")
 
-                try:
-                    # For demo purposes with thread resets, we'll use a simpler approach
-                    # Instead of trying to resume the interrupted run, we'll send the approval
-                    # as input to continue the conversation
+                # Extract tool call information from approval data
+                tool_call_id = approval_data.get("tool_call_id")
+                tool_name = approval_data.get("tool_name", "tool")
 
-                    logger.info("Processing approval by sending confirmation message")
+                logger.info(f"Resuming with tool_call_id: {tool_call_id}")
 
-                    # Clear pending approval first
-                    del self.pending_approvals[conversation_id]
-
-                    # Send a confirmation message that the operation is approved
-                    await turn_context.send_activity("✅ Operation approved! Processing your request...")
-
-                    # Send a simple confirmation message to continue the workflow
-                    # This bypasses the complex interrupt handling for demo purposes
-                    await self._process_with_langgraph(turn_context, thread_id, "yes, proceed with the approved edit")
-
-                    return
-
-                except Exception as e:
-                    logger.error(f"Error processing approval: {e}", exc_info=True)
-                    await turn_context.send_activity(
-                        "❌ Failed to process the approval. Please try again."
-                    )
-                    return
-            
-            else:
-                # Rejection - simple handling for demo
-                logger.info(f"Rejecting operation for thread {thread_id}")
-
-                # Clear pending approval
-                del self.pending_approvals[conversation_id]
-
-                await turn_context.send_activity(
-                    "❌ Operation rejected. The action was not performed."
+                # Resume with approval - provide the tool response
+                run = await self.langgraph_client.runs.wait(
+                    thread_id=thread_id,
+                    assistant_id=self.config.ASSISTANT_ID,
+                    input=None,
+                    command={
+                        "resume": {
+                            "tool_call_id": tool_call_id,
+                            "tool_name": tool_name,
+                            "approved": True
+                        }
+                    }
                 )
-        
+
+                # Handle the completed run
+                await self._handle_completed_run(turn_context, thread_id, run)
+
+            else:
+                logger.info(f"Rejecting operation for thread {thread_id}")
+                await turn_context.send_activity("❌ Operation rejected. The action was not performed.")
+
+                # Extract tool call information
+                tool_call_id = approval_data.get("tool_call_id")
+                tool_name = approval_data.get("tool_name", "tool")
+
+                logger.info(f"Rejecting with tool_call_id: {tool_call_id}")
+
+                # Resume with rejection
+                run = await self.langgraph_client.runs.wait(
+                    thread_id=thread_id,
+                    assistant_id=self.config.ASSISTANT_ID,
+                    input=None,
+                    command={
+                        "resume": {
+                            "tool_call_id": tool_call_id,
+                            "tool_name": tool_name,
+                            "approved": False
+                        }
+                    }
+                )
+
+                # Handle the completed run
+                await self._handle_completed_run(turn_context, thread_id, run)
+
         except Exception as e:
             logger.error(f"Error handling approval response: {e}", exc_info=True)
-            
-            # Clear pending approval on error
+
+            # Clear pending approval on error if it still exists
             if conversation_id in self.pending_approvals:
                 del self.pending_approvals[conversation_id]
-            
+
             await turn_context.send_activity(
                 "❌ An error occurred while processing your approval. Please try again."
             )

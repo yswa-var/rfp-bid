@@ -143,12 +143,38 @@ async def approval_node(state: State) -> Dict[str, Any]:
             "description": description
         }
     )
-    
-    # Process approval response
-    if isinstance(approval, str):
-        approval = approval.lower().strip()
-    
-    if approval in ["yes", "y", "approve", "approved", "true"]:
+
+    # Process approval response - handle both old string format and new dict format
+    approved = False
+
+    if isinstance(approval, dict):
+        # New format from Teams bot: {"approved": True/False, "tool_call_id": "...", "tool_name": "..."}
+        approved = approval.get("approved", False)
+        resume_tool_call_id = approval.get("tool_call_id")
+        resume_tool_name = approval.get("tool_name")
+
+        # Verify this approval matches the interrupted tool call
+        if resume_tool_call_id and resume_tool_call_id != tool_call["id"]:
+            # This approval is for a different tool call - this shouldn't happen
+            return {
+                "messages": [ToolMessage(
+                    content=f"Approval mismatch: received approval for {resume_tool_call_id} but expected {tool_call['id']}",
+                    tool_call_id=tool_call["id"],
+                    name=tool_call["name"]
+                )],
+                "pending_operation": None
+            }
+
+    elif isinstance(approval, str):
+        # Legacy string format
+        approval_str = approval.lower().strip()
+        approved = approval_str in ["yes", "y", "approve", "approved", "true"]
+
+    else:
+        # Convert to boolean if it's already a boolean
+        approved = bool(approval)
+
+    if approved:
         # Approval granted - proceed with the operation
         # Keep the original tool calls in the message so tools node can execute them
         return {"pending_operation": None}
