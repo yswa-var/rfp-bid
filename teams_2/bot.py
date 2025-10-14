@@ -392,7 +392,7 @@ class LangGraphTeamsBot(ActivityHandler):
             )
     
     async def _send_approval_request(self, turn_context: TurnContext, description: str):
-        """Send approval request with action buttons"""
+        """Send approval request with action buttons"""       
         message_text = (
             f"🔔 **Approval Required**\n\n"
             f"{description}\n\n"
@@ -403,12 +403,12 @@ class LangGraphTeamsBot(ActivityHandler):
         message.suggested_actions = SuggestedActions(
             actions=[
                 CardAction(
-                    title="✅ Approve",
+                    title="Approve",
                     type=ActionTypes.im_back,
                     value="/approve"
                 ),
                 CardAction(
-                    title="❌ Reject",
+                    title="Reject",
                     type=ActionTypes.im_back,
                     value="/reject"
                 )
@@ -423,6 +423,7 @@ class LangGraphTeamsBot(ActivityHandler):
             return False
         
         normalized = message.lower().strip()
+        normalized = normalized.replace("✅", "").replace("❌", "").strip()
         first_word = normalized.split()[0] if normalized.split() else ""
         
         return (
@@ -448,8 +449,8 @@ class LangGraphTeamsBot(ActivityHandler):
 
         # Determine if approved or rejected
         normalized = message.lower().strip()
+        normalized = normalized.replace("✅", "").replace("❌", "").strip()
         first_word = normalized.split()[0] if normalized.split() else ""
-
         approved = (
             normalized in self.config.APPROVE_KEYWORDS or
             first_word in self.config.APPROVE_KEYWORDS
