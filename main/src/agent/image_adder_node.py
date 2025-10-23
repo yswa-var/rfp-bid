@@ -2,10 +2,10 @@
 Image Adder Node - Intelligently adds images to document sections
 
 This node:
-1. Gets document headings using docx_manager
+1. Gets document headings from content.json
 2. Reads image descriptions from CSV
 3. Uses LLM to match images to appropriate sections
-4. Inserts images using docx_manager
+4. Inserts images using react_agent's insert_content_after_heading
 """
 
 import os
@@ -17,7 +17,6 @@ from pathlib import Path
 from typing import Dict, Any, List
 from langchain_openai import ChatOpenAI
 from langchain_core.messages import AIMessage, HumanMessage
-from rct_agent.docx_manager import get_docx_manager
 
 
 def _resolve_images_dir() -> Path:
@@ -101,6 +100,98 @@ def _read_image_data_sync(images_dir: Path, csv_path: Path) -> list[dict[str, An
     return image_data
 
 
+def _read_json_file(file_path: str) -> Dict[str, Any] | None:
+    """Synchronously read JSON file. Intended for asyncio.to_thread execution.
+    
+    Args:
+        file_path: Path to JSON file
+        
+    Returns:
+        Parsed JSON data or None if error
+    """
+    try:
+        with open(file_path, 'r', encoding='utf-8') as f:
+            return json.load(f)
+    except (FileNotFoundError, json.JSONDecodeError, Exception) as e:
+        print(f"Error reading JSON file {file_path}: {e}")
+        return None
+
+
+def _extract_headings_from_content(content_data: Dict[str, Any]) -> List[Dict[str, Any]]:
+    """Extract all headings from content.json structure.
+    
+    Args:
+        content_data: Parsed content.json dictionary
+        
+    Returns:
+        List of heading dictionaries with 'text', 'level', 'section_name'
+    """
+    headings = []
+    
+    for section_name, elements in content_data.items():
+        if not isinstance(elements, list):
+            continue
+            
+        for element in elements:
+            if element.get('type') == 'heading':
+                headings.append({
+                    'text': element.get('text', 'Untitled'),
+                    'level': element.get('level', 1),
+                    'section_name': section_name
+                })
+    
+    return headings
+
+
+def _insert_image_after_heading(heading_text: str, image_element: Dict[str, Any]) -> str:
+    """Insert an image element after a heading in content.json.
+    
+    This is a blocking I/O function intended for asyncio.to_thread execution.
+    
+    Args:
+        heading_text: Text of the heading to search for
+        image_element: Image element dictionary to insert
+        
+    Returns:
+        Success or error message
+    """
+    try:
+        content_path = os.getenv("DOCX_CONTENT_PATH", "/Users/yash/json-docx/main/content.json")
+        
+        # Load current content
+        with open(content_path, 'r', encoding='utf-8') as f:
+            content = json.load(f)
+        
+        # Search for matching heading and insert image
+        found = False
+        for section_name, elements in content.items():
+            if not isinstance(elements, list):
+                continue
+                
+            for idx, element in enumerate(elements):
+                if element.get('type') == 'heading':
+                    if heading_text.lower() in element.get('text', '').lower():
+                        # Insert image after this heading
+                        content[section_name].insert(idx + 1, image_element)
+                        found = True
+                        break
+            
+            if found:
+                break
+        
+        if not found:
+            return f"Error: Heading '{heading_text}' not found"
+        
+        # Save updated content
+        with open(content_path, 'w', encoding='utf-8') as f:
+            json.dump(content, f, indent=2, ensure_ascii=False)
+        
+        return f"Successfully inserted image after '{heading_text}'"
+        
+    except Exception as e:
+        return f"Error: {str(e)}"
+
+
 async def add_images_to_document(state: Dict[str, Any]) -> Dict[str, Any]:
     """
     Main image adder node function.
@@ -126,10 +217,24 @@ async def add_images_to_document(state: Dict[str, Any]) -> Dict[str, Any]:
             api_key=os.getenv("OPENAI_API_KEY"),
         )
         
-        # Step 1: Get document outline (headings)
-        docx_manager = get_docx_manager()
-        await docx_manager._ensure_index_loaded()
-        outline = docx_manager.get_outline()
+        # Step 1: Get document outline (headings) from content.json
+        content_path = os.getenv("DOCX_CONTENT_PATH", "/Users/yash/json-docx/main/content.json")
+        
+        # Read content.json in a thread to avoid blocking
+        content_data = await asyncio.to_thread(_read_json_file, content_path)
+        
+        if content_data is None:
+            return {
+                "messages": messages + [
+                    AIMessage(
+                        content=f"Could not read content file at {content_path}",
+                        name="image_adder"
+                    )
+                ]
+            }
+        
+        # Extract headings from all sections
+        outline = _extract_headings_from_content(content_data)
         
         if not outline:
             return {
@@ -173,7 +278,7 @@ async def add_images_to_document(state: Dict[str, Any]) -> Dict[str, Any]:
         
         # Step 3: Format outline for LLM analysis
         outline_text = "\n".join([
-            f"Section {i+1}: {heading['text']} (Level {heading.get('heading_level', 'N/A')})"
+            f"Section {i+1}: {heading['text']} (Level {heading.get('level', 1)})"
             for i, heading in enumerate(outline)
         ])
         
@@ -301,33 +406,84 @@ Rules:
                 ]
             }
         
-        # Step 6: Insert images into document
+        # Step 6: Insert images into document using JSON-based approach
         inserted_count = 0
         errors = []
         
         for match in matches:
             image_info = match['image']
-            section = match['section_heading']
+            heading_info = match['section_heading']
+            heading_text = heading_info['text']
             
             try:
-                # Insert image after the section heading (run blocking I/O in a thread)
-                success = await asyncio.to_thread(
-                    docx_manager.insert_image,
-                    image_path=image_info['path'],
-                    width=5.0,  # 5 inches width
-                    after_anchor=section['anchor'],
-                    position="after"
+                # Create image element for JSON structure
+                # react_agent expects: {'type': 'image', 'path': '/path/to/image', 'width': pixels, 'height': pixels}
+                image_element = {
+                    'type': 'image',
+                    'path': image_info['path'],
+                    'width': 480,  # 480 pixels = ~5 inches at 96 DPI
+                }
+                
+                # Insert image using JSON-based insertion (run in thread)
+                result = await asyncio.to_thread(
+                    _insert_image_after_heading,
+                    heading_text,
+                    image_element
                 )
                 
-                if success:
+                if result.startswith("Success"):
                     inserted_count += 1
                 else:
-                    errors.append(f"Failed to insert {image_info['name']} after '{section['text']}'")
+                    errors.append(f"Failed to insert {image_info['name']} after '{heading_text}': {result}")
                     
             except Exception as e:
                 errors.append(f"Error inserting {image_info['name']}: {str(e)}")
         
-        # Step 7: Prepare result message
+        # Step 7: Render the document with images
+        render_result = "Document not rendered"
+        if inserted_count > 0:
+            try:
+                # Import render function
+                import sys
+                from pathlib import Path
+                _current_dir = Path(__file__).resolve().parent
+                _src_dir = _current_dir.parent
+                if str(_src_dir) not in sys.path:
+                    sys.path.insert(0, str(_src_dir))
+                
+                # Import in thread to avoid blocking
+                from react_agent.json_docx_converter import convert_json_to_docx
+                from datetime import datetime
+                
+                # Get paths from environment
+                config_path = os.getenv("DOCX_CONFIG_PATH", "/Users/yash/json-docx/main/config.json")
+                content_path = os.getenv("DOCX_CONTENT_PATH", "/Users/yash/json-docx/main/content.json")
+                output_dir = os.getenv("DOCX_OUTPUT_DIR", "/Users/yash/json-docx/main/test_output/docx")
+                
+                # Ensure output directory exists
+                await asyncio.to_thread(os.makedirs, output_dir, exist_ok=True)
+                
+                # Generate timestamped filename
+                timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+                output_path = os.path.join(output_dir, f"output_{timestamp}.docx")
+                
+                # Render document in background thread
+                success, render_msg = await asyncio.to_thread(
+                    convert_json_to_docx,
+                    config_path,
+                    content_path,
+                    output_path
+                )
+                
+                if success:
+                    render_result = f"✅ Document rendered with images: {output_path}"
+                else:
+                    render_result = f"⚠️ Document rendering failed: {render_msg}"
+                    
+            except Exception as e:
+                render_result = f"⚠️ Error rendering document: {str(e)}"
+        
+        # Step 8: Prepare result message
         result_parts = [
             f"✅ Image Addition Complete!",
             f"",
@@ -337,12 +493,17 @@ Rules:
         
         if inserted_count > 0:
             result_parts.append("Inserted images:")
-            for i, match in enumerate(matches[:inserted_count]):
+            for match in matches[:inserted_count]:
                 reasoning = match.get('reasoning', 'No reasoning provided')
+                heading_text = match['section_heading']['text']
                 result_parts.append(
-                    f"  • {match['image']['name']} → after '{match['section_heading']['text']}'"
+                    f"  • {match['image']['name']} → after '{heading_text}'"
                 )
                 result_parts.append(f"    └─ Reason: {reasoning}")
+            
+            # Add render result
+            result_parts.append("")
+            result_parts.append(render_result)
         
         # if errors:
         #     result_parts.append("")

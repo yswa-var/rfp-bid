@@ -1,0 +1,55 @@
+{
+    "Section_1": [
+        {
+            "type": "heading",
+            "level": 1,
+            "text": "Introduction"
+        },
+        {
+            "type": "heading",
+            "level": 2,
+            "text": "Brief Overview"
+        },
+        {
+            "type": "paragraph",
+            "level": 3,
+            "text": "this document is a response to the RFP for the project sdhjkfggkljsdhfgl"
+        }
+    ],
+    "Section_2": [
+        {
+            "type": "heading",
+            "level": 1,
+            "text": "preface"
+        },
+        {
+            "type": "paragraph",
+            "level": 2,
+            "text": "this section is a preface to the RFP for the project sdhjkfggkljsdhfgl"
+        },
+        {
+            "type": "image", 
+            "path": "images/preface.png"
+        },
+        {
+            "type": "table",
+            "data": [
+                {
+                    "column_heading_1": "name",
+                    "column_heading_2": "surname",
+                    "column_heading_3": "age"
+                },
+                {
+                    "column1": "John",
+                    "column2": "Doe",
+                    "column3": 30
+                },
+                {
+                    "column1": "Jane",
+                    "column2": "Doe",
+                    "column3": 25
+                }
+            ]
+        }
+    ]
+}

@@ -22,7 +22,7 @@ from agent.state import MessagesState
 from agent.agents import PDFParserAgent, CreateRAGAgent, GeneralAssistantAgent, RFPProposalTeam
 from agent.router import supervisor_router, rfp_team_router, rfp_to_docx_router
 from agent.image_adder_node import add_images_to_document
-from rct_agent.graph import graph as docx_agent_graph
+from react_agent.graph import graph as docx_agent_graph
 import os
 __all__ = ["graph"]
 
