@@ -9,11 +9,13 @@ This node:
 """
 
 import os
+import sys
 import csv
 import json
 import asyncio
 import unicodedata
 from pathlib import Path
+from datetime import datetime
 from typing import Dict, Any, List
 from langchain_openai import ChatOpenAI
 from langchain_core.messages import AIMessage, HumanMessage
@@ -443,17 +445,14 @@ Rules:
         render_result = "Document not rendered"
         if inserted_count > 0:
             try:
-                # Import render function
-                import sys
-                from pathlib import Path
+                # Ensure react_agent is in path
                 _current_dir = Path(__file__).resolve().parent
                 _src_dir = _current_dir.parent
                 if str(_src_dir) not in sys.path:
                     sys.path.insert(0, str(_src_dir))
                 
-                # Import in thread to avoid blocking
+                # Import render function
                 from react_agent.json_docx_converter import convert_json_to_docx
-                from datetime import datetime
                 
                 # Get paths from environment
                 config_path = os.getenv("DOCX_CONFIG_PATH", "/Users/yash/json-docx/main/config.json")
