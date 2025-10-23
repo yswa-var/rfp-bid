@@ -1,0 +1,50 @@
+{
+  "metadata": {
+    "title": "RFP Proposal Document",
+    "author": "RFP Agent",
+    "page_size": "A4",
+    "orientation": "portrait",
+    "margins": {
+      "top": 2.54,
+      "bottom": 2.54,
+      "left": 2.54,
+      "right": 2.54
+    }
+  },
+  "styles": {
+    "heading": [
+      {
+        "level": 1,
+        "font": "Arial",
+        "size": 18,
+        "bold": true
+      },
+      {
+        "level": 2,
+        "font": "Arial",
+        "size": 16,
+        "bold": true
+      },
+      {
+        "level": 3,
+        "font": "Arial",
+        "size": 14,
+        "bold": true
+      }
+    ],
+    "paragraph": {
+      "font": "Arial",
+      "size": 12
+    },
+    "table": {
+      "border": true,
+      "cell_padding": 0.2,
+      "font": "Arial",
+      "size": 10
+    }
+  },
+  "font": {
+    "type": "font",
+    "name": "Arial"
+  }
+}

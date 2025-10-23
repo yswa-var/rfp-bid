@@ -10,6 +10,8 @@ These tools enable intelligent document operations with auto-rendering capabilit
 import json
 import os
 import csv
+import time
+import glob
 from datetime import datetime
 from typing import Any, Callable, List, Optional, cast
 
@@ -21,26 +23,120 @@ from react_agent.json_docx_converter import convert_json_to_docx
 from react_agent.utils import load_chat_model
 
 
-# Get paths from environment variables with fallback defaults
-CONFIG_PATH = os.getenv("DOCX_CONFIG_PATH", "/Users/yash/json-docx/main/config.json")
-CONTENT_PATH = os.getenv("DOCX_CONTENT_PATH", "/Users/yash/json-docx/main/content.json")
-OUTPUT_DIR = os.getenv("DOCX_OUTPUT_DIR", "/Users/yash/json-docx/docx")
+# Base directories for versioned files
+CONFIG_DIR = os.getenv("DOCX_CONFIG_DIR", "/Users/yash/Documents/rfp/rfp-bid/main/test_output/config")
+CONTENT_DIR = os.getenv("DOCX_CONTENT_DIR", "/Users/yash/Documents/rfp/rfp-bid/main/test_output/content")
+OUTPUT_DIR = os.getenv("DOCX_OUTPUT_DIR", "/Users/yash/Documents/rfp/rfp-bid/main/test_output/docx")
+
+# Legacy compatibility - for convert_json_to_docx which expects file paths
+CONFIG_PATH = None  # Will be set dynamically
+CONTENT_PATH = None  # Will be set dynamically
+
+
+def _get_latest_versioned_file(base_dir: str, prefix: str) -> Optional[str]:
+    """Find the latest versioned file by Unix timestamp.
+    
+    Args:
+        base_dir: Directory containing versioned files
+        prefix: File prefix (e.g., 'content', 'config')
+    
+    Returns:
+        Path to latest file, or None if no files found
+    """
+    pattern = os.path.join(base_dir, f"{prefix}_*.json")
+    files = glob.glob(pattern)
+    
+    if not files:
+        return None
+    
+    # Extract timestamps and sort
+    versioned_files = []
+    for f in files:
+        basename = os.path.basename(f)
+        # Extract timestamp from filename like "content_1234567890.json"
+        try:
+            timestamp_str = basename.replace(f"{prefix}_", "").replace(".json", "")
+            timestamp = int(timestamp_str)
+            versioned_files.append((timestamp, f))
+        except ValueError:
+            continue
+    
+    if not versioned_files:
+        return None
+    
+    # Return file with highest timestamp
+    versioned_files.sort(reverse=True)
+    return versioned_files[0][1]
+
+
+def _write_versioned_file(base_dir: str, prefix: str, data: dict, max_versions: int = 10) -> str:
+    """Write a new versioned file and cleanup old versions.
+    
+    Args:
+        base_dir: Directory for versioned files
+        prefix: File prefix (e.g., 'content', 'config')
+        data: Dictionary data to write
+        max_versions: Maximum number of versions to keep (default 10)
+    
+    Returns:
+        Path to newly created file
+    """
+    # Create directory if needed
+    os.makedirs(base_dir, exist_ok=True)
+    
+    # Generate new filename with Unix timestamp
+    timestamp = int(time.time())
+    new_filename = f"{prefix}_{timestamp}.json"
+    new_path = os.path.join(base_dir, new_filename)
+    
+    # Write new version
+    with open(new_path, 'w', encoding='utf-8') as f:
+        json.dump(data, f, indent=2, ensure_ascii=False)
+    
+    # Cleanup old versions - keep only max_versions
+    pattern = os.path.join(base_dir, f"{prefix}_*.json")
+    all_files = glob.glob(pattern)
+    
+    if len(all_files) > max_versions:
+        # Sort by timestamp (newest first)
+        versioned = []
+        for f in all_files:
+            try:
+                basename = os.path.basename(f)
+                ts_str = basename.replace(f"{prefix}_", "").replace(".json", "")
+                ts = int(ts_str)
+                versioned.append((ts, f))
+            except ValueError:
+                continue
+        
+        versioned.sort(reverse=True)
+        
+        # Delete files beyond max_versions
+        for _, old_file in versioned[max_versions:]:
+            try:
+                os.remove(old_file)
+            except OSError:
+                pass  # Ignore errors during cleanup
+    
+    return new_path
 
 
 def _ensure_files_exist() -> tuple[bool, str]:
-    """Ensure config.json and content.json exist with defaults.
+    """Ensure versioned config and content files exist with defaults.
     
     Returns:
         tuple: (success: bool, message: str)
     """
     try:
         # Ensure directories exist
-        os.makedirs(os.path.dirname(CONFIG_PATH), exist_ok=True)
-        os.makedirs(os.path.dirname(CONTENT_PATH), exist_ok=True)
+        os.makedirs(CONFIG_DIR, exist_ok=True)
+        os.makedirs(CONTENT_DIR, exist_ok=True)
         os.makedirs(OUTPUT_DIR, exist_ok=True)
         
-        # Create default config.json if missing
-        if not os.path.exists(CONFIG_PATH):
+        # Check for existing versioned config file
+        latest_config = _get_latest_versioned_file(CONFIG_DIR, "config")
+        if not latest_config:
+            # Create default config with versioning
             default_config = {
                 "metadata": {
                     "title": "RFP Proposal Document",
@@ -59,18 +155,18 @@ def _ensure_files_exist() -> tuple[bool, str]:
                     "table": {"border": True, "cell_padding": 0.2, "font": "Arial", "size": 10}
                 }
             }
-            with open(CONFIG_PATH, 'w', encoding='utf-8') as f:
-                json.dump(default_config, f, indent=2, ensure_ascii=False)
+            _write_versioned_file(CONFIG_DIR, "config", default_config)
         
-        # Create default content.json if missing
-        if not os.path.exists(CONTENT_PATH):
+        # Check for existing versioned content file
+        latest_content = _get_latest_versioned_file(CONTENT_DIR, "content")
+        if not latest_content:
+            # Create default content with versioning
             default_content = {
                 "Introduction": [
                     {"type": "heading", "text": "Introduction", "level": 1}
                 ]
             }
-            with open(CONTENT_PATH, 'w', encoding='utf-8') as f:
-                json.dump(default_content, f, indent=2, ensure_ascii=False)
+            _write_versioned_file(CONTENT_DIR, "content", default_content)
         
         return True, "Files initialized successfully"
     
@@ -87,12 +183,21 @@ def _render_docx() -> str:
         # Ensure output directory exists
         os.makedirs(OUTPUT_DIR, exist_ok=True)
         
+        # Get latest versioned files
+        latest_config = _get_latest_versioned_file(CONFIG_DIR, "config")
+        latest_content = _get_latest_versioned_file(CONTENT_DIR, "content")
+        
+        if not latest_config:
+            return f"Error: No config file found in {CONFIG_DIR}"
+        if not latest_content:
+            return f"Error: No content file found in {CONTENT_DIR}"
+        
         # Generate timestamped filename
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         output_path = os.path.join(OUTPUT_DIR, f"output_{timestamp}.docx")
         
-        # Convert JSON to DOCX
-        success, message = convert_json_to_docx(CONFIG_PATH, CONTENT_PATH, output_path)
+        # Convert JSON to DOCX using latest versions
+        success, message = convert_json_to_docx(latest_config, latest_content, output_path)
         
         if success:
             return f"Document rendered successfully: {output_path}"
@@ -104,12 +209,13 @@ def _render_docx() -> str:
 
 
 def render_document() -> str:
-    """Render the current document from config.json and content.json to DOCX.
+    """Render the current document from latest versioned config and content files to DOCX.
     
     This is a separate operation that should be called after making changes to
-    content.json or config.json to generate the final DOCX file.
+    content or config to generate the final DOCX file.
     
     The rendered document will be saved with a timestamp in the output directory.
+    Uses the most recent versioned config and content files automatically.
     
     Returns:
         Success message with file path, or detailed error message if validation fails.
@@ -193,8 +299,13 @@ def create_section(section_name: str, elements: Optional[List[dict]] = None) -> 
                 {"type": "heading", "text": section_name, "level": 2}
             ]
         
+        # Get latest content file
+        latest_content_path = _get_latest_versioned_file(CONTENT_DIR, "content")
+        if not latest_content_path:
+            return "Error: No content file found. Initialize with _ensure_files_exist() first."
+        
         # Load current content
-        with open(CONTENT_PATH, 'r', encoding='utf-8') as f:
+        with open(latest_content_path, 'r', encoding='utf-8') as f:
             content = json.load(f)
         
         # Check if section already exists
@@ -211,14 +322,13 @@ def create_section(section_name: str, elements: Optional[List[dict]] = None) -> 
         # Add new section
         content[section_name] = elements
         
-        # Save updated content
-        with open(CONTENT_PATH, 'w', encoding='utf-8') as f:
-            json.dump(content, f, indent=2, ensure_ascii=False)
+        # Save updated content as new version
+        new_path = _write_versioned_file(CONTENT_DIR, "content", content)
         
-        return f"Section '{section_name}' created with {len(elements)} element(s). Content saved to {CONTENT_PATH}. Call render_document() to generate the DOCX file."
+        return f"Section '{section_name}' created with {len(elements)} element(s). Content saved to {new_path}. Call render_document() to generate the DOCX file."
     
     except FileNotFoundError:
-        return f"Error: Content file not found at {CONTENT_PATH}"
+        return f"Error: Content file not found in {CONTENT_DIR}"
     except json.JSONDecodeError as e:
         return f"Error: Invalid JSON in content file: {str(e)}"
     except Exception as e:
@@ -240,21 +350,25 @@ def edit_config(updates: dict) -> str:
         if not success:
             return message
         
+        # Get latest config file
+        latest_config_path = _get_latest_versioned_file(CONFIG_DIR, "config")
+        if not latest_config_path:
+            return "Error: No config file found. Initialize with _ensure_files_exist() first."
+        
         # Load current config
-        with open(CONFIG_PATH, 'r', encoding='utf-8') as f:
+        with open(latest_config_path, 'r', encoding='utf-8') as f:
             config = json.load(f)
         
         # Merge updates with existing config
         updated_config = _deep_merge_dict(config, updates)
         
-        # Save updated config
-        with open(CONFIG_PATH, 'w', encoding='utf-8') as f:
-            json.dump(updated_config, f, indent=2, ensure_ascii=False)
+        # Save updated config as new version
+        new_path = _write_versioned_file(CONFIG_DIR, "config", updated_config)
         
-        return f"Configuration updated successfully. Config saved to {CONFIG_PATH}. Call render_document() to generate the DOCX file."
+        return f"Configuration updated successfully. Config saved to {new_path}. Call render_document() to generate the DOCX file."
     
     except FileNotFoundError:
-        return f"Error: Config file not found at {CONFIG_PATH}"
+        return f"Error: Config file not found in {CONFIG_DIR}"
     except json.JSONDecodeError as e:
         return f"Error: Invalid JSON in config file: {str(e)}"
     except Exception as e:
@@ -278,8 +392,13 @@ def update_content(section_name: str, element_index: int, updated_element: dict)
         if not success:
             return message
         
+        # Get latest content file
+        latest_content_path = _get_latest_versioned_file(CONTENT_DIR, "content")
+        if not latest_content_path:
+            return "Error: No content file found. Initialize with _ensure_files_exist() first."
+        
         # Load current content
-        with open(CONTENT_PATH, 'r', encoding='utf-8') as f:
+        with open(latest_content_path, 'r', encoding='utf-8') as f:
             content = json.load(f)
         
         # Check if section exists
@@ -303,14 +422,13 @@ def update_content(section_name: str, element_index: int, updated_element: dict)
         # Update element
         content[section_name][element_index] = updated_element
         
-        # Save updated content
-        with open(CONTENT_PATH, 'w', encoding='utf-8') as f:
-            json.dump(content, f, indent=2, ensure_ascii=False)
+        # Save updated content as new version
+        new_path = _write_versioned_file(CONTENT_DIR, "content", content)
         
-        return f"Element {element_index} in section '{section_name}' updated successfully. Content saved to {CONTENT_PATH}. Call render_document() to generate the DOCX file."
+        return f"Element {element_index} in section '{section_name}' updated successfully. Content saved to {new_path}. Call render_document() to generate the DOCX file."
     
     except FileNotFoundError:
-        return f"Error: Content file not found at {CONTENT_PATH}"
+        return f"Error: Content file not found in {CONTENT_DIR}"
     except json.JSONDecodeError as e:
         return f"Error: Invalid JSON in content file: {str(e)}"
     except Exception as e:
@@ -329,8 +447,13 @@ def get_sections() -> str:
         if not success:
             return message
         
+        # Get latest content file
+        latest_content_path = _get_latest_versioned_file(CONTENT_DIR, "content")
+        if not latest_content_path:
+            return "Error: No content file found. Initialize with _ensure_files_exist() first."
+        
         # Load current content
-        with open(CONTENT_PATH, 'r', encoding='utf-8') as f:
+        with open(latest_content_path, 'r', encoding='utf-8') as f:
             content = json.load(f)
         
         sections_info = []
@@ -351,7 +474,7 @@ def get_sections() -> str:
         return json.dumps(sections_info, indent=2, ensure_ascii=False)
     
     except FileNotFoundError:
-        return f"Error: Content file not found at {CONTENT_PATH}"
+        return f"Error: Content file not found in {CONTENT_DIR}"
     except json.JSONDecodeError as e:
         return f"Error: Invalid JSON in content file: {str(e)}"
     except Exception as e:
@@ -373,8 +496,13 @@ def get_content(section_name: str) -> str:
         if not success:
             return message
         
+        # Get latest content file
+        latest_content_path = _get_latest_versioned_file(CONTENT_DIR, "content")
+        if not latest_content_path:
+            return "Error: No content file found. Initialize with _ensure_files_exist() first."
+        
         # Load current content
-        with open(CONTENT_PATH, 'r', encoding='utf-8') as f:
+        with open(latest_content_path, 'r', encoding='utf-8') as f:
             content = json.load(f)
         
         # Check if section exists
@@ -397,7 +525,7 @@ def get_content(section_name: str) -> str:
         return json.dumps(section_content, indent=2, ensure_ascii=False)
     
     except FileNotFoundError:
-        return f"Error: Content file not found at {CONTENT_PATH}"
+        return f"Error: Content file not found in {CONTENT_DIR}"
     except json.JSONDecodeError as e:
         return f"Error: Invalid JSON in content file: {str(e)}"
     except Exception as e:
@@ -419,8 +547,13 @@ def get_content_by_heading(heading_text: str) -> str:
         if not success:
             return message
         
+        # Get latest content file
+        latest_content_path = _get_latest_versioned_file(CONTENT_DIR, "content")
+        if not latest_content_path:
+            return "Error: No content file found. Initialize with _ensure_files_exist() first."
+        
         # Load current content
-        with open(CONTENT_PATH, 'r', encoding='utf-8') as f:
+        with open(latest_content_path, 'r', encoding='utf-8') as f:
             content = json.load(f)
         
         # Search for matching heading
@@ -436,7 +569,7 @@ def get_content_by_heading(heading_text: str) -> str:
         return f"Error: No section found with heading containing '{heading_text}'. Use get_sections() to see all available sections."
     
     except FileNotFoundError:
-        return f"Error: Content file not found at {CONTENT_PATH}"
+        return f"Error: Content file not found in {CONTENT_DIR}"
     except json.JSONDecodeError as e:
         return f"Error: Invalid JSON in content file: {str(e)}"
     except Exception as e:
@@ -459,8 +592,13 @@ def insert_content_after_heading(heading_text: str, new_element: dict) -> str:
         if not success:
             return message
         
+        # Get latest content file
+        latest_content_path = _get_latest_versioned_file(CONTENT_DIR, "content")
+        if not latest_content_path:
+            return "Error: No content file found. Initialize with _ensure_files_exist() first."
+        
         # Load current content
-        with open(CONTENT_PATH, 'r', encoding='utf-8') as f:
+        with open(latest_content_path, 'r', encoding='utf-8') as f:
             content = json.load(f)
         
         # Validate new element
@@ -495,14 +633,13 @@ def insert_content_after_heading(heading_text: str, new_element: dict) -> str:
                         break
             return f"Error: No heading found matching '{heading_text}'. Available headings: {sections_list}"
         
-        # Save updated content
-        with open(CONTENT_PATH, 'w', encoding='utf-8') as f:
-            json.dump(content, f, indent=2, ensure_ascii=False)
+        # Save updated content as new version
+        new_path = _write_versioned_file(CONTENT_DIR, "content", content)
         
-        return f"Element inserted after heading '{heading_text}'. Content saved to {CONTENT_PATH}. Call render_document() to generate the DOCX file."
+        return f"Element inserted after heading '{heading_text}'. Content saved to {new_path}. Call render_document() to generate the DOCX file."
     
     except FileNotFoundError:
-        return f"Error: Content file not found at {CONTENT_PATH}"
+        return f"Error: Content file not found in {CONTENT_DIR}"
     except json.JSONDecodeError as e:
         return f"Error: Invalid JSON in content file: {str(e)}"
     except Exception as e:
@@ -556,8 +693,13 @@ async def add_images_from_csv() -> str:
         if not images_data:
             return "Error: No valid images found in CSV"
         
+        # Get latest content file
+        latest_content_path = _get_latest_versioned_file(CONTENT_DIR, "content")
+        if not latest_content_path:
+            return "Error: No content file found. Initialize with _ensure_files_exist() first."
+        
         # Load document sections
-        with open(CONTENT_PATH, 'r', encoding='utf-8') as f:
+        with open(latest_content_path, 'r', encoding='utf-8') as f:
             content = json.load(f)
         
         # Build section list with headings
