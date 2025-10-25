@@ -32,7 +32,7 @@ class StructuredProposalGenerator:
         
         # Initialize LLM
         self.llm = ChatOpenAI(
-            model="gpt-4", 
+            model="gpt-5", 
             temperature=0.3,
             api_key=os.getenv("OPENAI_API_KEY")
         )

@@ -126,7 +126,7 @@ class GeneralAssistantAgent:
     def __init__(self):
         self.milvus_ops: MilvusOps | None = None
         self.llm = ChatOpenAI(
-            model=os.getenv("LLM_MODEL", "gpt-4o-mini"),
+            model=os.getenv("LLM_MODEL", "gpt-5"),
             temperature=0.1,
             api_key=os.getenv("OPENAI_API_KEY"),
         )
@@ -397,7 +397,7 @@ class RFPProposalTeam:
         from .RFP_proposal_agent import RFPProposalAgent
         self.rfp_agent = RFPProposalAgent(response_file="rfp_team_responses.json")
         self.llm = ChatOpenAI(
-            model=os.getenv("LLM_MODEL", "gpt-4o-mini"),
+            model=os.getenv("LLM_MODEL", "gpt-5"),
             temperature=0,
             api_key=os.getenv("OPENAI_API_KEY"),
         )

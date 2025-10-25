@@ -8,7 +8,7 @@ from langchain_openai import OpenAIEmbeddings
 from langchain_milvus import Milvus
 
 
-llm = init_chat_model("gpt-4o-mini", model_provider="openai")
+llm = init_chat_model("gpt-5", model_provider="openai")
 
 embeddings = OpenAIEmbeddings(model="text-embedding-3-large")
 

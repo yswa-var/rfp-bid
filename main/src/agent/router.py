@@ -4,12 +4,32 @@ Supervisor Router
 Handles routing logic for the supervisor system to determine which agent should handle a request.
 """
 
+import logging
 from .state import MessagesState
+
+logger = logging.getLogger(__name__)
 
 
 def supervisor_router(state: MessagesState) -> str:
-    """Router for supervisor system with priority-based routing."""
+    """Router for supervisor system with priority-based routing and agent selection support."""
     messages = state.get("messages", [])
+    
+    # Check if agent was explicitly selected (from UI dropdown or config)
+    selected_agent = state.get("selected_agent")
+    if selected_agent and selected_agent != "supervisor":
+        logger.info(f"Direct routing to selected agent: {selected_agent}")
+        # Map UI agent names to graph node names
+        agent_mapping = {
+            "docx_agent": "docx_agent",
+            "pdf_parser": "pdf_parser",
+            "general_assistant": "general_assistant",
+            "rfp_finance": "rfp_supervisor",  # Route to supervisor, it will handle team routing
+            "rfp_technical": "rfp_supervisor",
+            "rfp_legal": "rfp_supervisor",
+            "rfp_qa": "rfp_supervisor",
+            "image_adder": "image_adder"
+        }
+        return agent_mapping.get(selected_agent, "general_assistant")
     
     if not messages:
         return "general_assistant"

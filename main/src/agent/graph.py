@@ -27,11 +27,11 @@ import os
 __all__ = ["graph"]
 
 
-def create_supervisor_system():
+def create_supervisor_system(checkpointer=None):
     """Create the complete supervisor system with RFP Proposal Team integration."""
 
     supervisor_llm = ChatOpenAI(
-        model="gpt-4o-mini",
+        model="gpt-5",
         temperature=0,
         api_key=os.getenv("OPENAI_API_KEY"),
     )
@@ -169,6 +169,9 @@ def create_supervisor_system():
     workflow.add_edge("image_adder", END)
 
     # LangGraph API handles persistence automatically
+    # Accept optional checkpointer for local execution
+    if checkpointer:
+        return workflow.compile(checkpointer=checkpointer)
     return workflow.compile()
 
 graph = create_supervisor_system()

@@ -1,0 +1,540 @@
+{
+  "master": {
+    "tasks": [
+      {
+        "id": 1,
+        "title": "Setup Development Environment and Cloud Infrastructure",
+        "description": "Initialize the project repository, configure the CI/CD pipeline, and provision necessary cloud resources for data processing, training, and experiment tracking.",
+        "details": "Create a monorepo on GitHub. Set up GitHub Actions for continuous integration. Provision high-performance GPUs (e.g., A100/H100), distributed storage (S3/GCS), and CPU clusters on a cloud provider like AWS or GCP. Configure MLflow or Weights & Biases for experiment tracking and model versioning.",
+        "testStrategy": "Verify that a developer can clone the repo, a push triggers the CI pipeline, cloud resources are accessible, and a test experiment can be logged to W&B/MLflow.",
+        "priority": "high",
+        "dependencies": [],
+        "status": "in-progress",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Configure Local GPU Toolchain (CUDA/cuDNN)",
+            "description": "Install and configure the NVIDIA drivers, CUDA Toolkit, and cuDNN library on the Windows development machine to enable local GPU acceleration.",
+            "dependencies": [],
+            "details": "Identify and install the specific NVIDIA driver, CUDA, and cuDNN versions compatible with the developer's 16GB GPU and the project's target PyTorch version. Ensure system PATH variables are updated correctly.\n<info added on 2025-08-13T17:31:03.018Z>\nA successful smoke test on a Kaggle environment has validated a compatible GPU toolchain. The confirmed working environment consists of a Tesla P100-PCIE-16GB GPU running PyTorch 2.6.0 with CUDA 12.4. The developer is now proceeding with model-specific smoke tests for the Qwen2.5-Math and Aryabhata models in this environment.\n</info added on 2025-08-13T17:31:03.018Z>\n<info added on 2025-08-13T21:50:00.397Z>\n<info added on 2025-08-14T11:45:22.937Z>\nResearch on PDF extraction libraries is complete. LlamaParse has been selected as the primary tool due to its superior performance, extracting 8,587 mathematical problems (a 32x improvement over the PyMuPDF baseline) in just 12.05 seconds. The environment has been updated with Tesseract OCR v5.5.0, and API keys for Llama Cloud and Google Gemini have been configured. The next step is to build the production data extraction pipeline using LlamaParse.\n</info added on 2025-08-14T11:45:22.937Z>\n</info added on 2025-08-13T21:50:00.397Z>",
+            "status": "done",
+            "testStrategy": "Run `nvidia-smi` in the terminal to confirm the GPU is recognized and the driver is active. Run `nvcc --version` to verify the CUDA Toolkit compiler is installed and accessible."
+          },
+          {
+            "id": 2,
+            "title": "Initialize Project and Python Environment",
+            "description": "Set up the project structure by cloning the repository, creating a Python virtual environment, and installing the core deep learning libraries.",
+            "dependencies": [],
+            "details": "Clone the GitHub monorepo. Create a local Python virtual environment using `venv`. Install PyTorch with the correct CUDA support, along with `transformers`, `vllm`, and other dependencies specified in `requirements.txt`.",
+            "status": "pending",
+            "testStrategy": "Activate the virtual environment. Execute `python -c \"import torch; print(torch.cuda.is_available())\"` and confirm the output is `True`. Verify all packages from `requirements.txt` are installed via `pip list`."
+          },
+          {
+            "id": 3,
+            "title": "Configure IDE and Experiment Tracking",
+            "description": "Set up VS Code with recommended extensions for Python development and configure credentials for the project's experiment tracking service (W&B/MLflow).",
+            "dependencies": [],
+            "details": "Install and configure the Python, Pylance, and Jupyter extensions in VS Code. Set the VS Code Python interpreter to the project's virtual environment. Log in to Weights & Biases via the CLI (`wandb login`) and store the API key.",
+            "status": "pending",
+            "testStrategy": "Open the project in VS Code and confirm the correct interpreter is active. Run a test script that calls `wandb.init()`; verify the new run appears in the W&B project dashboard online."
+          },
+          {
+            "id": 4,
+            "title": "Provision Cloud Storage Bucket",
+            "description": "Create and configure a cloud storage bucket (AWS S3 or GCS) to store raw data, processed datasets, and model artifacts for the project.",
+            "dependencies": [],
+            "details": "Using the AWS/GCP console or CLI, provision a new storage bucket. Configure IAM policies to grant access to developers and the CI/CD pipeline. Document the bucket's naming convention and directory structure (e.g., /raw-data, /processed-data).",
+            "status": "pending",
+            "testStrategy": "Using configured cloud credentials (e.g., AWS CLI), successfully upload a test file to the new bucket and then list the bucket's contents to confirm the file's presence."
+          },
+          {
+            "id": 5,
+            "title": "Implement CI Pipeline and Git Hooks",
+            "description": "Configure a basic Continuous Integration (CI) pipeline using GitHub Actions and set up local pre-commit hooks for automated code quality checks.",
+            "dependencies": [],
+            "details": "Create a `.github/workflows/ci.yml` file to run on push/PR, which installs dependencies and runs linters (e.g., Ruff) and tests. Implement a `.pre-commit-config.yaml` to run formatters and linters locally before each commit.",
+            "status": "pending",
+            "testStrategy": "Push a commit to a new branch and verify the GitHub Action runs and passes. Attempt to commit poorly formatted code and confirm the pre-commit hook prevents the commit and auto-formats the code."
+          },
+          {
+            "id": 6,
+            "title": "Develop and Run Environment Smoke Test",
+            "description": "Create and execute a script to verify the end-to-end local setup by running a minimal model inference on the GPU and logging results.",
+            "dependencies": [],
+            "details": "Write a `smoke_test.py` script that initializes a W&B run, loads a small Hugging Face model (e.g., 'distilbert-base-uncased'), moves it to the GPU, performs inference, and logs a success metric to W&B.",
+            "status": "pending",
+            "testStrategy": "Execute `python smoke_test.py`. The script must complete without errors, confirm GPU usage in its output, and a corresponding run with a success metric must appear in the W&B dashboard."
+          }
+        ]
+      },
+      {
+        "id": 2,
+        "title": "Implement Core Web Scraping Infrastructure",
+        "description": "Develop and deploy scrapers for initial high-value data sources, focusing on official JEE papers, NCERT textbooks, and state board examination papers.",
+        "details": "Use Python libraries like Scrapy and BeautifulSoup. Implement robust error handling, rate limiting, and user-agent rotation. Store raw scraped data (HTML, PDFs) in a structured S3 bucket. Ensure compliance with robots.txt and website terms of service.",
+        "testStrategy": "Confirm that scrapers can successfully download at least 10 years of JEE Main/Advanced papers and all NCERT math/physics/chemistry textbooks. Data should be stored correctly in the designated cloud storage.",
+        "priority": "high",
+        "dependencies": [
+          1
+        ],
+        "status": "To Do",
+        "subtasks": []
+      },
+      {
+        "id": 3,
+        "title": "Develop Initial Document Processing Pipeline (V1)",
+        "description": "Create a high-performance pipeline to convert raw scraped documents (primarily PDFs) into structured JSON, leveraging LlamaParse for superior mathematical notation and content extraction.",
+        "status": "To Do",
+        "dependencies": [
+          1
+        ],
+        "priority": "high",
+        "details": "Implement the primary pipeline using LlamaParse via the Llama Cloud API, chosen for its proven 32x improvement in problem extraction and superior markdown output with preserved math notations. PyMuPDF will be maintained as a backup for speed-critical, lower-fidelity processing. The process will involve managing Llama Cloud API keys, implementing rate limiting, and parsing the resulting markdown into a structured JSON format with problem-solution pairs. LangExtract and Unstructured are deprecated for this task due to performance and quota limitations.",
+        "testStrategy": "Process a sample of 100 PDFs. Manually verify that over 95% of mathematical equations are extracted correctly and that the text-to-problem/solution structure is maintained.",
+        "subtasks": []
+      },
+      {
+        "id": 4,
+        "title": "Implement Initial Data Quality and Deduplication System",
+        "description": "Build the first version of the data filtering system to remove duplicate problems and filter out low-quality or malformed problem-solution pairs.",
+        "details": "Use hashing algorithms like MinHash (via libraries like datasketch) for near-duplicate detection of problem text. Implement rule-based filters to discard entries with parsing errors, incomplete solutions, or malformed LaTeX.\n<info added on 2025-08-13T17:43:55.822Z>\n**MAJOR STRATEGY CHANGE:** The focus is shifting to local dataset creation, removing cloud dependencies.\n- **PDF Parsing:** Use LangChain with loaders like PyMuPDFLoader and UnstructuredPDFLoader to extract structured data from JEE preparation PDFs.\n- **Local Data Pipeline:** Establish a local directory structure (e.g., `data/raw_pdfs/`, `data/processed/`, `data/structured/`).\n- **Storage:** Implement a local SQLite database for fast access to the structured training data.\n- **Research:** Leverage the Context7 repo to find existing solutions for PDF parsing.\n- **Rationale:** This approach ensures full control, faster iteration, and eliminates cloud costs or API limits.\n</info added on 2025-08-13T17:43:55.822Z>",
+        "testStrategy": "Run the system on a raw dataset of 10,000 problems and verify that it correctly identifies and flags at least 90% of manually injected duplicates and low-quality samples.",
+        "priority": "high",
+        "dependencies": [
+          3
+        ],
+        "status": "To Do",
+        "subtasks": []
+      },
+      {
+        "id": 5,
+        "title": "Establish Evaluation Framework and Baseline Test Suites",
+        "description": "Create the automated grading and evaluation framework, including comprehensive test suites from past JEE papers to measure model performance accurately.",
+        "details": "Develop a Python-based framework that can execute model-generated solutions and compare final answers against official answer keys. Use SymPy for symbolic mathematical verification. Compile test suites from JEE Main/Advanced papers (2018-2025).",
+        "testStrategy": "The framework should correctly grade a set of 100 known correct and incorrect solutions with >99% accuracy. The test suites must be loaded and formatted correctly.",
+        "priority": "high",
+        "dependencies": [
+          1
+        ],
+        "status": "To Do",
+        "subtasks": []
+      },
+      {
+        "id": 6,
+        "title": "Conduct Comparative Analysis of Base Models",
+        "description": "Evaluate leading open-source math models to select the best foundation for Aryabhata Superior based on performance and architectural suitability.",
+        "details": "Benchmark Qwen2.5-Math-7B, DeepSeek-Math, and Gemma-Math on the baseline JEE test suite created in Task 5. Analyze accuracy, token efficiency, and inference speed. Document the findings to justify the final selection.",
+        "testStrategy": "Produce a report with detailed metrics for each model on the evaluation suite. The selected model must demonstrate the best trade-off for the project's goals.",
+        "priority": "high",
+        "dependencies": [
+          5
+        ],
+        "status": "To Do",
+        "subtasks": []
+      },
+      {
+        "id": 7,
+        "title": "Generate and Curate Initial 50K Dataset",
+        "description": "Run the initial data pipelines to create the first tranche of 50,000 high-quality problem-solution pairs for initial model training.",
+        "details": "Execute the web scrapers (Task 2) on the initial sources. Process the raw data through the V1 document processing and quality pipelines (Task 3, 4). Perform a manual audit on a 1% sample to ensure quality meets standards.",
+        "testStrategy": "The final dataset should contain at least 50,000 unique, well-formatted problem-solution pairs, validated by the quality pipeline and a manual spot-check.",
+        "priority": "high",
+        "dependencies": [
+          2,
+          4
+        ],
+        "status": "To Do",
+        "subtasks": []
+      },
+      {
+        "id": 8,
+        "title": "Train Baseline Model via Supervised Fine-Tuning (SFT)",
+        "description": "Perform an initial supervised fine-tuning (SFT) of the selected base model on the 50K dataset to establish a performance baseline.",
+        "details": "Use the PyTorch, Transformers, and Accelerate/DeepSpeed stack for training. Fine-tune the model selected in Task 6. Log all metrics, checkpoints, and results to W&B/MLflow. This model will serve as the internal benchmark.",
+        "testStrategy": "The training process completes without errors. The resulting model shows a significant performance improvement over the base model on the validation set.",
+        "priority": "high",
+        "dependencies": [
+          6,
+          7
+        ],
+        "status": "To Do",
+        "subtasks": []
+      },
+      {
+        "id": 9,
+        "title": "Expand Web Scraping to Diverse Educational Platforms",
+        "description": "Enhance the scraping infrastructure to collect data from a wider range of sources, including online learning platforms, academic forums, and YouTube channels.",
+        "details": "Add scrapers for platforms like educational forums (e.g., Art of Problem Solving) and YouTube channels (extracting transcripts). Ensure any collection is done ethically and with permission where required. Handle dynamic content with Selenium/Playwright if necessary.",
+        "testStrategy": "Successfully scrape and store data from at least three new types of sources, adding a minimum of 50,000 new raw documents to the data lake.",
+        "priority": "medium",
+        "dependencies": [
+          2
+        ],
+        "status": "To Do",
+        "subtasks": []
+      },
+      {
+        "id": 10,
+        "title": "Integrate OCR and Diagram Extraction into Pipeline",
+        "description": "Upgrade the document processing pipeline to handle scanned documents and extract visual information from diagrams for multi-modal capabilities.",
+        "details": "Integrate an OCR engine like Tesseract (via pytesseract) for scanned PDFs. Use a pre-trained vision model (e.g., DETR) to detect and crop diagrams. Develop a method to serialize diagram information as text descriptions to be paired with the problem text.",
+        "testStrategy": "The pipeline can process a scanned PDF and extract text with <10% character error rate. It can successfully identify and save diagram images from 80% of problems containing them.",
+        "priority": "medium",
+        "dependencies": [
+          3
+        ],
+        "status": "To Do",
+        "subtasks": []
+      },
+      {
+        "id": 11,
+        "title": "Implement Automated Solution Verification and Expert Review Workflow",
+        "description": "Enhance the data quality pipeline with systems to automatically verify solutions and a workflow for human expert review and tagging.",
+        "details": "Develop scripts that use computational engines (e.g., SymPy, WolframAlpha API) to check the correctness of final answers. Build a simple web interface using Streamlit or Gradio for subject matter experts to review, correct, and tag problems with difficulty and topic labels.",
+        "testStrategy": "The automated verifier correctly flags >95% of incorrect numerical answers. The review tool allows an expert to review and tag 100 problems efficiently.",
+        "priority": "high",
+        "dependencies": [
+          4
+        ],
+        "status": "To Do",
+        "subtasks": []
+      },
+      {
+        "id": 12,
+        "title": "Implement Curriculum Learning Data Strategy",
+        "description": "Organize the entire training dataset by difficulty and topic to enable a progressive curriculum learning strategy during training.",
+        "details": "Use the difficulty and topic tags from the expert review workflow (Task 11) and heuristics (e.g., solution length) to bucket problems. Create custom PyTorch DataLoaders that can sample from these buckets progressively, starting with easier concepts.",
+        "testStrategy": "The data loader can successfully provide batches of data sorted by 'JEE Mains', 'JEE Advanced', and 'Olympiad' difficulty levels.",
+        "priority": "medium",
+        "dependencies": [
+          11
+        ],
+        "status": "To Do",
+        "subtasks": []
+      },
+      {
+        "id": 13,
+        "title": "Develop Multi-modal Model Architecture",
+        "description": "Research and implement a multi-modal architecture that can process both textual problem descriptions and extracted diagrammatic information.",
+        "details": "Investigate and implement an architecture like LLaVA, which combines the chosen LLM (Task 6) with a vision encoder (e.g., CLIP's ViT). The model must be adapted to take text and image embeddings as a combined input sequence.",
+        "testStrategy": "A prototype model can be trained on a small sample of 1,000 text-image pairs without crashing. The model should show better performance on geometry problems with diagrams than a text-only model.",
+        "priority": "medium",
+        "dependencies": [
+          8,
+          10
+        ],
+        "status": "To Do",
+        "subtasks": []
+      },
+      {
+        "id": 14,
+        "title": "Scale Curated Dataset to 200K+ Problems",
+        "description": "Run the enhanced data pipelines to expand the high-quality, curated dataset to over 200,000 entries, covering all three subjects.",
+        "details": "Execute the expanded scrapers (Task 9) and process all collected data through the advanced pipeline (Task 10, 11). Ensure the subject distribution (60% Math, 25% Physics, 15% Chemistry) is maintained.",
+        "testStrategy": "The curated dataset contains over 200,000 high-quality, verified, and tagged problem-solution pairs, ready for the next stage of training.",
+        "priority": "high",
+        "dependencies": [
+          9,
+          10,
+          11
+        ],
+        "status": "To Do",
+        "subtasks": []
+      },
+      {
+        "id": 15,
+        "title": "Perform Advanced Multi-Stage SFT",
+        "description": "Conduct a multi-stage supervised fine-tuning process using the 200K dataset and the curriculum learning strategy to significantly boost model capability.",
+        "details": "Stage 1: General fine-tuning on the full 200K dataset. Stage 2: Specialized fine-tuning on high-difficulty subsets (JEE Advanced, Olympiad). Use the curriculum learning data loader (Task 12) to manage the training stages.",
+        "testStrategy": "The model resulting from this training achieves >90% accuracy on the JEE Mains validation set, a marked improvement over the baseline model (Task 8).",
+        "priority": "high",
+        "dependencies": [
+          12,
+          13,
+          14
+        ],
+        "status": "To Do",
+        "subtasks": []
+      },
+      {
+        "id": 16,
+        "title": "Implement RLHF/Constitutional AI Pipeline",
+        "description": "Set up the infrastructure for collecting preference data and performing reinforcement learning to align the model with desired behaviors like clarity and step-by-step reasoning.",
+        "details": "Use the expert review tool (Task 11) to collect comparison data (ranking two model responses). Implement a Reward Model training pipeline. Use a library like TRL (Transformer Reinforcement Learning) to perform PPO on the SFT model. For Constitutional AI, define principles and use them to generate preference data.",
+        "testStrategy": "Successfully train a reward model that can predict human preferences with >75% accuracy. Complete one full PPO optimization loop on the SFT model.",
+        "priority": "medium",
+        "dependencies": [
+          11,
+          15
+        ],
+        "status": "To Do",
+        "subtasks": []
+      },
+      {
+        "id": 17,
+        "title": "Build and Run Synthetic Data Generation System",
+        "description": "Create a system to programmatically generate new, synthetic problem-solution pairs to augment the training dataset and cover edge cases.",
+        "details": "Develop Python scripts using SymPy to create problem templates (e.g., quadratic equations, integration problems). Vary numerical parameters and logical conditions to generate novel problems. Use the fine-tuned model (Task 15) in a few-shot manner to generate solution paths, then verify them computationally.",
+        "testStrategy": "The system can generate 100,000+ synthetic problems with computationally verified solutions, increasing the diversity of the training data.",
+        "priority": "medium",
+        "dependencies": [
+          15
+        ],
+        "status": "To Do",
+        "subtasks": []
+      },
+      {
+        "id": 18,
+        "title": "Complete and Finalize the 500K+ Dataset",
+        "description": "Aggregate all data from scraping, processing, and synthetic generation to create the final, comprehensive dataset for the last training run.",
+        "details": "Combine the 200K+ curated dataset (Task 14) with all verified synthetic data (Task 17). Perform a final global deduplication and quality check. Finalize the official train/validation/test splits according to the PRD ratios.",
+        "testStrategy": "The final dataset is stored, versioned, and contains over 500,000 problem-solution pairs meeting all quality and distribution requirements.",
+        "priority": "high",
+        "dependencies": [
+          14,
+          17
+        ],
+        "status": "To Do",
+        "subtasks": []
+      },
+      {
+        "id": 19,
+        "title": "Execute Final Model Training and Alignment Run",
+        "description": "Perform the final, large-scale training run using the complete 500K+ dataset and advanced alignment techniques to produce the final model.",
+        "details": "Use FSDP/DeepSpeed for efficient distributed training on the full 500K dataset. Start with the best SFT model (Task 15) and apply the RLHF/Constitutional AI alignment process (Task 16) as the final training stage.",
+        "testStrategy": "The training process completes and the resulting model achieves >93% accuracy on the internal validation set, meeting the technical milestone.",
+        "priority": "high",
+        "dependencies": [
+          16,
+          18
+        ],
+        "status": "To Do",
+        "subtasks": []
+      },
+      {
+        "id": 20,
+        "title": "Optimize Final Model for Efficient Inference",
+        "description": "Apply quantization and other optimization techniques to ensure the model runs efficiently on a 16GB GPU with low latency.",
+        "details": "Use a high-performance inference server like vLLM or compile the model using TensorRT-LLM. Experiment with quantization techniques like AWQ or GPTQ to reduce memory footprint below 16GB. Benchmark latency and throughput.",
+        "testStrategy": "The optimized model must load on a single 16GB GPU, achieve an average response time of <2 seconds for complex problems, and maintain >99% of the original model's accuracy.",
+        "priority": "high",
+        "dependencies": [
+          19
+        ],
+        "status": "To Do",
+        "subtasks": []
+      },
+      {
+        "id": 21,
+        "title": "Conduct Comprehensive Final Evaluation",
+        "description": "Validate the final, optimized model against the full suite of internal test sets and all success metrics defined in the PRD.",
+        "details": "Run the optimized model (Task 20) on the comprehensive evaluation framework (Task 5). Measure accuracy on JEE Mains, JEE Advanced, and Olympiad sets. Measure average tokens per solution and response latency. Generate a final performance report.",
+        "testStrategy": "The final report confirms that the model meets or exceeds all primary success metrics: >95% on Mains, >85% on Advanced, <3K tokens per solution, and <2s latency.",
+        "priority": "high",
+        "dependencies": [
+          20
+        ],
+        "status": "To Do",
+        "subtasks": []
+      },
+      {
+        "id": 22,
+        "title": "Coordinate External Validation with Partners",
+        "description": "Provide the model to external partners, such as JEE coaching institutes, for independent testing and qualitative feedback.",
+        "details": "Package the optimized model into a simple API endpoint or a Gradio/Streamlit demo. Share access with pre-selected partners. Collect and synthesize their feedback on performance, solution quality, and educational value.",
+        "testStrategy": "Receive written feedback from at least two external partners. The feedback should be generally positive and provide actionable insights for future improvements.",
+        "priority": "medium",
+        "dependencies": [
+          21
+        ],
+        "status": "To Do",
+        "subtasks": []
+      },
+      {
+        "id": 23,
+        "title": "Create and Finalize Production-Ready Deployment Pipeline",
+        "description": "Containerize the optimized model and create deployment scripts for a scalable, reproducible, and easy-to-set-up production environment.",
+        "details": "Create a Docker container for the inference server (vLLM/TensorRT). Write deployment scripts using Docker Compose for simple deployments and Kubernetes manifests for scalable ones. Ensure logging and monitoring hooks are integrated.",
+        "testStrategy": "The model can be deployed to a new cloud environment and serve requests within 30 minutes using the provided scripts.",
+        "priority": "high",
+        "dependencies": [
+          20
+        ],
+        "status": "To Do",
+        "subtasks": []
+      },
+      {
+        "id": 24,
+        "title": "Create Full Project Documentation",
+        "description": "Write comprehensive technical and user documentation covering the project's architecture, training process, deployment, and usage.",
+        "details": "Write a detailed `README.md` for the repository. Create technical documentation on the data pipeline, model architecture, and training methodology. Write a user guide for the API. Draft a research paper outlining the novel techniques and results.",
+        "testStrategy": "A new engineer can understand the project's architecture and a user can successfully call the API using only the provided documentation.",
+        "priority": "medium",
+        "dependencies": [
+          23
+        ],
+        "status": "To Do",
+        "subtasks": []
+      },
+      {
+        "id": 25,
+        "title": "Prepare for Open-Source Release",
+        "description": "Clean up the codebase, add licensing information, and prepare the model weights, dataset, and associated tools for public distribution.",
+        "details": "Refactor and comment the code in the repository. Add an Apache 2.0 license. Upload the final model weights and a model card to the Hugging Face Hub. Prepare the dataset for release, ensuring it complies with all legal and ethical constraints.",
+        "testStrategy": "The Hugging Face repository for the model is created and populated. The dataset is ready for upload. The GitHub repository is clean and includes a proper license file.",
+        "priority": "medium",
+        "dependencies": [
+          22,
+          24
+        ],
+        "status": "To Do",
+        "subtasks": []
+      },
+      {
+        "id": 26,
+        "title": "Create Kaggle-Optimized LlamaParse Pipeline for JEE Dataset Generation",
+        "description": "Build a Kaggle-native pipeline within a notebook to process JEE mathematics PDFs using LlamaParse. The pipeline will extract mathematical problems with high precision and save the structured data in JSONL or Parquet format, optimized for Qwen 7B model training and Kaggle's resource constraints.",
+        "status": "pending",
+        "dependencies": [
+          1,
+          3,
+          5
+        ],
+        "priority": "high",
+        "details": "Develop a robust data processing pipeline within a Kaggle notebook. The pipeline will be built around the LlamaParse API for its superior mathematical notation extraction. Key implementation steps include: 1) Install and configure the LlamaParse client within the Kaggle environment, managing API keys securely via Kaggle Secrets. 2) Process JEE mathematics PDFs located in the `/kaggle/working/` directory in batches to manage memory and disk usage. 3) Implement a parser to convert LlamaParse markdown output into a structured JSONL or Parquet format, preserving LaTeX notations for Qwen 7B training. 4) Implement efficient disk management to operate within Kaggle's 30GB limit, including deleting intermediate files after processing. 5) Automate the final step of uploading the generated dataset to Kaggle Datasets for persistence and versioning across sessions. 6) Add basic validation to flag and log PDFs that fail to parse correctly for manual review.",
+        "testStrategy": "1. Unit test the markdown-to-JSONL/Parquet parser on sample LlamaParse outputs. 2. Conduct an integration test on a small batch of 20 diverse PDFs to ensure the end-to-end notebook flow (PDF read -> LlamaParse -> save -> cleanup) works correctly. 3. Run the pipeline on a larger batch (100+ PDFs) to validate efficient disk space management and performance within Kaggle's limits. 4. Verify that the pipeline successfully creates and uploads a new version of a Kaggle Dataset. 5. Manually audit a random sample of the generated records to ensure high-quality extraction of problems, solutions, and mathematical formulas.",
+        "subtasks": []
+      },
+      {
+        "id": 27,
+        "title": "Implement Kaggle-Optimized Dataset Management System",
+        "description": "Develop a data management system centered around Kaggle Datasets to store, version, and distribute the processed mathematical problem-solution pairs. This includes creating utilities for uploading/downloading data, managing the Kaggle notebook workflow, and ensuring data integrity.",
+        "status": "pending",
+        "dependencies": [
+          26,
+          11
+        ],
+        "priority": "high",
+        "details": "1. **Kaggle API Integration & Upload Utility:** Develop a Python utility using the `kaggle` library to upload processed data (e.g., from LlamaParse in Task 26) to Kaggle Datasets. The utility should handle packaging data (e.g., into Parquet or JSONL files) and creating/updating the `dataset-metadata.json` file.\n2. **Dataset Download and Access:** Create a corresponding utility to download specific versions of Kaggle datasets for use in training environments (like for Qwen 7B). This should simplify accessing the data from the `/kaggle/input/` directory.\n3. **Versioning and Metadata Management:** Implement a strategy for versioning datasets on Kaggle. The upload utility should automatically generate version notes (e.g., 'v1.1-synthetic-added', 'v1.2-fixed-latex-errors') and update the `dataset-metadata.json` with relevant information like source, processing steps, and data schema.\n4. **Kaggle Workflow Automation:** Create a script to manage the standard `/kaggle/working/` to `/kaggle/input/` workflow. This script will take data generated in a processing notebook's output directory (`/kaggle/working/`), package it, and upload it as a new dataset, making it available as an immutable input for subsequent training notebooks.\n5. **Dataset Utility Module:** Develop a Python module with high-level functions for easy data access within Kaggle notebooks. For example, `load_dataset(topic='calculus', difficulty='hard')` which reads the appropriate files from `/kaggle/input/<dataset-name>/` and returns a Pandas DataFrame or Hugging Face `Dataset` object.\n6. **Data Validation and Integrity Checks:** Before uploading to Kaggle, implement a validation pipeline. This should include checks for schema compliance, deduplication using a problem hash (MD5 or SHA256), and validation of mathematical content (e.g., using a LaTeX parser to check for rendering errors).",
+        "testStrategy": "1. **Upload/Download Cycle Test:** Process a sample batch of 100 problems, use the utility to upload them as a new private Kaggle dataset. In a separate script/notebook, use the download utility to fetch the dataset and verify the data integrity and record count.\n2. **Versioning Test:** Upload an initial dataset version. Make a small modification (e.g., update 5 records, add 10 new ones) and use the utility to push a new version. Verify that the version on Kaggle is updated and that downloading the latest version reflects the changes. Check the version notes.\n3. **Workflow Simulation Test:** Create a test that mimics the Kaggle environment. A script generates output files in a `./kaggle/working/` directory. Run the automation script to package and upload this data. A second script should then be able to read this data from a simulated `/kaggle/input/` path.\n4. **Utility Module Unit Tests:** Write unit tests for the dataset access module. Mock the dataset files in a temporary directory and test functions like `load_dataset()`, `get_all_topics()`, etc., asserting they return the expected data structures and values.\n5. **Validation Logic Test:** Create a test suite with a mix of valid and invalid problem-solution pairs (e.g., malformed LaTeX, missing fields). Run the pre-upload validation script and assert that it correctly identifies and filters out the invalid records.",
+        "subtasks": []
+      },
+      {
+        "id": 28,
+        "title": "Analyze and Select Optimal Qwen 7B Variant for Kaggle-Based JEE Fine-Tuning",
+        "description": "Conduct a comprehensive analysis of Qwen 7B model variants to determine the optimal choice for fine-tuning on the JEE mathematics dataset within Kaggle's resource constraints. This task involves evaluating performance, memory usage, and fine-tuning configurations.",
+        "details": "Based on promising results from Qwen1.5-Math-1.5B, this task will determine the best 7B variant and training strategy for superior performance. The research will be conducted within the constraints of a Kaggle environment, specifically targeting a Tesla P100-16GB GPU.\n\n1. **Model Variant Comparison:** Systematically compare `Qwen2-Math-7B-Instruct` and `Qwen2-Math-7B`. The analysis should cover their base performance on mathematical reasoning, instruction-following capabilities, and suitability for the structured JEE problem-solution format.\n\n2. **VRAM & Hardware Feasibility:** Calculate and empirically validate the VRAM requirements for fine-tuning each variant using LoRA and QLoRA on a Tesla P100-16GB GPU. Determine the maximum feasible batch size and LoRA configuration.\n\n3. **Quantization Strategy:** Investigate 4-bit (NF4, FP4) and 8-bit quantization using the `bitsandbytes` library. The goal is to identify the optimal trade-off between memory efficiency and performance preservation for the math-intensive task.\n\n4. **Context Length Analysis:** Compare the maximum context lengths of the models and assess their impact on handling long, multi-step JEE problems which may require extensive context.\n\n5. **Optimal Fine-Tuning Configuration:** Define a baseline fine-tuning script using the `transformers` and `peft` libraries. Specify optimal parameters for LoRA (`r`, `lora_alpha`, `target_modules`), optimizer choice (e.g., AdamW, PagedAdamW8bit), learning rate schedule, and batch size that are optimized for the P100 GPU.\n\n6. **Kaggle Memory Optimization:** Document and test memory-saving techniques essential for the Kaggle notebook environment, including `gradient_checkpointing`, using paged optimizers, and strategic use of `torch.cuda.empty_cache()`.",
+        "testStrategy": "1. **Benchmark Notebook:** Create a Kaggle notebook to perform a small-scale fine-tuning test run (e.g., on 1,000 samples from the dataset generated in Task 26) for each promising configuration (e.g., Qwen2-Math-7B with 4-bit QLoRA).\n\n2. **VRAM Measurement & Stability:** The notebook must log peak VRAM usage during training to confirm theoretical calculations. The training process must complete a full epoch without Out-Of-Memory (OOM) errors on a P100-16GB instance.\n\n3. **Performance Evaluation:** After the test run, evaluate the model's output on a held-out validation set of 100 JEE problems. The evaluation will be qualitative (checking for logical reasoning, correct LaTeX formatting) and quantitative (checking final answer accuracy).\n\n4. **Final Recommendation Report:** Produce a markdown document summarizing the findings. The report must include a comparison table of the variants and configurations, detailing VRAM usage, training time per epoch, and qualitative performance. It will conclude with a definitive recommendation for the model and training configuration to be used in subsequent tasks like Task 15.",
+        "status": "pending",
+        "dependencies": [
+          1,
+          26,
+          27
+        ],
+        "priority": "high",
+        "subtasks": []
+      },
+      {
+        "id": 29,
+        "title": "Create Qwen 7B Fine-Tuning Pipeline in Kaggle Notebook",
+        "description": "Develop a comprehensive Kaggle notebook to fine-tune a selected Qwen 7B model on the JEE mathematics dataset using QLoRA, with integrated W&B tracking and model uploading capabilities.",
+        "details": "1. **Environment Setup:** The notebook must be configured for a Kaggle environment with a Tesla P100-16GB GPU. Install necessary libraries: `transformers`, `peft`, `accelerate`, `bitsandbytes`, `datasets`, `wandb`, and `kaggle`.\n2. **Model Loading and Quantization:** Load the optimal Qwen 7B model variant identified in Task 28. Implement 4-bit NF4 quantization using the `BitsAndBytesConfig` from the `transformers` library to ensure the model fits within the 16GB VRAM limit.\n3. **QLoRA Configuration:** Utilize the `peft` library to configure QLoRA. Define a `LoraConfig` specifying the rank (`r`), alpha (`lora_alpha`), dropout, and target modules (e.g., `q_proj`, `v_proj`, `k_proj`, `o_proj`, `gate_proj`, `up_proj`, `down_proj`) for fine-tuning.\n4. **Data Pipeline:** Load the pre-processed JEE mathematics dataset from the versioned Kaggle Dataset created in Task 27. Implement a data formatting function to transform each problem-solution pair into the specific instruction-following or chat template required by the Qwen model. The tokenizer should be configured to handle padding and truncation correctly.\n5. **Training Configuration:** Use the `transformers.Trainer` and `TrainingArguments`. Configure hyperparameters for stable training on the P100, including an appropriate `per_device_train_batch_size`, `gradient_accumulation_steps`, `learning_rate`, `lr_scheduler_type`, and `num_train_epochs`. Enable `fp16` for mixed-precision training.\n6. **W&B Integration:** Integrate Weights & Biases for experiment tracking by setting `report_to=\"wandb\"` in `TrainingArguments`. Securely access the W&B API key using Kaggle Secrets.\n7. **Model Saving and Upload:** After training completes, merge the LoRA adapter weights into the base model using `model.merge_and_unload()`. Save the full, merged model and its tokenizer to the `/kaggle/working/` directory. Use the `kaggle` API, authenticated within the notebook, to programmatically create a new Kaggle Model and upload the saved artifacts.",
+        "testStrategy": "1. **Pre-flight Check:** Verify the notebook successfully loads the model in 4-bit, applies the LoRA adapter, and loads the dataset from Kaggle Datasets without out-of-memory errors.\n2. **Training Run:** Execute a short training run on a 1,000-sample subset of the data for one epoch. Confirm that training loss decreases and that metrics are successfully logged to the specified W&B project.\n3. **Validation:** After a full training run, load the validation set from the evaluation framework (Task 5). Generate solutions for 100 validation problems and log the evaluation metrics (e.g., final answer accuracy) to W&B and the notebook output.\n4. **Model Upload Verification:** Confirm that the notebook successfully saves the final merged model and tokenizer, and that the `kaggle` API call successfully creates a new private Kaggle Model containing the correct files.",
+        "status": "pending",
+        "dependencies": [
+          5,
+          27,
+          28
+        ],
+        "priority": "high",
+        "subtasks": []
+      },
+      {
+        "id": 30,
+        "title": "Create Production-Ready Kaggle Notebook for JEE PDF Processing Pipeline",
+        "description": "Develop a comprehensive, production-ready Kaggle notebook to process JEE mathematics PDFs using LlamaParse, generating clean JSONL datasets suitable for model training and uploading them directly to Kaggle Datasets.",
+        "details": "1. **Environment & Dependencies:** The notebook must begin by installing all required libraries, including `llama-parse`, `unstructured`, `kaggle`, `tqdm`, and `python-dotenv`. API keys for Llama Cloud and Kaggle must be handled securely using Kaggle Secrets.\n2. **Data Ingestion & Batching:** Implement logic to read PDF files from a source Kaggle Dataset. To manage Kaggle's memory and time limits, process the PDFs in manageable batches (e.g., 20-50 files per batch). The list of files to process should be iterable, and the notebook should be resumable if it times out.\n3. **Parsing with LlamaParse:** Utilize the `LlamaParse` library to send PDFs to the Llama Cloud API. Configure the parser for high-accuracy mathematical content extraction, leveraging its markdown output format.\n4. **Error Handling & Retry Logic:** Wrap API calls in `try-except` blocks. Implement a robust retry mechanism with exponential backoff and jitter for transient network or API errors. Log any files that fail persistently to a separate `failed_files.log` for manual inspection.\n5. **Resource Management:** Actively manage memory and disk space. After each file is successfully processed and its content is stored in memory, delete the local PDF and parsed markdown files (`os.remove`). Periodically call `gc.collect()` to free up memory, especially between batches.\n6. **JSONL Generation:** Create a parser function that takes the markdown output from LlamaParse and converts it into a structured JSONL format. Each line in the output file should be a valid JSON object, e.g., `{\"source_file\": \"jee_2022_paper1.pdf\", \"problem_id\": \"q15\", \"problem_text\": \"...\", \"solution_text\": \"...\"}`.\n7. **Progress Tracking & Logging:** Use `tqdm` to create progress bars for file processing loops to provide clear visual feedback on progress. Implement Python's `logging` module to output status updates, processing times per file, batch summaries, and errors to the notebook's console/log.\n8. **Kaggle Dataset Integration:** After processing all batches, use the Kaggle API client (pre-authenticated via Secrets) to create a new Kaggle Dataset or update an existing one. The notebook will programmatically create the `dataset-metadata.json` file and upload the final JSONL output file(s) to `/kaggle/working/` before initiating the upload.",
+        "testStrategy": "1. **Unit Test:** Run the notebook on a small batch of 5-10 diverse PDFs. Manually inspect the generated JSONL file to verify that mathematical equations are preserved, the structure is correct, and no data is lost.\n2. **Error Handling Test:** Simulate an API failure (e.g., by temporarily using an invalid API key) to confirm that the retry logic is triggered and that the failed file is logged correctly without crashing the notebook.\n3. **Resource Stress Test:** Execute the notebook on a larger batch of at least 100 PDFs. Monitor the session's RAM and disk usage to ensure they remain within Kaggle's limits (e.g., <16GB RAM, <20GB disk).\n4. **End-to-End Integration Test:** Run the full notebook from start to finish. Verify that it successfully processes all test files, generates the final JSONL dataset, and uses the Kaggle API to create/update a Kaggle Dataset. Check the resulting dataset on the Kaggle platform to confirm the upload was successful and the data is intact.",
+        "status": "pending",
+        "dependencies": [
+          1,
+          3,
+          5
+        ],
+        "priority": "high",
+        "subtasks": []
+      },
+      {
+        "id": 31,
+        "title": "Fine-tune Qwen2.5-7B with Unsloth on Kaggle",
+        "description": "Create a Kaggle notebook to fine-tune the Qwen2.5-7B model using Unsloth and the locally created JEE math dataset. The notebook will be built cell-by-cell.",
+        "details": "",
+        "testStrategy": "",
+        "status": "pending",
+        "dependencies": [],
+        "priority": "high",
+        "subtasks": []
+      },
+      {
+        "id": 32,
+        "title": "Load Qwen2.5-7B Model and Tokenizer",
+        "description": "Add a cell to the Kaggle notebook to load the Qwen2.5-7B model and tokenizer using Unsloth.",
+        "details": "",
+        "testStrategy": "",
+        "status": "pending",
+        "dependencies": [],
+        "priority": "high",
+        "subtasks": []
+      },
+      {
+        "id": 33,
+        "title": "Prepare Model for LoRA Fine-tuning",
+        "description": "Add a cell to the Kaggle notebook to prepare the model for LoRA fine-tuning.",
+        "details": "",
+        "testStrategy": "",
+        "status": "pending",
+        "dependencies": [],
+        "priority": "high",
+        "subtasks": []
+      },
+      {
+        "id": 34,
+        "title": "Load JEE Math Dataset",
+        "description": "Add a cell to the Kaggle notebook to load the local JEE math dataset.",
+        "details": "",
+        "testStrategy": "",
+        "status": "pending",
+        "dependencies": [],
+        "priority": "high",
+        "subtasks": []
+      },
+      {
+        "id": 35,
+        "title": "Format Dataset for Training",
+        "description": "Add a cell to the Kaggle notebook to format the dataset for training.",
+        "details": "",
+        "testStrategy": "",
+        "status": "pending",
+        "dependencies": [],
+        "priority": "high",
+        "subtasks": []
+      },
+      {
+        "id": 36,
+        "title": "Setup Trainer and Start Fine-tuning",
+        "description": "Add a cell to the Kaggle notebook to set up the trainer and start fine-tuning.",
+        "details": "",
+        "testStrategy": "",
+        "status": "pending",
+        "dependencies": [],
+        "priority": "high",
+        "subtasks": []
+      }
+    ],
+    "metadata": {
+      "created": "2025-08-13T16:45:00.040Z",
+      "updated": "2025-08-14T19:52:12.898Z",
+      "description": "Tasks for master context"
+    }
+  }
+}

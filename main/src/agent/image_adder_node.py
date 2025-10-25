@@ -158,7 +158,36 @@ def _insert_image_after_heading(heading_text: str, image_element: Dict[str, Any]
         Success or error message
     """
     try:
-        content_path = os.getenv("DOCX_CONTENT_PATH", "/Users/yash/json-docx/main/content.json")
+        # Dynamic path resolution
+        _current_file = Path(__file__).resolve()
+        _repo_root = _current_file.parents[3]
+        _default_content = _repo_root / "main" / "test_output" / "content"
+        
+        # Get latest versioned content file
+        import glob
+        content_dir = os.getenv("DOCX_CONTENT_DIR", str(_default_content))
+        pattern = os.path.join(content_dir, "content_*.json")
+        files = glob.glob(pattern)
+        
+        if not files:
+            return "Error: No content files found. Initialize document first."
+        
+        # Get latest file by timestamp
+        versioned_files = []
+        for f in files:
+            basename = os.path.basename(f)
+            try:
+                timestamp_str = basename.replace("content_", "").replace(".json", "")
+                timestamp = int(timestamp_str)
+                versioned_files.append((timestamp, f))
+            except ValueError:
+                continue
+        
+        if not versioned_files:
+            return "Error: No valid versioned content files found."
+        
+        versioned_files.sort(reverse=True)
+        content_path = versioned_files[0][1]
         
         # Load current content
         with open(content_path, 'r', encoding='utf-8') as f:
@@ -220,7 +249,47 @@ async def add_images_to_document(state: Dict[str, Any]) -> Dict[str, Any]:
         )
         
         # Step 1: Get document outline (headings) from content.json
-        content_path = os.getenv("DOCX_CONTENT_PATH", "/Users/yash/json-docx/main/content.json")
+        # Dynamic path resolution
+        _current_file = Path(__file__).resolve()
+        _repo_root = _current_file.parents[3]
+        _default_content_dir = _repo_root / "main" / "test_output" / "content"
+        
+        content_dir = os.getenv("DOCX_CONTENT_DIR", str(_default_content_dir))
+        
+        # Get latest versioned content file
+        import glob
+        pattern = os.path.join(content_dir, "content_*.json")
+        files = glob.glob(pattern)
+        
+        if files:
+            # Get latest file by timestamp
+            versioned_files = []
+            for f in files:
+                basename = os.path.basename(f)
+                try:
+                    timestamp_str = basename.replace("content_", "").replace(".json", "")
+                    timestamp = int(timestamp_str)
+                    versioned_files.append((timestamp, f))
+                except ValueError:
+                    continue
+            
+            if versioned_files:
+                versioned_files.sort(reverse=True)
+                content_path = versioned_files[0][1]
+            else:
+                content_path = None
+        else:
+            content_path = None
+        
+        if not content_path:
+            return {
+                "messages": messages + [
+                    AIMessage(
+                        content=f"Could not find content files in {content_dir}. Initialize document first.",
+                        name="image_adder"
+                    )
+                ]
+            }
         
         # Read content.json in a thread to avoid blocking
         content_data = await asyncio.to_thread(_read_json_file, content_path)
@@ -454,10 +523,47 @@ Rules:
                 # Import render function
                 from react_agent.json_docx_converter import convert_json_to_docx
                 
-                # Get paths from environment
-                config_path = os.getenv("DOCX_CONFIG_PATH", "/Users/yash/json-docx/main/config.json")
-                content_path = os.getenv("DOCX_CONTENT_PATH", "/Users/yash/json-docx/main/content.json")
-                output_dir = os.getenv("DOCX_OUTPUT_DIR", "/Users/yash/json-docx/main/test_output/docx")
+                # Dynamic path resolution
+                _current_file = Path(__file__).resolve()
+                _repo_root = _current_file.parents[3]
+                _default_test_output = _repo_root / "main" / "test_output"
+                
+                config_dir = os.getenv("DOCX_CONFIG_DIR", str(_default_test_output / "config"))
+                content_dir = os.getenv("DOCX_CONTENT_DIR", str(_default_test_output / "content"))
+                output_dir = os.getenv("DOCX_OUTPUT_DIR", str(_default_test_output / "docx"))
+                
+                # Get latest versioned files
+                import glob
+                
+                config_pattern = os.path.join(config_dir, "config_*.json")
+                config_files = glob.glob(config_pattern)
+                if config_files:
+                    config_files_sorted = sorted(config_files, reverse=True)
+                    config_path = config_files_sorted[0]
+                else:
+                    return {
+                        "messages": messages + [
+                            AIMessage(
+                                content=f"No config files found in {config_dir}",
+                                name="image_adder"
+                            )
+                        ]
+                    }
+                
+                content_pattern = os.path.join(content_dir, "content_*.json")
+                content_files = glob.glob(content_pattern)
+                if content_files:
+                    content_files_sorted = sorted(content_files, reverse=True)
+                    content_path = content_files_sorted[0]
+                else:
+                    return {
+                        "messages": messages + [
+                            AIMessage(
+                                content=f"No content files found in {content_dir}",
+                                name="image_adder"
+                            )
+                        ]
+                    }
                 
                 # Ensure output directory exists
                 await asyncio.to_thread(os.makedirs, output_dir, exist_ok=True)

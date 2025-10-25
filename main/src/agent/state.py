@@ -18,6 +18,9 @@ class MessagesState(TypedDict):
     follow_up_questions: List[str]  # Follow-up questions from the assistant
     parsed_response: Optional[Any]  # Structured response from Pydantic parser
     
+    # Agent Selection (from UI dropdown)
+    selected_agent: Optional[str]  # Explicitly selected agent for direct routing
+    
     # RFP Proposal Team State
     rfp_content: Dict[str, Any]  # Generated RFP content by node type (finance, technical, legal, qa)
     current_rfp_node: Optional[str]  # Current RFP node being processed

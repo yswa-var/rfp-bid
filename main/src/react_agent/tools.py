@@ -23,10 +23,15 @@ from react_agent.json_docx_converter import convert_json_to_docx
 from react_agent.utils import load_chat_model
 
 
+# Dynamic path resolution - works on Windows and macOS
+_CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
+_PROJECT_ROOT = os.path.dirname(os.path.dirname(_CURRENT_DIR))
+_DEFAULT_TEST_OUTPUT = os.path.join(_PROJECT_ROOT, "test_output")
+
 # Base directories for versioned files
-CONFIG_DIR = os.getenv("DOCX_CONFIG_DIR", "/Users/yash/Documents/rfp/rfp-bid/main/test_output/config")
-CONTENT_DIR = os.getenv("DOCX_CONTENT_DIR", "/Users/yash/Documents/rfp/rfp-bid/main/test_output/content")
-OUTPUT_DIR = os.getenv("DOCX_OUTPUT_DIR", "/Users/yash/Documents/rfp/rfp-bid/main/test_output/docx")
+CONFIG_DIR = os.getenv("DOCX_CONFIG_DIR", os.path.join(_DEFAULT_TEST_OUTPUT, "config"))
+CONTENT_DIR = os.getenv("DOCX_CONTENT_DIR", os.path.join(_DEFAULT_TEST_OUTPUT, "content"))
+OUTPUT_DIR = os.getenv("DOCX_OUTPUT_DIR", os.path.join(_DEFAULT_TEST_OUTPUT, "docx"))
 
 # Legacy compatibility - for convert_json_to_docx which expects file paths
 CONFIG_PATH = None  # Will be set dynamically
@@ -655,9 +660,10 @@ async def add_images_from_csv() -> str:
     
     Returns a summary of successfully inserted images and any errors encountered.
     """
-    # Hardcoded paths
-    CSV_PATH = "/Users/yash/json-docx/main/images/image_name_dicription.csv"
-    IMAGE_DIR = "/Users/yash/json-docx/main/images"
+    # Dynamic path resolution
+    _IMAGES_DIR = os.path.join(_PROJECT_ROOT, "images")
+    CSV_PATH = os.getenv("IMAGE_CSV_PATH", os.path.join(_IMAGES_DIR, "image_name_dicription.csv"))
+    IMAGE_DIR = os.getenv("IMAGE_DIR", _IMAGES_DIR)
     
     try:
         # Ensure files exist with defaults
