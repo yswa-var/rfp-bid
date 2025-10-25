@@ -25,44 +25,55 @@ class AgentRunner:
         Initialize agent runner
         
         Args:
-            langgraph_url: URL of LangGraph server (defaults to local)
+            langgraph_url: URL of LangGraph server (defaults to remote)
         """
         self.langgraph_url = langgraph_url or os.getenv(
             "LANGGRAPH_URL", 
             "http://localhost:2024"
         )
-        self.assistant_id = "docx_agent"
+        self.assistant_id = os.getenv("ASSISTANT_ID", "agent")  # Use 'agent' as registered in langgraph.json
         self._client = None
-        self._use_remote = langgraph_url is not None
         
-        # If using remote LangGraph server
-        if self._use_remote:
-            self._init_remote_client()
-        else:
-            # Use local graph import
+        # Check if local mode is explicitly requested
+        if os.getenv("USE_LOCAL_GRAPH", "").lower() == "true":
+            logger.info("USE_LOCAL_GRAPH=true, using local graph execution")
             self._init_local_graph()
+        else:
+            # Try remote for MVP
+            logger.info(f"Attempting to connect to remote LangGraph server at {self.langgraph_url}")
+            self._init_remote_client()
+            
+            # Fall back to local if remote fails
+            if self._client is None:
+                logger.info("Remote connection failed, falling back to local graph...")
+                self._init_local_graph()
     
     def _init_remote_client(self):
         """Initialize remote LangGraph client"""
         try:
             self._client = get_client(url=self.langgraph_url)
-            logger.info(f"Connected to LangGraph server at {self.langgraph_url}")
+            self._use_remote = True
+            logger.info(f"✅ Connected to LangGraph server at {self.langgraph_url}")
         except Exception as e:
-            logger.warning(f"Failed to connect to LangGraph server: {e}")
+            logger.warning(f"❌ Failed to connect to LangGraph server: {e}")
+            logger.info("💡 TIP: Start LangGraph server with 'cd main && langgraph up'")
+            self._client = None
+            self._use_remote = False
             logger.info("Falling back to local graph execution")
             self._init_local_graph()
     
     def _init_local_graph(self):
         """Initialize local graph for direct execution"""
         try:
-            from agent.graph import graph
+            from agent.graph import create_supervisor_system
             from langgraph.checkpoint.memory import MemorySaver
             
-            # The supervisor graph is already compiled, just use it directly
-            self._graph = graph
+            # Create the graph with a checkpointer for state management
+            checkpointer = MemorySaver()
+            self._graph = create_supervisor_system(checkpointer=checkpointer)
             self._use_remote = False
             
-            logger.info("Using local graph execution with supervisor system")
+            logger.info("Using local graph execution with supervisor system and memory checkpointer")
         except ImportError as e:
             logger.error(f"Failed to import local graph: {e}")
             raise RuntimeError("Cannot initialize agent - no local or remote graph available")
@@ -72,16 +83,17 @@ class AgentRunner:
         session_id: str,
         thread_id: str,
         message: str,
-        document_context: Dict[str, Any] = None
+        document_context: Dict[str, Any] = None,
+        selected_agent: str = "supervisor"  # Add selected agent parameter
     ) -> Dict[str, Any]:
         """
-        Process a user message through the agent
+        Process a user message through the agent with optional agent selection
         """
         try:
             if self._use_remote:
-                return await self._process_remote(thread_id, message, document_context)
+                return await self._process_remote(thread_id, message, document_context, selected_agent)
             else:
-                return await self._process_local(thread_id, message, document_context)
+                return await self._process_local(thread_id, message, document_context, selected_agent)
         except Exception as e:
             logger.error(f"Error processing message: {e}", exc_info=True)
             return {
@@ -90,8 +102,20 @@ class AgentRunner:
                 "error": str(e)
             }
     
-    async def _process_remote(self, thread_id: str, message: str, document_context: Dict[str, Any] = None) -> Dict[str, Any]:
-        """Process message using remote LangGraph server"""
+    async def _process_remote(self, thread_id: str, message: str, document_context: Dict[str, Any] = None, selected_agent: str = "supervisor") -> Dict[str, Any]:
+        """Process message using remote LangGraph server with agent selection"""
+        
+        # Ensure thread exists (create if it doesn't)
+        try:
+            await self._client.threads.get(thread_id)
+            logger.debug(f"Using existing thread {thread_id}")
+        except Exception:
+            # Thread doesn't exist, create it
+            logger.info(f"Creating new thread {thread_id}")
+            await self._client.threads.create(
+                thread_id=thread_id,
+                metadata={"platform": "web"}
+            )
         
         input_data = {
             "messages": [{"role": "user", "content": message}]
@@ -104,15 +128,26 @@ class AgentRunner:
                 "document_path": document_context["document_path"],
                 "document_name": document_context["document_name"]
             })
+        
+        # Add selected agent to input data for routing
+        if selected_agent and selected_agent != "supervisor":
+            input_data["selected_agent"] = selected_agent
+            logger.info(f"Remote: Forcing route to: {selected_agent}")
     
-        # Run the agent
+        # Run the agent with increased recursion limit
+        logger.info(f"Running agent with input: {message[:100]}...")
         result = await self._client.runs.wait(
             thread_id,
             self.assistant_id,
-            input={
-                "messages": [{"role": "user", "content": message}]
+            input=input_data,  # Use input_data instead of hardcoded messages
+            config={
+                "recursion_limit": 100,  # Increase from default 25 to 100
+                "configurable": {
+                    "selected_agent": selected_agent  # Also add to config
+                }
             }
         )
+        logger.info(f"Agent completed. Result keys: {result.keys() if result else 'None'}")
         
         # Check for interrupts (approval requests)
         if "__interrupt__" in result and result["__interrupt__"]:
@@ -141,14 +176,15 @@ class AgentRunner:
             "requires_approval": False
         }
     
-    async def _process_local(self, thread_id: str, message: str, document_context: Dict[str, Any] = None) -> Dict[str, Any]:
-        """Process message using local graph"""
+    async def _process_local(self, thread_id: str, message: str, document_context: Dict[str, Any] = None, selected_agent: str = "supervisor") -> Dict[str, Any]:
+        """Process message using local graph with agent selection"""
         from langchain_core.messages import HumanMessage, AIMessage
         
         # Create config with thread_id for checkpointing
         config = {
             "configurable": {
-                "thread_id": thread_id
+                "thread_id": thread_id,
+                "selected_agent": selected_agent  # Add to config
             }
         }
         
@@ -164,6 +200,11 @@ class AgentRunner:
                 "document_path": document_context["document_path"],
                 "document_name": document_context["document_name"]
             })
+        
+        # Add selected agent to metadata if not supervisor
+        if selected_agent and selected_agent != "supervisor":
+            input_data["selected_agent"] = selected_agent
+            logger.info(f"Forcing route to: {selected_agent}")
         
         # Run the graph
         try:
