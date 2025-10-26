@@ -12,11 +12,12 @@ import os
 import sys
 import csv
 import json
+import glob
 import asyncio
 import unicodedata
 from pathlib import Path
 from datetime import datetime
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Optional, Tuple
 from langchain_openai import ChatOpenAI
 from langchain_core.messages import AIMessage, HumanMessage
 
@@ -145,6 +146,65 @@ def _extract_headings_from_content(content_data: Dict[str, Any]) -> List[Dict[st
     return headings
 
 
+def _find_latest_versioned_file(directory: str, pattern: str) -> Optional[str]:
+    """Find the latest versioned file in a directory (blocking operation for threads).
+    
+    Args:
+        directory: Directory to search
+        pattern: Glob pattern (e.g., "content_*.json")
+        
+    Returns:
+        Path to latest file or None if not found
+    """
+    search_pattern = os.path.join(directory, pattern)
+    files = glob.glob(search_pattern)
+    
+    if not files:
+        return None
+    
+    # Extract timestamps and sort
+    versioned_files = []
+    for f in files:
+        basename = os.path.basename(f)
+        try:
+            # Extract timestamp from filename (e.g., content_1234567890.json -> 1234567890)
+            # Remove prefix (everything before *) and suffix (everything after *)
+            prefix = pattern.split("*")[0]  # e.g., "content_"
+            suffix = pattern.split("*")[1] if len(pattern.split("*")) > 1 else ""  # e.g., ".json"
+            
+            timestamp_str = basename
+            if prefix:
+                timestamp_str = timestamp_str.replace(prefix, "", 1)
+            if suffix:
+                timestamp_str = timestamp_str.replace(suffix, "", 1)
+            
+            timestamp = int(timestamp_str)
+            versioned_files.append((timestamp, f))
+        except (ValueError, IndexError):
+            continue
+    
+    if not versioned_files:
+        return None
+    
+    versioned_files.sort(reverse=True)
+    return versioned_files[0][1]
+
+
+def _find_latest_config_and_content(config_dir: str, content_dir: str) -> Tuple[Optional[str], Optional[str]]:
+    """Find latest config and content files (blocking operation for threads).
+    
+    Args:
+        config_dir: Directory containing config files
+        content_dir: Directory containing content files
+        
+    Returns:
+        Tuple of (config_path, content_path) or (None, None) if not found
+    """
+    config_path = _find_latest_versioned_file(config_dir, "config_*.json")
+    content_path = _find_latest_versioned_file(content_dir, "content_*.json")
+    return config_path, content_path
+
+
 def _insert_image_after_heading(heading_text: str, image_element: Dict[str, Any]) -> str:
     """Insert an image element after a heading in content.json.
     
@@ -164,30 +224,11 @@ def _insert_image_after_heading(heading_text: str, image_element: Dict[str, Any]
         _default_content = _repo_root / "main" / "test_output" / "content"
         
         # Get latest versioned content file
-        import glob
         content_dir = os.getenv("DOCX_CONTENT_DIR", str(_default_content))
-        pattern = os.path.join(content_dir, "content_*.json")
-        files = glob.glob(pattern)
+        content_path = _find_latest_versioned_file(content_dir, "content_*.json")
         
-        if not files:
+        if not content_path:
             return "Error: No content files found. Initialize document first."
-        
-        # Get latest file by timestamp
-        versioned_files = []
-        for f in files:
-            basename = os.path.basename(f)
-            try:
-                timestamp_str = basename.replace("content_", "").replace(".json", "")
-                timestamp = int(timestamp_str)
-                versioned_files.append((timestamp, f))
-            except ValueError:
-                continue
-        
-        if not versioned_files:
-            return "Error: No valid versioned content files found."
-        
-        versioned_files.sort(reverse=True)
-        content_path = versioned_files[0][1]
         
         # Load current content
         with open(content_path, 'r', encoding='utf-8') as f:
@@ -256,30 +297,8 @@ async def add_images_to_document(state: Dict[str, Any]) -> Dict[str, Any]:
         
         content_dir = os.getenv("DOCX_CONTENT_DIR", str(_default_content_dir))
         
-        # Get latest versioned content file
-        import glob
-        pattern = os.path.join(content_dir, "content_*.json")
-        files = glob.glob(pattern)
-        
-        if files:
-            # Get latest file by timestamp
-            versioned_files = []
-            for f in files:
-                basename = os.path.basename(f)
-                try:
-                    timestamp_str = basename.replace("content_", "").replace(".json", "")
-                    timestamp = int(timestamp_str)
-                    versioned_files.append((timestamp, f))
-                except ValueError:
-                    continue
-            
-            if versioned_files:
-                versioned_files.sort(reverse=True)
-                content_path = versioned_files[0][1]
-            else:
-                content_path = None
-        else:
-            content_path = None
+        # Get latest versioned content file (run in thread to avoid blocking)
+        content_path = await asyncio.to_thread(_find_latest_versioned_file, content_dir, "content_*.json")
         
         if not content_path:
             return {
@@ -532,15 +551,14 @@ Rules:
                 content_dir = os.getenv("DOCX_CONTENT_DIR", str(_default_test_output / "content"))
                 output_dir = os.getenv("DOCX_OUTPUT_DIR", str(_default_test_output / "docx"))
                 
-                # Get latest versioned files
-                import glob
+                # Get latest versioned files (run in thread to avoid blocking)
+                config_path, content_path = await asyncio.to_thread(
+                    _find_latest_config_and_content,
+                    config_dir,
+                    content_dir
+                )
                 
-                config_pattern = os.path.join(config_dir, "config_*.json")
-                config_files = glob.glob(config_pattern)
-                if config_files:
-                    config_files_sorted = sorted(config_files, reverse=True)
-                    config_path = config_files_sorted[0]
-                else:
+                if not config_path:
                     return {
                         "messages": messages + [
                             AIMessage(
@@ -550,12 +568,7 @@ Rules:
                         ]
                     }
                 
-                content_pattern = os.path.join(content_dir, "content_*.json")
-                content_files = glob.glob(content_pattern)
-                if content_files:
-                    content_files_sorted = sorted(content_files, reverse=True)
-                    content_path = content_files_sorted[0]
-                else:
+                if not content_path:
                     return {
                         "messages": messages + [
                             AIMessage(

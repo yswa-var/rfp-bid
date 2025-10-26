@@ -287,6 +287,16 @@ For production, increase worker processes:
 langgraph up --workers 4
 ```
 
+### Development with Multiple Workers
+
+You can also run `langgraph dev` with additional workers for better performance during development:
+
+```bash
+# Not supported - langgraph dev doesn't support --workers flag
+# Use langgraph up for multiple workers instead
+langgraph up --watch --workers 4
+```
+
 ## Security
 
 ### Production Checklist

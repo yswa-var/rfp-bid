@@ -15,6 +15,9 @@ import uuid
 import os
 from pathlib import Path
 import socketio
+import json
+import tempfile
+import glob
 
 from session_manager import SessionManager, Session
 from agent_runner import AgentRunner
@@ -30,7 +33,7 @@ logger = logging.getLogger(__name__)
 sio = socketio.AsyncServer(
     async_mode="asgi",
     cors_allowed_origins="*",
-    logger=True,
+    logger=False,
     engineio_logger=False
 )
 
@@ -62,6 +65,8 @@ agent_runner = AgentRunner()
 
 # Common constants/helpers
 BASE_DIR = Path(__file__).resolve().parent
+OUTPUT_DOCX_DIR = BASE_DIR.parent / "main" / "test_output" / "docx"
+OUTPUT_CONTENT_DIR = BASE_DIR.parent / "main" / "test_output" / "content"
 EXTRA_DOC_DIRS = tuple(
     Path(p).expanduser()
     for p in os.getenv("DOC_AGENT_DOCUMENT_DIRS", "").split(os.pathsep)
@@ -89,6 +94,53 @@ DEFAULT_DOC_CANDIDATES = tuple(
 )
 APPROVE_KEYWORDS = frozenset({"yes", "approve", "/approve"})
 REJECT_KEYWORDS = frozenset({"no", "reject", "/reject"})
+
+
+def parse_timestamp_from_filename(filename: str) -> Optional[str]:
+    """Extract timestamp from output_TIMESTAMP.docx or content_TIMESTAMP.json format"""
+    if filename.startswith("output_") and filename.endswith(".docx"):
+        # Extract timestamp: output_20251023_140331.docx -> 20251023_140331
+        timestamp_part = filename[7:-5]  # Remove "output_" and ".docx"
+        return timestamp_part
+    elif filename.startswith("content_") and filename.endswith(".json"):
+        # Extract timestamp: content_1761430891.json -> 1761430891
+        timestamp_part = filename[8:-5]  # Remove "content_" and ".json"
+        return timestamp_part
+    return None
+
+
+def get_sorted_output_documents() -> List[Path]:
+    """Get list of output documents sorted by timestamp (newest first)"""
+    if not OUTPUT_DOCX_DIR.exists():
+        logger.warning(f"Output directory does not exist: {OUTPUT_DOCX_DIR}")
+        return []
+    
+    documents = []
+    for file_path in OUTPUT_DOCX_DIR.glob("output_*.docx"):
+        timestamp = parse_timestamp_from_filename(file_path.name)
+        if timestamp:
+            documents.append((timestamp, file_path))
+    
+    # Sort by timestamp descending (newest first)
+    documents.sort(key=lambda x: x[0], reverse=True)
+    return [doc[1] for doc in documents]
+
+
+def get_sorted_content_json_files() -> List[Path]:
+    """Get list of content JSON files sorted by timestamp (newest first)"""
+    if not OUTPUT_CONTENT_DIR.exists():
+        logger.warning(f"Content directory does not exist: {OUTPUT_CONTENT_DIR}")
+        return []
+    
+    json_files = []
+    for file_path in OUTPUT_CONTENT_DIR.glob("content_*.json"):
+        timestamp = parse_timestamp_from_filename(file_path.name)
+        if timestamp:
+            json_files.append((timestamp, file_path))
+    
+    # Sort by timestamp descending (newest first)
+    json_files.sort(key=lambda x: x[0], reverse=True)
+    return [json_file[1] for json_file in json_files]
 
 
 # ============================================================================
@@ -198,16 +250,6 @@ async def chat(message: ChatMessage):
             session_manager.update_session_metadata(
                 session.session_id,
                 {"user_profile": user_profile},
-            )
-        
-        if message.message.startswith("/load "):
-            filename = message.message.replace("/load ", "").strip()
-            document_result = _attempt_load_document(filename, user_profile, session)
-            return ChatResponse(
-                user_id=message.user_id,
-                platform=message.platform,
-                session_id=session.session_id,
-                **document_result,
             )
         
         normalized_text = message.message.strip().lower()
@@ -643,7 +685,7 @@ async def join_session(sid, data):
 @sio.event
 async def send_message(sid, data):
     """
-    Handle real-time chat message from WebSocket
+    Handle real-time chat message from WebSocket with execution trail streaming
     Reuses existing agent_runner logic with agent selection support
     """
     try:
@@ -705,93 +747,7 @@ async def send_message(sid, data):
                 }, to=sid)
                 return
         
-        # Check for /load command
-        if message_text.startswith("/load "):
-            filename = message_text.replace("/load ", "").strip()
-            document_result = _attempt_load_document(filename, {}, session)
-            
-            # Emit message response
-            await sio.emit("message_response", {
-                "session_id": session.session_id,
-                "message": document_result["message"],
-                "requires_approval": False,
-                "status": document_result.get("status", "completed")
-            }, room=session.session_id)
-            
-            # Also emit directly to the requesting socket
-            await sio.emit("message_response", {
-                "session_id": session.session_id,
-                "message": document_result["message"],
-                "requires_approval": False,
-                "status": document_result.get("status", "completed")
-            }, to=sid)
-            
-            # If document loaded successfully, also emit document data
-            if document_result.get("status") == "completed" and session.metadata.get("document_path"):
-                doc_path = session.metadata["document_path"]
-                # Get document via the document API
-                try:
-                    from rct_agent.docx_manager import DocxManager
-                    manager = DocxManager(doc_path)
-                    manager._refresh_index()
-                    
-                    # Structure the data for frontend
-                    sections = []
-                    current_section = None
-                    
-                    for para in manager.index_data:
-                        if para.get('level', 0) > 0:  # It's a heading
-                            if current_section:
-                                sections.append(current_section)
-                            current_section = {
-                                'title': para['text'],
-                                'level': para['level'],
-                                'paragraphs': []
-                            }
-                        elif current_section:
-                            current_section['paragraphs'].append(para['text'])
-                        else:
-                            # Paragraph before first heading
-                            if not sections:
-                                sections.append({
-                                    'title': 'Introduction',
-                                    'level': 0,
-                                    'paragraphs': [para['text']]
-                                })
-                            else:
-                                sections[-1]['paragraphs'].append(para['text'])
-                    
-                    if current_section:
-                        sections.append(current_section)
-                    
-                    structured = {
-                        'sections': sections,
-                        'toc': [{'text': s['title'], 'level': s['level']} for s in sections if s.get('title')]
-                    }
-                    
-                    # Emit to both room and directly to socket
-                    await sio.emit("document_loaded", {
-                        "session_id": session.session_id,
-                        "document_name": session.metadata.get("document_name"),
-                        "document_path": doc_path,
-                        "content": structured
-                    }, room=session.session_id)
-                    
-                    await sio.emit("document_loaded", {
-                        "session_id": session.session_id,
-                        "document_name": session.metadata.get("document_name"),
-                        "document_path": doc_path,
-                        "content": structured
-                    }, to=sid)
-                    
-                    logger.info(f"Emitted document_loaded for /load command to socket {sid}")
-                    
-                except Exception as doc_err:
-                    logger.error(f"Error loading document content: {doc_err}")
-            
-            return
-        
-        # Normal message processing with agent selection
+        # Normal message processing with agent selection and streaming
         # Prepend agent directive if not supervisor
         if selected_agent and selected_agent != 'supervisor':
             # Force routing to selected agent by mentioning it explicitly
@@ -799,13 +755,45 @@ async def send_message(sid, data):
         else:
             enhanced_message = message_text
         
-        result = await agent_runner.process_message(
-            session_id=session.session_id,
-            thread_id=session.thread_id,
-            message=enhanced_message,
-            document_context=session.metadata or{},
-            selected_agent=selected_agent  # Pass selected agent to runner
-        )
+        # Define streaming callback to emit trail events
+        async def stream_callback(event):
+            """Send execution trail events to frontend in real-time"""
+            await sio.emit("execution_trail", {
+                "session_id": session.session_id,
+                "trail_event": event,
+                "timestamp": datetime.now().isoformat()
+            }, to=sid)
+        
+        # Emit processing started
+        await sio.emit("processing_started", {
+            "session_id": session.session_id,
+            "message": message_text,
+            "selected_agent": selected_agent
+        }, to=sid)
+        
+        # Use streaming method instead of regular process_message
+        try:
+            result = await agent_runner.process_message_stream(
+                session_id=session.session_id,
+                thread_id=session.thread_id,
+                message=enhanced_message,
+                document_context=session.metadata or{},
+                selected_agent=selected_agent,
+                event_callback=stream_callback  # Pass callback
+            )
+            
+            logger.info(f"Stream processing completed. Result: {result.get('message', 'No message')[:100]}")
+            
+        except Exception as stream_error:
+            logger.error(f"Error in stream processing: {stream_error}", exc_info=True)
+            # Emit error to frontend
+            await sio.emit("message_response", {
+                "session_id": session.session_id,
+                "message": f"Sorry, I encountered an error: {str(stream_error)}",
+                "requires_approval": False,
+                "status": "error"
+            }, to=sid)
+            return
         
         # Handle approval requests
         if result.get("requires_approval"):
@@ -858,75 +846,83 @@ async def send_message(sid, data):
 @sio.event
 async def request_document(sid, data):
     """
-    Handle manual document load request from frontend
-    Returns the latest loaded document for the current session
+    Handle document load request from frontend
+    Returns the latest document from OUTPUT_CONTENT_DIR (JSON files)
     """
     try:
-        user_id = data.get("user_id", f"ws_{sid}")
         frontend_session_id = data.get("session_id", "default")
         
-        # Get or create session using the same logic as send_message
-        session = session_manager.get_or_create_session(
-            user_id=user_id,
-            platform="websocket"
-        )
+        # Get latest JSON content file
+        json_files = get_sorted_content_json_files()
         
-        # Check if a document is loaded
-        if not session.metadata or not session.metadata.get("document_path"):
+        if not json_files:
             await sio.emit("message_response", {
                 "session_id": frontend_session_id,
-                "message": "No document loaded yet. Please use '/load <filename>' in the chat.",
+                "message": "No documents available yet. Waiting for documents...",
                 "requires_approval": False,
                 "status": "info"
-            }, to=sid)  # Emit directly to the socket, not to a room
+            }, to=sid)
             return
         
-        # Get document path
-        doc_path = session.metadata.get("document_path")
-        if not os.path.exists(doc_path):
+        # Get the latest JSON file
+        json_path = json_files[0]
+        
+        if not json_path.exists():
             await sio.emit("error", {"message": "Document file not found"}, to=sid)
             return
         
-        # Parse and emit document
+        # Load and parse JSON content
         try:
-            from rct_agent.docx_manager import DocxManager
-            manager = DocxManager(doc_path)
-            manager._refresh_index()
+            with open(json_path, 'r', encoding='utf-8') as f:
+                content_data = json.load(f)
             
+            # Structure the content for frontend
             sections = []
-            current_section = None
-            
-            for item in manager.index_data:
-                level = item.get('level', 0)
-                text = item.get('text', '').strip()
+            for section_name, section_items in content_data.items():
+                section = {
+                    'title': section_name.replace('_', ' '),
+                    'items': []
+                }
                 
-                if level > 0:  # Heading
-                    if current_section:
-                        sections.append(current_section)
-                    current_section = {
-                        'title': text,
-                        'level': level,
-                        'paragraphs': []
-                    }
-                elif text and current_section:  # Regular paragraph
-                    current_section['paragraphs'].append(text)
-                    
-            if current_section:
-                sections.append(current_section)
-            
-            structured = {
-                'sections': sections,
-                'toc': [{'text': s['title'], 'level': s['level']} for s in sections if s.get('title')]
-            }
+                for item in section_items:
+                    item_type = item.get('type')
+                    if item_type == 'heading':
+                        section['items'].append({
+                            'type': 'heading',
+                            'text': item.get('text', ''),
+                            'level': item.get('level', 1)
+                        })
+                    elif item_type == 'paragraph':
+                        section['items'].append({
+                            'type': 'paragraph',
+                            'text': item.get('text', '')
+                        })
+                    elif item_type == 'image':
+                        image_path = item.get('path', '')
+                        if image_path:
+                            image_filename = Path(image_path).name
+                            section['items'].append({
+                                'type': 'image',
+                                'filename': image_filename,
+                                'path': image_path,
+                                'width': item.get('width', 480)
+                            })
+                    elif item_type == 'table':
+                        section['items'].append({
+                            'type': 'table',
+                            'data': item.get('data', [])
+                        })
+                
+                sections.append(section)
             
             await sio.emit("document_loaded", {
                 "session_id": frontend_session_id,
-                "document_name": session.metadata.get("document_name"),
-                "document_path": doc_path,
-                "content": structured
-            }, to=sid)  # Emit directly to the socket, not to a room
+                "document_name": json_path.name,
+                "document_path": str(json_path),
+                "content": {"sections": sections}
+            }, to=sid)
             
-            logger.info(f"Manually emitted document_loaded to socket {sid} for user {user_id}")
+            logger.info(f"Emitted document_loaded to socket {sid}: {json_path.name}")
             
         except Exception as doc_err:
             logger.error(f"Error loading document content: {doc_err}")
@@ -936,6 +932,283 @@ async def request_document(sid, data):
         logger.error(f"Error handling request_document: {str(e)}", exc_info=True)
         await sio.emit("error", {
             "message": f"Error requesting document: {str(e)}"
+        }, to=sid)
+
+
+@sio.event
+async def get_latest_document(sid, data):
+    """
+    Get the latest document from OUTPUT_CONTENT_DIR (JSON files)
+    This is called by the frontend polling mechanism
+    """
+    try:
+        frontend_session_id = data.get("session_id", "default")
+        
+        # Get latest JSON content file
+        json_files = get_sorted_content_json_files()
+        
+        if not json_files:
+            # No documents available yet
+            await sio.emit("no_documents", {
+                "session_id": frontend_session_id,
+                "message": "Monitoring for documents..."
+            }, to=sid)
+            return
+        
+        # Get the latest JSON file
+        json_path = json_files[0]
+        
+        if not json_path.exists():
+            await sio.emit("error", {"message": "Document file not found"}, to=sid)
+            return
+        
+        # Load and parse JSON content
+        try:
+            with open(json_path, 'r', encoding='utf-8') as f:
+                content_data = json.load(f)
+            
+            # Structure the content for frontend
+            sections = []
+            for section_name, section_items in content_data.items():
+                section = {
+                    'title': section_name.replace('_', ' '),
+                    'items': []
+                }
+                
+                for item in section_items:
+                    item_type = item.get('type')
+                    if item_type == 'heading':
+                        section['items'].append({
+                            'type': 'heading',
+                            'text': item.get('text', ''),
+                            'level': item.get('level', 1)
+                        })
+                    elif item_type == 'paragraph':
+                        section['items'].append({
+                            'type': 'paragraph',
+                            'text': item.get('text', '')
+                        })
+                    elif item_type == 'image':
+                        # Convert absolute path to relative for serving
+                        image_path = item.get('path', '')
+                        if image_path:
+                            # Extract just the filename from the path
+                            image_filename = Path(image_path).name
+                            section['items'].append({
+                                'type': 'image',
+                                'filename': image_filename,
+                                'path': image_path,  # Keep original for backend reference
+                                'width': item.get('width', 480)
+                            })
+                    elif item_type == 'table':
+                        section['items'].append({
+                            'type': 'table',
+                            'data': item.get('data', [])
+                        })
+                
+                sections.append(section)
+            
+            await sio.emit("document_loaded", {
+                "session_id": frontend_session_id,
+                "document_name": json_path.name,
+                "document_path": str(json_path),
+                "content": {"sections": sections}
+            }, to=sid)
+            
+            # Also emit the file count
+            await sio.emit("content_file_count", {
+                "session_id": frontend_session_id,
+                "count": len(json_files)
+            }, to=sid)
+            
+            # logger.info(f"Polled and emitted document: {json_path.name}")
+            
+        except Exception as doc_err:
+            logger.error(f"Error loading document content: {doc_err}")
+            await sio.emit("error", {"message": f"Error loading document: {str(doc_err)}"}, to=sid)
+            
+    except Exception as e:
+        logger.error(f"Error handling get_latest_document: {str(e)}", exc_info=True)
+        await sio.emit("error", {
+            "message": f"Error getting latest document: {str(e)}"
+        }, to=sid)
+
+
+@sio.event
+async def accept_document(sid, data):
+    """
+    Accept the current document
+    Logs acceptance and sends confirmation
+    """
+    try:
+        document_name = data.get("document_name", "")
+        frontend_session_id = data.get("session_id", "default")
+        
+        logger.info(f"Document accepted: {document_name} by socket {sid}")
+        
+        await sio.emit("document_accepted", {
+            "session_id": frontend_session_id,
+            "document_name": document_name,
+            "message": f"Document '{document_name}' accepted successfully!"
+        }, to=sid)
+        
+    except Exception as e:
+        logger.error(f"Error handling accept_document: {str(e)}", exc_info=True)
+        await sio.emit("error", {
+            "message": f"Error accepting document: {str(e)}"
+        }, to=sid)
+
+
+@sio.event
+async def get_content_file_count(sid, data):
+    """
+    Get the count of JSON files in the content directory
+    Used to determine if reject button should be disabled
+    """
+    try:
+        frontend_session_id = data.get("session_id", "default")
+        
+        # Get count of JSON content files
+        json_files = get_sorted_content_json_files()
+        file_count = len(json_files)
+        
+        await sio.emit("content_file_count", {
+            "session_id": frontend_session_id,
+            "count": file_count
+        }, to=sid)
+        
+        # logger.info(f"Content file count: {file_count}")
+        
+    except Exception as e:
+        logger.error(f"Error getting content file count: {str(e)}", exc_info=True)
+        await sio.emit("error", {
+            "message": f"Error getting file count: {str(e)}"
+        }, to=sid)
+
+
+@sio.event
+async def reject_document(sid, data):
+    """
+    Reject and delete the current document (JSON and corresponding DOCX)
+    Then load the next latest document
+    """
+    try:
+        document_name = data.get("document_name", "")
+        frontend_session_id = data.get("session_id", "default")
+        
+        logger.info(f"Document rejected: {document_name} by socket {sid}")
+        
+        # Delete the JSON file
+        json_path = OUTPUT_CONTENT_DIR / document_name
+        if json_path.exists():
+            json_path.unlink()
+            logger.info(f"Deleted JSON file: {json_path}")
+        else:
+            logger.warning(f"JSON file not found for deletion: {json_path}")
+        
+        # Also delete the corresponding DOCX file if it exists
+        # Extract timestamp and find matching docx
+        timestamp = parse_timestamp_from_filename(document_name)
+        if timestamp:
+            # Find matching DOCX files with this timestamp
+            for docx_file in OUTPUT_DOCX_DIR.glob(f"output_*{timestamp}*.docx"):
+                if docx_file.exists():
+                    docx_file.unlink()
+                    logger.info(f"Deleted corresponding DOCX file: {docx_file}")
+        
+        # Get the next latest JSON file
+        json_files = get_sorted_content_json_files()
+        
+        if not json_files:
+            # No more documents available
+            await sio.emit("document_rejected", {
+                "session_id": frontend_session_id,
+                "document_name": document_name,
+                "message": f"Document '{document_name}' rejected and deleted. No more documents available."
+            }, to=sid)
+            
+            await sio.emit("no_documents", {
+                "session_id": frontend_session_id,
+                "message": "No documents available"
+            }, to=sid)
+            return
+        
+        # Load the next JSON file
+        next_json_path = json_files[0]
+        
+        try:
+            with open(next_json_path, 'r', encoding='utf-8') as f:
+                content_data = json.load(f)
+            
+            # Structure the content for frontend
+            sections = []
+            for section_name, section_items in content_data.items():
+                section = {
+                    'title': section_name.replace('_', ' '),
+                    'items': []
+                }
+                
+                for item in section_items:
+                    item_type = item.get('type')
+                    if item_type == 'heading':
+                        section['items'].append({
+                            'type': 'heading',
+                            'text': item.get('text', ''),
+                            'level': item.get('level', 1)
+                        })
+                    elif item_type == 'paragraph':
+                        section['items'].append({
+                            'type': 'paragraph',
+                            'text': item.get('text', '')
+                        })
+                    elif item_type == 'image':
+                        image_path = item.get('path', '')
+                        if image_path:
+                            image_filename = Path(image_path).name
+                            section['items'].append({
+                                'type': 'image',
+                                'filename': image_filename,
+                                'path': image_path,
+                                'width': item.get('width', 480)
+                            })
+                    elif item_type == 'table':
+                        section['items'].append({
+                            'type': 'table',
+                            'data': item.get('data', [])
+                        })
+                
+                sections.append(section)
+            
+            await sio.emit("document_rejected", {
+                "session_id": frontend_session_id,
+                "document_name": document_name,
+                "message": f"Document '{document_name}' rejected and deleted. Loading next document..."
+            }, to=sid)
+            
+            await sio.emit("document_loaded", {
+                "session_id": frontend_session_id,
+                "document_name": next_json_path.name,
+                "document_path": str(next_json_path),
+                "content": {"sections": sections}
+            }, to=sid)
+            
+            # Emit updated file count after rejection
+            updated_json_files = get_sorted_content_json_files()
+            await sio.emit("content_file_count", {
+                "session_id": frontend_session_id,
+                "count": len(updated_json_files)
+            }, to=sid)
+            
+            logger.info(f"After rejection, loaded next document: {next_json_path.name}")
+            
+        except Exception as doc_err:
+            logger.error(f"Error loading next document after rejection: {doc_err}")
+            await sio.emit("error", {"message": f"Error loading next document: {str(doc_err)}"}, to=sid)
+            
+    except Exception as e:
+        logger.error(f"Error handling reject_document: {str(e)}", exc_info=True)
+        await sio.emit("error", {
+            "message": f"Error rejecting document: {str(e)}"
         }, to=sid)
 
 
@@ -951,6 +1224,210 @@ import difflib
 
 # Add main/src to path for DocxManager
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'main', 'src'))
+
+# Import directly from module file to avoid package init issues
+import importlib.util
+_converter_path = os.path.join(os.path.dirname(__file__), '..', 'main', 'src', 'react_agent', 'json_docx_converter.py')
+_spec = importlib.util.spec_from_file_location("json_docx_converter", _converter_path)
+_converter_module = importlib.util.module_from_spec(_spec)
+_spec.loader.exec_module(_converter_module)
+convert_json_to_docx = _converter_module.convert_json_to_docx
+
+
+def get_latest_config_file() -> Optional[Path]:
+    """Get the latest config file from CONFIG_DIR."""
+    config_dir = BASE_DIR.parent / "main" / "test_output" / "config"
+    if not config_dir.exists():
+        return None
+    
+    pattern = str(config_dir / "config_*.json")
+    files = glob.glob(pattern)
+    
+    if not files:
+        # Try fallback config.json
+        fallback = config_dir / "config.json"
+        return fallback if fallback.exists() else None
+    
+    # Extract timestamps and return latest
+    versioned = []
+    for f in files:
+        try:
+            basename = os.path.basename(f)
+            timestamp_str = basename.replace("config_", "").replace(".json", "")
+            timestamp = int(timestamp_str)
+            versioned.append((timestamp, Path(f)))
+        except ValueError:
+            continue
+    
+    if versioned:
+        versioned.sort(reverse=True)
+        return versioned[0][1]
+    return None
+
+
+@app.get("/api/images/{image_filename}")
+async def serve_image(image_filename: str):
+    """
+    Serve images from the main/images directory
+    """
+    try:
+        # Look for the image in the main/images directory
+        image_path = BASE_DIR.parent / "main" / "images" / image_filename
+        
+        if not image_path.exists():
+            raise HTTPException(status_code=404, detail="Image not found")
+        
+        return FileResponse(
+            path=str(image_path),
+            media_type="image/png"  # Adjust based on file extension if needed
+        )
+    except Exception as e:
+        logger.error(f"Error serving image {image_filename}: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/api/download/docx/latest")
+async def download_latest_docx():
+    """
+    Download the latest rendered DOCX file from test_output/docx directory
+    """
+    try:
+        # Get the latest DOCX file
+        docx_files = get_sorted_output_documents()
+        
+        if not docx_files:
+            raise HTTPException(status_code=404, detail="No DOCX files available")
+        
+        latest_docx = docx_files[0]
+        
+        if not latest_docx.exists():
+            raise HTTPException(status_code=404, detail="DOCX file not found")
+        
+        return FileResponse(
+            path=str(latest_docx),
+            filename=latest_docx.name,
+            media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error downloading DOCX: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/api/download/docx/{content_filename}")
+async def download_docx_for_content(content_filename: str):
+    """
+    Render and download a DOCX file from the content JSON on-demand.
+    Uses the latest config file and specified content file to generate a fresh DOCX.
+    """
+    try:
+        # Validate content file exists
+        content_path = OUTPUT_CONTENT_DIR / content_filename
+        if not content_path.exists():
+            raise HTTPException(status_code=404, detail="Content file not found")
+        
+        # Get latest config file
+        latest_config = get_latest_config_file()
+        if not latest_config or not latest_config.exists():
+            raise HTTPException(status_code=404, detail="No config file found")
+        
+        # Create temporary file for DOCX output
+        with tempfile.NamedTemporaryFile(mode='wb', suffix='.docx', delete=False) as tmp_file:
+            temp_docx_path = tmp_file.name
+        
+        try:
+            # Render DOCX using convert_json_to_docx
+            success, message = convert_json_to_docx(
+                str(latest_config),
+                str(content_path),
+                temp_docx_path
+            )
+            
+            if not success:
+                raise HTTPException(status_code=500, detail=f"Failed to render DOCX: {message}")
+            
+            # Generate friendly filename
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            download_filename = f"output_{timestamp}.docx"
+            
+            # Return file and schedule cleanup
+            return FileResponse(
+                path=temp_docx_path,
+                filename=download_filename,
+                media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                background=lambda: os.unlink(temp_docx_path) if os.path.exists(temp_docx_path) else None
+            )
+        except Exception as render_err:
+            # Clean up temp file on error
+            if os.path.exists(temp_docx_path):
+                os.unlink(temp_docx_path)
+            raise render_err
+            
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error rendering DOCX for download: {str(e)}", exc_info=True)
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/traces/{run_id}")
+async def get_trace_data(run_id: str, retry: int = 0):
+    """
+    Fetch trace data from LangSmith API
+    This endpoint acts as a proxy to the LangSmith API to fetch execution traces
+    """
+    import httpx
+    import asyncio
+    
+    logger.info(f"🔍 API: Fetching trace for run_id: {run_id} (retry: {retry})")
+    
+    langsmith_api_key = os.getenv("LANGCHAIN_API_KEY")
+    langsmith_api_url = os.getenv("LANGSMITH_API_URL", "https://api.smith.langchain.com")
+    
+    if not langsmith_api_key:
+        logger.error("🔍 API: LangSmith API key not configured")
+        raise HTTPException(status_code=503, detail="LangSmith API key not configured")
+    
+    try:
+        async with httpx.AsyncClient() as client:
+            # Add retry logic with exponential backoff (LangSmith might need time to process)
+            max_retries = 3
+            for attempt in range(max_retries):
+                try:
+                    logger.info(f"🔍 API: Attempt {attempt + 1}/{max_retries} to fetch from LangSmith")
+                    response = await client.get(
+                        f"{langsmith_api_url}/runs/{run_id}",
+                        headers={"x-api-key": langsmith_api_key},
+                        timeout=10.0
+                    )
+                    
+                    logger.info(f"🔍 API: LangSmith response status: {response.status_code}")
+                    
+                    if response.status_code == 404:
+                        if attempt < max_retries - 1:
+                            # Wait before retry (exponential backoff)
+                            wait_time = 2 ** attempt
+                            logger.info(f"🔍 API: Trace not found yet, waiting {wait_time}s before retry...")
+                            await asyncio.sleep(wait_time)
+                            continue
+                        raise HTTPException(status_code=404, detail="Trace not found in LangSmith after retries")
+                    
+                    response.raise_for_status()
+                    trace_data = response.json()
+                    logger.info(f"🔍 API: Successfully fetched trace data")
+                    return trace_data
+                    
+                except httpx.TimeoutException:
+                    if attempt < max_retries - 1:
+                        logger.warning(f"🔍 API: Timeout, retrying...")
+                        await asyncio.sleep(2 ** attempt)
+                        continue
+                    raise
+            
+    except httpx.HTTPError as e:
+        logger.error(f"🔍 API: Error fetching trace: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to fetch trace: {str(e)}")
+
 
 try:
     from rct_agent.docx_manager import DocxManager

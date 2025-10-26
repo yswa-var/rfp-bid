@@ -467,29 +467,41 @@ class DocxGenerator:
     def _add_table(self, element: Dict[str, Any]):
         """
         Add a table from data array.
-        Detects header rows (column_heading_* pattern) and applies styling.
+        Supports both formats:
+        1. List of lists (2D array) - first row treated as headers
+        2. List of dicts with column_heading_* keys
         """
         data = element['data']
         if not data:
             return
         
-        # Determine if first row is headers (contains column_heading_* keys)
         first_row = data[0]
-        has_headers = any(key.startswith('column_heading_') for key in first_row.keys())
         
-        if has_headers:
-            # Extract header row
-            headers = sorted([k for k in first_row.keys() if k.startswith('column_heading_')])
-            header_values = [first_row[h] for h in headers]
-            num_cols = len(headers)
-            
-            # Data rows start from index 1
+        # Check if data is list of lists or list of dicts
+        if isinstance(first_row, list):
+            # Format 1: List of lists - first row is headers
+            header_values = [str(v) for v in first_row]
+            num_cols = len(first_row)
             data_rows = data[1:]
+            has_headers = True
+        elif isinstance(first_row, dict):
+            # Format 2: List of dicts - check for column_heading_* keys
+            has_headers = any(key.startswith('column_heading_') for key in first_row.keys())
+            
+            if has_headers:
+                # Extract header row
+                headers = sorted([k for k in first_row.keys() if k.startswith('column_heading_')])
+                header_values = [first_row[h] for h in headers]
+                num_cols = len(headers)
+                data_rows = data[1:]
+            else:
+                # All rows are data, infer columns from first row
+                header_values = []
+                data_rows = data
+                num_cols = len(first_row.keys())
         else:
-            # All rows are data, infer columns from first row
-            header_values = []
-            data_rows = data
-            num_cols = len(first_row.keys())
+            # Unknown format
+            return
         
         # Create table
         num_rows = len(data_rows) + (1 if has_headers else 0)
@@ -517,8 +529,12 @@ class DocxGenerator:
         row_offset = 1 if has_headers else 0
         for row_idx, row_data in enumerate(data_rows):
             table_row = table.rows[row_idx + row_offset]
-            # Get values in order of keys
-            values = [str(v) for v in row_data.values()]
+            
+            # Handle both list and dict formats
+            if isinstance(row_data, list):
+                values = [str(v) for v in row_data]
+            else:
+                values = [str(v) for v in row_data.values()]
             
             for col_idx, value in enumerate(values):
                 if col_idx < num_cols:

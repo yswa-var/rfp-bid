@@ -31,7 +31,7 @@ def create_supervisor_system(checkpointer=None):
     """Create the complete supervisor system with RFP Proposal Team integration."""
 
     supervisor_llm = ChatOpenAI(
-        model="gpt-5",
+        model="gpt-4o-mini",
         temperature=0,
         api_key=os.getenv("OPENAI_API_KEY"),
     )

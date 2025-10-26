@@ -18,6 +18,29 @@ import subprocess
 import sys
 
 
+def get_message_text(message) -> str:
+    """
+    Extract text content from a message, handling both string and list formats.
+    
+    When messages have multiple content parts (e.g., text + images), content is a list.
+    This function extracts the text portion safely.
+    """
+    content = message.content
+    if isinstance(content, str):
+        return content
+    elif isinstance(content, list):
+        # Extract text from list of content parts
+        text_parts = []
+        for part in content:
+            if isinstance(part, str):
+                text_parts.append(part)
+            elif isinstance(part, dict) and "text" in part:
+                text_parts.append(part["text"])
+        return " ".join(text_parts)
+    else:
+        return str(content)
+
+
 class DocumentResponse(BaseModel):
     """Pydantic model for structured document analysis response."""
     answer: str = Field(description="Comprehensive answer based on the document context")
@@ -38,7 +61,7 @@ class PDFParserAgent:
         if not user_messages:
             return {"messages": [AIMessage(content="Please provide PDF file path(s).")]}
 
-        query = user_messages[-1].content
+        query = get_message_text(user_messages[-1])
 
         # Extract potential PDF paths
         candidates: List[str] = []
@@ -126,7 +149,7 @@ class GeneralAssistantAgent:
     def __init__(self):
         self.milvus_ops: MilvusOps | None = None
         self.llm = ChatOpenAI(
-            model=os.getenv("LLM_MODEL", "gpt-5"),
+            model=os.getenv("LLM_MODEL", "gpt-4o-mini"),
             temperature=0.1,
             api_key=os.getenv("OPENAI_API_KEY"),
         )
@@ -168,7 +191,7 @@ class GeneralAssistantAgent:
         if not user_messages:
             return {"messages": [AIMessage(content="Please provide a question to search the documents.")]}
 
-        question = user_messages[-1].content
+        question = get_message_text(user_messages[-1])
         
         try:
             # Retrieve relevant chunks
@@ -291,7 +314,7 @@ class RAGEditorAgent:
             document_name = "proposal_20250927_142039.docx"  # Default document
             
             if user_messages:
-                last_message = user_messages[-1].content.lower()
+                last_message = get_message_text(user_messages[-1]).lower()
                 # Look for document name in the message
                 if ".docx" in last_message:
                     import re
@@ -409,7 +432,7 @@ class RFPProposalTeam:
             # Extract from messages
             user_messages = [m for m in state["messages"] if isinstance(m, HumanMessage)]
             if user_messages:
-                query = user_messages[-1].content
+                query = get_message_text(user_messages[-1])
         
         try:
             result = self.rfp_agent.finance_node(query, k=5)
@@ -448,7 +471,7 @@ class RFPProposalTeam:
         if not query:
             user_messages = [m for m in state["messages"] if isinstance(m, HumanMessage)]
             if user_messages:
-                query = user_messages[-1].content
+                query = get_message_text(user_messages[-1])
         
         try:
             result = self.rfp_agent.technical_node(query, k=5)
@@ -486,7 +509,7 @@ class RFPProposalTeam:
         if not query:
             user_messages = [m for m in state["messages"] if isinstance(m, HumanMessage)]
             if user_messages:
-                query = user_messages[-1].content
+                query = get_message_text(user_messages[-1])
         
         try:
             result = self.rfp_agent.legal_node(query, k=5)
@@ -524,7 +547,7 @@ class RFPProposalTeam:
         if not query:
             user_messages = [m for m in state["messages"] if isinstance(m, HumanMessage)]
             if user_messages:
-                query = user_messages[-1].content
+                query = get_message_text(user_messages[-1])
         
         try:
             result = self.rfp_agent.qa_node(query, k=5)
@@ -568,37 +591,38 @@ class RFPProposalTeam:
                 "messages": [AIMessage(content="Please provide an RFP requirement or query.")]
             }
         
-        last_message = user_messages[-1].content.lower()
+        last_message = get_message_text(user_messages[-1]).lower()
         
         # Determine which RFP node to route to
+        message_text = get_message_text(user_messages[-1])
         if any(word in last_message for word in ["finance", "budget", "cost", "pricing", "payment"]):
             return {
                 "messages": [AIMessage(content="📊 Routing to Finance Team...")],
-                "rfp_query": user_messages[-1].content,
+                "rfp_query": message_text,
                 "current_rfp_node": "finance"
             }
         elif any(word in last_message for word in ["technical", "architecture", "technology", "implementation"]):
             return {
                 "messages": [AIMessage(content="🔧 Routing to Technical Team...")],
-                "rfp_query": user_messages[-1].content,
+                "rfp_query": message_text,
                 "current_rfp_node": "technical"
             }
         elif any(word in last_message for word in ["legal", "contract", "compliance", "liability"]):
             return {
                 "messages": [AIMessage(content="⚖️  Routing to Legal Team...")],
-                "rfp_query": user_messages[-1].content,
+                "rfp_query": message_text,
                 "current_rfp_node": "legal"
             }
         elif any(word in last_message for word in ["qa", "quality", "testing", "test"]):
             return {
                 "messages": [AIMessage(content="🧪 Routing to QA Team...")],
-                "rfp_query": user_messages[-1].content,
+                "rfp_query": message_text,
                 "current_rfp_node": "qa"
             }
         else:
             # Default to finance for general RFP queries
             return {
                 "messages": [AIMessage(content="📊 Routing to Finance Team (default)...")],
-                "rfp_query": user_messages[-1].content,
+                "rfp_query": message_text,
                 "current_rfp_node": "finance"
             }

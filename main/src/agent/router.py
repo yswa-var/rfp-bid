@@ -38,7 +38,16 @@ def supervisor_router(state: MessagesState) -> str:
     user_messages = [m for m in messages if isinstance(m, HumanMessage)]
     
     if user_messages:
-        last_user_content = user_messages[-1].content.lower()
+        # Handle both string content and list content (multimodal)
+        content = user_messages[-1].content
+        if isinstance(content, list):
+            # Extract text from multimodal content
+            last_user_content = " ".join(
+                item.get("text", "") if isinstance(item, dict) else str(item)
+                for item in content
+            ).lower()
+        else:
+            last_user_content = content.lower() if content else ""
         
         # PRIORITY 1: Check for EXPLICIT agent names (highest priority)
         # This allows users to directly invoke specific agents

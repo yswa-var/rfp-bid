@@ -1,10 +1,20 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Socket } from 'socket.io-client';
 
+interface TrailEvent {
+  type: 'stream_chunk' | 'node_update' | 'error';
+  node?: string;
+  event?: string;
+  data?: any;
+  error?: string;
+  timestamp: string;
+}
+
 interface Message {
   role: 'user' | 'assistant' | 'system';
   content: string;
   timestamp: number;
+  trail?: TrailEvent[];  // Add trail to messages
 }
 
 interface ChatPanelProps {
@@ -16,7 +26,10 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ socket, sessionId }) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [selectedAgent, setSelectedAgent] = useState<string>('supervisor');
+  const [currentTrail, setCurrentTrail] = useState<TrailEvent[]>([]);
+  const [isProcessing, setIsProcessing] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const currentTrailRef = useRef<TrailEvent[]>([]);
 
   // Available agents
   const agents = [
@@ -48,13 +61,40 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ socket, sessionId }) => {
       console.log('Connection status:', data);
     });
 
+    // Listen for processing start
+    socket.on('processing_started', (data: any) => {
+      console.log('Processing started:', data);
+      setIsProcessing(true);
+      setCurrentTrail([]);  // Reset trail
+      currentTrailRef.current = [];  // Also reset ref
+    });
+
+    // Listen for execution trail events
+    socket.on('execution_trail', (data: any) => {
+      console.log('Trail event:', data);
+      const trailEvent: TrailEvent = {
+        ...data.trail_event,
+        timestamp: data.timestamp
+      };
+      setCurrentTrail(prev => {
+        const updated = [...prev, trailEvent];
+        currentTrailRef.current = updated;  // Keep ref in sync
+        return updated;
+      });
+    });
+
+    // Update existing message_response listener to attach trail
     socket.on('message_response', (data: any) => {
       console.log('Received message:', data);
+      setIsProcessing(false);
       setMessages(prev => [...prev, {
         role: 'assistant',
         content: data.message,
-        timestamp: Date.now()
+        timestamp: Date.now(),
+        trail: [...currentTrailRef.current]  // Attach trail from ref
       }]);
+      setCurrentTrail([]);  // Clear after message
+      currentTrailRef.current = [];  // Also clear ref
     });
 
     socket.on('disconnect', () => {
@@ -64,6 +104,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ socket, sessionId }) => {
         content: 'Disconnected from agent.',
         timestamp: Date.now()
       }]);
+      setIsProcessing(false);
     });
 
     socket.on('error', (data: any) => {
@@ -73,15 +114,18 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ socket, sessionId }) => {
         content: `Error: ${data.message || 'Unknown error'}`,
         timestamp: Date.now()
       }]);
+      setIsProcessing(false);
     });
 
     return () => {
       socket.off('connection_status');
+      socket.off('processing_started');
+      socket.off('execution_trail');
       socket.off('message_response');
       socket.off('disconnect');
       socket.off('error');
     };
-  }, [socket, sessionId]);
+  }, [socket, sessionId]);  // Removed currentTrail from deps!
 
   useEffect(() => {
     // Auto-scroll to bottom
@@ -116,6 +160,70 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ socket, sessionId }) => {
       e.preventDefault();
       handleSend();
     }
+  };
+
+  // ExecutionTrail component for displaying live execution trail
+  const ExecutionTrail: React.FC<{ trail: TrailEvent[], isLive?: boolean }> = ({ 
+    trail, 
+    isLive = false 
+  }) => {
+    if (!trail || trail.length === 0) return null;
+    
+    return (
+      <div style={{
+        marginTop: '8px',
+        padding: '10px',
+        backgroundColor: '#f8f9fa',
+        borderRadius: '6px',
+        border: '1px solid #dee2e6',
+        fontSize: '11px',
+        maxHeight: '300px',
+        overflowY: 'auto'
+      }}>
+        <div style={{ 
+          fontWeight: 'bold', 
+          marginBottom: '6px', 
+          color: '#495057',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '6px'
+        }}>
+          {isLive && <span style={{ 
+            display: 'inline-block',
+            width: '8px',
+            height: '8px',
+            borderRadius: '50%',
+            backgroundColor: '#28a745',
+            animation: 'pulse 1.5s ease-in-out infinite'
+          }} />}
+          Execution Trail {isLive && '(Live)'}:
+        </div>
+        {trail.map((event, idx) => {
+          const isNodeUpdate = event.type === 'node_update';
+          const nodeName = event.node || 'unknown';
+          
+          return (
+            <div key={idx} style={{
+              padding: '6px 10px',
+              margin: '3px 0',
+              backgroundColor: isNodeUpdate ? '#e3f2fd' : '#fff3cd',
+              borderLeft: `3px solid ${isNodeUpdate ? '#2196f3' : '#ffc107'}`,
+              borderRadius: '3px',
+              fontSize: '10px'
+            }}>
+              <div style={{ fontWeight: '600', color: '#212529' }}>
+                {isNodeUpdate ? '▶️' : '📋'} {nodeName}
+              </div>
+              {event.timestamp && (
+                <div style={{ color: '#6c757d', fontSize: '9px', marginTop: '2px' }}>
+                  {new Date(event.timestamp).toLocaleTimeString()}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    );
   };
 
   return (
@@ -202,6 +310,19 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ socket, sessionId }) => {
             }}
           >
             <div style={{ fontSize: '14px' }}>{msg.content}</div>
+            
+            {/* Show trail for assistant messages */}
+            {msg.role === 'assistant' && msg.trail && (
+              <ExecutionTrail trail={msg.trail} />
+            )}
+            
+            {/* Show live trail for current processing */}
+            {msg.role === 'user' && 
+             idx === messages.length - 1 && 
+             isProcessing && (
+              <ExecutionTrail trail={currentTrail} isLive={true} />
+            )}
+            
             <div style={{ 
               fontSize: '10px', 
               marginTop: '4px',
