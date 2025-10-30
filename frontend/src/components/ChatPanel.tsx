@@ -50,12 +50,6 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ socket, sessionId }) => {
     
     // Join session room
     socket.emit('join_session', { session_id: sessionId });
-    
-    setMessages(prev => [...prev, {
-      role: 'system',
-        content: 'Connected to agent. You can start chatting!',
-        timestamp: Date.now()
-      }]);
 
     socket.on('connection_status', (data: any) => {
       console.log('Connection status:', data);

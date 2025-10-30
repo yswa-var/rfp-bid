@@ -32,7 +32,7 @@ class RFPProposalAgent:
     Multi-node RFP Proposal Agent with specialized content generation capabilities.
     
     Features:
-    - Chat with gpt-5 for general queries
+    - Chat with gpt-4o-mini for general queries
     - Query RAG databases (RFP examples and templates)
     - Generate specialized proposal content (finance, technical, legal, QA)
     - Track all responses in JSON format
@@ -61,14 +61,14 @@ class RFPProposalAgent:
         
         # Initialize LLM for ChatGPT
         self.chat_llm = ChatOpenAI(
-            model="gpt-5",
+            model="gpt-4o-mini",
             temperature=0.7,
             api_key=self.api_key
         )
         
         # Initialize specialized LLMs for different nodes (lower temperature for consistency)
         self.node_llm = ChatOpenAI(
-            model="gpt-5",
+            model="gpt-4o-mini",
             temperature=0.3,
             api_key=self.api_key
         )
@@ -177,7 +177,7 @@ class RFPProposalAgent:
     
     def chat_gpt(self, message: str, use_history: bool = True) -> str:
         """
-        Chat with gpt-5 using LangChain.
+        Chat with gpt-4o-mini using LangChain.
         
         Args:
             message: User message to send

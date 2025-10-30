@@ -263,7 +263,8 @@ IMPORTANT:
                     follow_up_text = f"\n\n❓ **Follow-up Questions:**\n" + "\n".join([f"• {q}" for q in structured_response.follow_up_questions])
                 
                 # Create formatted response
-                final_answer = f"**Answer:** {structured_response.answer}\n\n**Confidence Score:** {structured_response.confidence_score}/10\n\n📚 **Sources:**\n{sources_text}{follow_up_text}"
+                final_answer = f"{structured_response.answer}"
+                #  **Sources:**\n{sources_text}{follow_up_text}
                 
                 return {
                     "messages": [AIMessage(content=final_answer)],
@@ -420,7 +421,7 @@ class RFPProposalTeam:
         from .RFP_proposal_agent import RFPProposalAgent
         self.rfp_agent = RFPProposalAgent(response_file="rfp_team_responses.json")
         self.llm = ChatOpenAI(
-            model=os.getenv("LLM_MODEL", "gpt-5"),
+            model=os.getenv("LLM_MODEL", "gpt-4o-mini"),
             temperature=0,
             api_key=os.getenv("OPENAI_API_KEY"),
         )

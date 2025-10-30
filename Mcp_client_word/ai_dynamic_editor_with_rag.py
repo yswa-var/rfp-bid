@@ -420,7 +420,7 @@ class AIDynamicEditorWithRAG:
 **GENERATED CONTENT:**"""
             
             response = self.client.chat.completions.create(
-                model="gpt-5",
+                model="gpt-4o-mini",
                 messages=[
                     {"role": "system", "content": "You are an expert business proposal writer with access to a comprehensive knowledge base."},
                     {"role": "user", "content": prompt}
@@ -494,7 +494,7 @@ class AIDynamicEditorWithRAG:
             - 3-4 detailed points"""
             
             response = self.client.chat.completions.create(
-                model="gpt-5",
+                model="gpt-4o-mini",
                 messages=[
                     {"role": "system", "content": "You are a professional business content writer."},
                     {"role": "user", "content": prompt}
