@@ -136,7 +136,16 @@ class CreateRAGAgent:
             }
 
         try:
-            self.milvus_ops = MilvusOps("src/agent/session.db")
+            # Use dynamic path resolution to match GeneralAssistantAgent
+            base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+            session_db_path = os.path.join(base_dir, "session.db")
+            
+            # Ensure the directory exists before creating the database
+            db_dir = os.path.dirname(session_db_path)
+            if db_dir and not os.path.exists(db_dir):
+                os.makedirs(db_dir, exist_ok=True)
+            
+            self.milvus_ops = MilvusOps(session_db_path)
             self.milvus_ops.vectorize_and_store(chunks)
             return {"messages": [AIMessage(content="✅ Created Milvus session database 'session.db'. End the session.")]}
         except Exception as e:
@@ -157,35 +166,61 @@ class GeneralAssistantAgent:
         self.parser = PydanticOutputParser(pydantic_object=DocumentResponse)
 
     def query_documents(self, state: MessagesState) -> Dict[str, Any]:
-        # Create MilvusOps instance and check if session.db exists
         # Use dynamic path resolution instead of hard-coded path
         base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
         session_db_path = os.path.join(base_dir, "session.db")
-        self.milvus_ops = MilvusOps(session_db_path)
         
-        if not os.path.exists(self.milvus_ops.db_path):
+        # Check if session.db exists
+        if not os.path.exists(session_db_path):
             return {"messages": [AIMessage(content="Session DB not found. Please run create_rag after parsing PDFs.")]}
 
-        # Connect to the existing vector store
+        # Reuse existing connection if available, otherwise create new one
         try:
             from langchain_milvus import Milvus
             from langchain_openai import OpenAIEmbeddings
             
-            # Initialize embeddings
-            embeddings = OpenAIEmbeddings(
-                model="text-embedding-3-large",
-                api_key=os.getenv("OPENAI_API_KEY")
-            )
-            
-            # Connect to existing Milvus database
-            self.milvus_ops.vector_store = Milvus(
-                embedding_function=embeddings,
-                connection_args={"uri": self.milvus_ops.db_path},
-                index_params={"index_type": "FLAT", "metric_type": "L2"},
-            )
+            # Only create new MilvusOps instance if we don't have one or if the path changed
+            if (self.milvus_ops is None or 
+                self.milvus_ops.db_path != os.path.abspath(session_db_path) or
+                self.milvus_ops.vector_store is None):
+                
+                # Create or update MilvusOps instance
+                self.milvus_ops = MilvusOps(session_db_path)
+                
+                # Initialize embeddings
+                embeddings = OpenAIEmbeddings(
+                    model="text-embedding-3-large",
+                    api_key=os.getenv("OPENAI_API_KEY")
+                )
+                
+                # Connect to existing Milvus database
+                self.milvus_ops.vector_store = Milvus(
+                    embedding_function=embeddings,
+                    connection_args={"uri": self.milvus_ops.db_path},
+                    index_params={"index_type": "FLAT", "metric_type": "L2"},
+                )
             
         except Exception as e:
-            return {"messages": [AIMessage(content=f"Error connecting to session DB: {e}")]}
+            # If connection fails, try to reset and create a new one
+            error_msg = str(e).lower()
+            if "opened by another program" in error_msg or "connection" in error_msg.lower():
+                try:
+                    # Reset and try once more
+                    self.milvus_ops = None
+                    self.milvus_ops = MilvusOps(session_db_path)
+                    embeddings = OpenAIEmbeddings(
+                        model="text-embedding-3-large",
+                        api_key=os.getenv("OPENAI_API_KEY")
+                    )
+                    self.milvus_ops.vector_store = Milvus(
+                        embedding_function=embeddings,
+                        connection_args={"uri": self.milvus_ops.db_path},
+                        index_params={"index_type": "FLAT", "metric_type": "L2"},
+                    )
+                except Exception as retry_error:
+                    return {"messages": [AIMessage(content=f"Error connecting to session DB (retry failed): {retry_error}")]}
+            else:
+                return {"messages": [AIMessage(content=f"Error connecting to session DB: {e}")]}
 
         user_messages = [m for m in state["messages"] if isinstance(m, HumanMessage)]
         if not user_messages:

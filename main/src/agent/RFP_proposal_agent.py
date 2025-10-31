@@ -422,6 +422,7 @@ Your response will be used to update a DOCX document. Please format your content
 - Include tables for budget breakdowns using markdown table format
 - Ensure the content is well-structured and ready for direct insertion into a Word document
 - Each major section should be clearly labeled and easy to identify for document editing
+- generate only 1000 words of content maximum.
 """
         
         return self._generate_node_content("finance", query, system_prompt, k)
@@ -465,6 +466,7 @@ Your response will be used to update a DOCX document. Please format your content
 - Use markdown table format for technical specifications and comparisons
 - Ensure the content is well-structured and ready for direct insertion into a Word document
 - Each major section should be clearly labeled and easy to identify for document editing
+- generate only 1000 words of content maximum.
 """
         
         return self._generate_node_content("technical", query, system_prompt, k)
@@ -508,6 +510,7 @@ Your response will be used to update a DOCX document. Please format your content
 - Use markdown table format for SLA metrics and compliance matrices
 - Ensure the content is well-structured and ready for direct insertion into a Word document
 - Each major section should be clearly labeled and easy to identify for document editing
+- generate only 1000 words of content maximum.
 """
         
         return self._generate_node_content("legal", query, system_prompt, k)
@@ -552,6 +555,7 @@ Your response will be used to update a DOCX document. Please format your content
 - Use markdown table format for test plans, test cases, and quality metrics matrices
 - Ensure the content is well-structured and ready for direct insertion into a Word document
 - Each major section should be clearly labeled and easy to identify for document editing
+- generate only 1000 words of content maximum.
 """
         
         return self._generate_node_content("qa", query, system_prompt, k)

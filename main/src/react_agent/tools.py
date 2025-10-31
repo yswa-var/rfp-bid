@@ -7,9 +7,11 @@ It includes:
 These tools enable intelligent document operations with auto-rendering capabilities.
 """
 
+import asyncio
 import json
 import os
 import csv
+import re
 import time
 import glob
 from datetime import datetime
@@ -205,7 +207,7 @@ def _render_docx() -> str:
         success, message = convert_json_to_docx(latest_config, latest_content, output_path)
         
         if success:
-            return f"Document rendered successfully: {output_path}"
+            return f"Document rendered successfully"
         else:
             return f"Failed to render document: {message}"
     
@@ -258,36 +260,27 @@ def _deep_merge_dict(base: dict, updates: dict) -> dict:
     return result
 
 
-async def search(query: str) -> Optional[dict[str, Any]]:
-    """Search for general web results.
-
-    This function performs a search using the Tavily search engine, which is designed
-    to provide comprehensive, accurate, and trusted results. It's particularly useful
-    for answering questions about current events.
-    """
-    runtime = get_runtime(Context)
-    wrapped = TavilySearch(max_results=runtime.context.max_search_results)
-    return cast(dict[str, Any], await wrapped.ainvoke({"query": query}))
 
 
-def create_section(section_name: str, elements: Optional[List[dict]] = None) -> str:
+
+def create_section(elements: Optional[List[dict]] = None) -> str:
     """Create a new section with content elements in the document.
     
     Adds a new section to content.json with the specified elements.
+    Automatically determines the next section name (e.g., Section_5 after Section_4).
     If no elements are provided, creates a section with a default heading.
     Automatically renders the updated document to DOCX.
     
     Args:
-        section_name: Name of the new section
         elements: Optional list of content element dictionaries with 'type' field.
-                  If not provided, creates a heading with the section name.
+                  If not provided, creates a heading with the auto-generated section name.
     
     Examples:
         # Create section with just a heading (auto-generated)
-        create_section("Technical Architecture")
+        create_section()
         
         # Create section with custom elements
-        create_section("Executive Summary", [
+        create_section([
             {"type": "heading", "text": "Executive Summary", "level": 1},
             {"type": "paragraph", "text": "This section provides an overview..."}
         ])
@@ -298,12 +291,6 @@ def create_section(section_name: str, elements: Optional[List[dict]] = None) -> 
         if not success:
             return message
         
-        # If no elements provided, create a default heading
-        if elements is None:
-            elements = [
-                {"type": "heading", "text": section_name, "level": 2}
-            ]
-        
         # Get latest content file
         latest_content_path = _get_latest_versioned_file(CONTENT_DIR, "content")
         if not latest_content_path:
@@ -313,9 +300,27 @@ def create_section(section_name: str, elements: Optional[List[dict]] = None) -> 
         with open(latest_content_path, 'r', encoding='utf-8') as f:
             content = json.load(f)
         
-        # Check if section already exists
-        if section_name in content:
-            return f"Error: Section '{section_name}' already exists. Use update_content to modify it."
+        # Find the next section number
+        section_numbers = []
+        for key in content.keys():
+            # Match pattern "Section_N" where N is a number
+            match = re.match(r'Section_(\d+)', key)
+            if match:
+                section_numbers.append(int(match.group(1)))
+        
+        # Determine next section number
+        if section_numbers:
+            next_section_num = max(section_numbers) + 1
+        else:
+            next_section_num = 1
+        
+        section_name = f"Section_{next_section_num}"
+        
+        # If no elements provided, create a default heading
+        if elements is None:
+            elements = [
+                {"type": "heading", "text": section_name, "level": 2}
+            ]
         
         # Validate elements structure
         for idx, element in enumerate(elements):
@@ -581,7 +586,7 @@ def get_content_by_heading(heading_text: str) -> str:
         return f"Error searching for heading: {str(e)}"
 
 
-def insert_content_after_heading(heading_text: str, new_element: dict) -> str:
+def insert_content_after_heading(heading_text: str, new_element:dict) -> str:
     """Insert a content element after a specific heading.
     
     Searches for a heading by text and inserts the new element immediately after it.
@@ -589,7 +594,15 @@ def insert_content_after_heading(heading_text: str, new_element: dict) -> str:
     
     Args:
         heading_text: Text to search for in section headings (case-insensitive)
-        new_element: Element dictionary to insert (must have 'type' field)
+        new_element:  element dictionary to insert (must have 'type' field).
+
+    
+    Examples:
+        # Insert with custom element
+        insert_content_after_heading("Budget Overview", {
+            "type": "paragraph",
+            "text": "Total budget: $500,000"
+        })
     """
     try:
         # Ensure files exist with defaults
@@ -606,6 +619,13 @@ def insert_content_after_heading(heading_text: str, new_element: dict) -> str:
         with open(latest_content_path, 'r', encoding='utf-8') as f:
             content = json.load(f)
         
+        # If no element provided, create a default paragraph
+        if new_element is None:
+            new_element = {
+                "type": "paragraph",
+                "text": f"[Content to be added under '{heading_text}']"
+            }
+        
         # Validate new element
         if not isinstance(new_element, dict):
             return "Error: new_element must be a dictionary"
@@ -614,6 +634,7 @@ def insert_content_after_heading(heading_text: str, new_element: dict) -> str:
         
         # Search for matching heading
         found = False
+        matched_heading = None
         for section_name, elements in content.items():
             if not isinstance(elements, list):
                 continue
@@ -623,6 +644,7 @@ def insert_content_after_heading(heading_text: str, new_element: dict) -> str:
                     if heading_text.lower() in element.get('text', '').lower():
                         # Insert after this heading
                         content[section_name].insert(idx + 1, new_element)
+                        matched_heading = element.get('text', heading_text)
                         found = True
                         break
             
@@ -635,13 +657,13 @@ def insert_content_after_heading(heading_text: str, new_element: dict) -> str:
                 for elem in elems:
                     if elem.get('type') == 'heading':
                         sections_list.append(elem.get('text', 'Untitled'))
-                        break
-            return f"Error: No heading found matching '{heading_text}'. Available headings: {sections_list}"
+            return f"Error: No heading found matching '{heading_text}'. Available headings: {', '.join(sections_list[:10])}"
         
         # Save updated content as new version
         new_path = _write_versioned_file(CONTENT_DIR, "content", content)
         
-        return f"Element inserted after heading '{heading_text}'. Content saved to {new_path}. Call render_document() to generate the DOCX file."
+        element_type = new_element.get('type', 'element')
+        return f"{element_type.capitalize()} inserted after heading '{matched_heading}'. Content saved to {new_path}. Call render_document() to generate the DOCX file."
     
     except FileNotFoundError:
         return f"Error: Content file not found in {CONTENT_DIR}"
@@ -649,7 +671,6 @@ def insert_content_after_heading(heading_text: str, new_element: dict) -> str:
         return f"Error: Invalid JSON in content file: {str(e)}"
     except Exception as e:
         return f"Error inserting content: {str(e)}"
-
 
 async def add_images_from_csv() -> str:
     """Automatically match and insert images from CSV into document sections.
@@ -666,47 +687,58 @@ async def add_images_from_csv() -> str:
     IMAGE_DIR = os.getenv("IMAGE_DIR", _IMAGES_DIR)
     
     try:
-        # Ensure files exist with defaults
-        success, message = _ensure_files_exist()
+        # Ensure files exist with defaults (wrap blocking call)
+        success, message = await asyncio.to_thread(_ensure_files_exist)
         if not success:
             return message
         
-        # Load CSV with image metadata
-        if not os.path.exists(CSV_PATH):
+        # Check if CSV exists (wrap blocking call)
+        csv_exists = await asyncio.to_thread(os.path.exists, CSV_PATH)
+        if not csv_exists:
             return f"Error: CSV file not found at {CSV_PATH}"
         
-        images_data = []
-        with open(CSV_PATH, 'r', encoding='utf-8') as csvfile:
-            reader = csv.DictReader(csvfile)
-            for row in reader:
-                image_name = row.get('Image Name', '').strip()
-                description = row.get('Description', '').strip()
-                
-                if not image_name:
-                    continue
-                
-                # Validate image file exists
-                image_path = os.path.join(IMAGE_DIR, image_name)
-                if not os.path.exists(image_path):
-                    return f"Error: Image file not found: {image_path}"
-                
-                images_data.append({
-                    'name': image_name,
-                    'description': description,
-                    'path': image_path
-                })
+        # Load CSV with image metadata (wrap blocking I/O)
+        def _load_csv():
+            images_data = []
+            with open(CSV_PATH, 'r', encoding='utf-8') as csvfile:
+                reader = csv.DictReader(csvfile)
+                for row in reader:
+                    image_name = row.get('Image Name', '').strip()
+                    description = row.get('Description', '').strip()
+                    
+                    if not image_name:
+                        continue
+                    
+                    # Validate image file exists
+                    image_path = os.path.join(IMAGE_DIR, image_name)
+                    if not os.path.exists(image_path):
+                        return None, f"Error: Image file not found: {image_path}"
+                    
+                    images_data.append({
+                        'name': image_name,
+                        'description': description,
+                        'path': image_path
+                    })
+            return images_data, None
+        
+        images_data, error = await asyncio.to_thread(_load_csv)
+        if error:
+            return error
         
         if not images_data:
             return "Error: No valid images found in CSV"
         
-        # Get latest content file
-        latest_content_path = _get_latest_versioned_file(CONTENT_DIR, "content")
+        # Get latest content file (wrap blocking call)
+        latest_content_path = await asyncio.to_thread(_get_latest_versioned_file, CONTENT_DIR, "content")
         if not latest_content_path:
             return "Error: No content file found. Initialize with _ensure_files_exist() first."
         
-        # Load document sections
-        with open(latest_content_path, 'r', encoding='utf-8') as f:
-            content = json.load(f)
+        # Load document sections (wrap blocking I/O)
+        def _load_content():
+            with open(latest_content_path, 'r', encoding='utf-8') as f:
+                return json.load(f)
+        
+        content = await asyncio.to_thread(_load_content)
         
         # Build section list with headings
         sections_info = []
@@ -799,8 +831,8 @@ Only return valid matches where the image content clearly relates to the section
                 'width': 480  # 5 inches at 96 DPI
             }
             
-            # Insert after heading
-            result = insert_content_after_heading(heading, image_element)
+            # Insert after heading (wrap blocking call)
+            result = await asyncio.to_thread(insert_content_after_heading, heading, image_element)
             
             if result.startswith("Error"):
                 errors.append(f"{image_name}: {result}")
@@ -832,7 +864,6 @@ Only return valid matches where the image content clearly relates to the section
 
 # List of all available tools for the agent
 TOOLS: List[Callable[..., Any]] = [
-    search,
     get_sections,
     get_content,
     get_content_by_heading,

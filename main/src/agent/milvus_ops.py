@@ -585,6 +585,12 @@ class MilvusOps:
             raise ValueError("No chunks provided for vectorization")
         
         try:
+            # Ensure the directory containing the database exists
+            db_dir = os.path.dirname(self.db_path)
+            if db_dir and not os.path.exists(db_dir):
+                os.makedirs(db_dir, exist_ok=True)
+                print(f"Created directory for database: {db_dir}")
+            
             # Remove existing database if it exists
             if os.path.exists(self.db_path):
                 os.remove(self.db_path)
