@@ -31,7 +31,7 @@
     },
     {
       "type": "paragraph",
-      "text": "Executive Overview - Tony Stark"
+      "text": "Executive Overview"
     },
     {
       "type": "paragraph",
@@ -79,7 +79,7 @@
     {
       "type": "heading",
       "level": 2,
-      "text": "Executive Overview - Tony Stark"
+      "text": "Executive Overview"
     },
     {
       "type": "paragraph",
@@ -117,14 +117,13 @@
     {
       "type": "heading",
       "level": 1,
-      "text": "About TechCorp / CPX"
+      "text": "About CPX"
     },
     {
       "type": "heading",
       "level": 2,
       "text": "CPX Purpose & Value"
     },
-    
     {
       "type": "paragraph",
       "text": "CPX is a leading technology solutions provider specializing in enterprise-grade systems integration, custom software development, and digital transformation initiatives. Our purpose is to deliver innovative solutions that drive business growth and operational excellence."
@@ -134,7 +133,6 @@
       "level": 2,
       "text": "Key Information"
     },
-    
     {
       "type": "paragraph",
       "text": "• Founded: 2015"

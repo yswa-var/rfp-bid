@@ -168,7 +168,7 @@ class GeneralAssistantAgent:
     def query_documents(self, state: MessagesState) -> Dict[str, Any]:
         # Use dynamic path resolution instead of hard-coded path
         base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-        session_db_path = os.path.join(base_dir, "session.db")
+        session_db_path = "/Users/yash/Documents/rfp/rfp-bid/main/src/agent/session.db"
         
         # Check if session.db exists
         if not os.path.exists(session_db_path):
